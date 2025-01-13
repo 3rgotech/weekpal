@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "types": ["@testing-library/jest-dom"],
+    "allowJs": true,
+    "jsx": "react",
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "outDir": "./dist"
+  },
+  "include": [
+    "assets.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/types.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "public",
+    "app/bootstrap/ssr"
+  ]
+}
