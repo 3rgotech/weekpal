@@ -1,0 +1,12 @@
+# Arborescence des composants :
+ - DataContext
+   - MainPage
+     - TopBar
+       - Logo
+       - WeekSelector
+       - CategoryFilter
+       - Menu
+     - MainContent
+       - TaskList (props : columnCount)
+          - Task
+ - IconButton
