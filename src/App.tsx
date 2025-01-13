@@ -1,6 +1,8 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
+import { Icon } from "./components/Icon";
+import { CheckCheck } from "lucide-react";
 
 function App() {
   return (
@@ -18,6 +20,7 @@ function App() {
         >
           Learn React
         </a>
+        <Icon icon={CheckCheck} color="red" size={48} />
       </header>
     </div>
   );
