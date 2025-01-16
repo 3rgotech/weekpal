@@ -1,7 +1,7 @@
-import React, { JSX } from "react";
+import React from "react";
 
 interface IconProps {
-  icon: JSX.Element;
+  icon: React.ElementType; // Utiliser React.ElementType pour un composant JSX
   color: string;
   size: number;
 }

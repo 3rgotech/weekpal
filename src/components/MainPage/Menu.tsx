@@ -1,33 +1,49 @@
-import React, { useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import React from "react";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
 
-const Menu: React.FC = () => {
-    const [showModal, setShowModal] = useState(false);
+interface MenuProps {
+    title: React.ReactNode; // Accepte du texte ou du JSX
+  }
 
-    const handleOpenModal = () => setShowModal(true);
-    const handleCloseModal = () => setShowModal(false);
-
+const Menu: React.FC<MenuProps> = ({ title }) => {
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  
     return (
-        <div>
-            <Button variant="primary" onClick={handleOpenModal}>
-                Open Menu
-            </Button>
-
-            <Modal show={showModal} onHide={handleCloseModal}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Menu</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <p>Menu content goes here...</p>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseModal}>
-                        Close
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </div>
+      <>
+        <Button onPress={onOpen}>{title}</Button>
+        <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+          <ModalContent>
+            {(onClose) => (
+              <>
+                <ModalHeader className="flex flex-col gap-1">{title}</ModalHeader>
+                <ModalBody>
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pulvinar risus non
+                    risus hendrerit venenatis. Pellentesque sit amet hendrerit risus, sed porttitor
+                    quam.
+                  </p>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Close
+                  </Button>
+                  <Button color="primary" onPress={onClose}>
+                    Action
+                  </Button>
+                </ModalFooter>
+              </>
+            )}
+          </ModalContent>
+        </Modal>
+      </>
     );
-};
-
+  };
 export default Menu;

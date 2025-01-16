@@ -6,6 +6,7 @@ function App() {
   return (
     <NextUIProvider>
       <MainPage />
+      
     </NextUIProvider>
   );
 }
