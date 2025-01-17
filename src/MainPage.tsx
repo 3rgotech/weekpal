@@ -4,14 +4,13 @@ import MainContent from "./components/MainContent/MainContent";
 
 const MainPage = () => {
   return (
-    <div>
-      <header className="flex flex-col items-center">
-        <TopBar />
+    <div className="h-screen flex flex-col items-stretch">
+      <header className="flex-none">
+      <TopBar />
       </header>
-      <div>
+      <div className="flex-grow overflow-auto">
       <MainContent />
       </div>
-      
     </div>
   );
 };

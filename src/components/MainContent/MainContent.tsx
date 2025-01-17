@@ -1,32 +1,38 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Days from './Days';
+import { DataContext } from '../../contexts/DataContext';
 
 const MainContent: React.FC = () => {
-    return (
-<div className="p-4 h-screen flex flex-col">
-  {/* Section principale avec les jours */}
-  <div className="grid grid-cols-6 gap-4 mb-4 flex-grow"> {/* 6 colonnes pour les jours */}
-    <div className="col-span-1 border rounded-lg p-4"> {/* Day 1 */}</div>
-    <div className="col-span-1 border rounded-lg p-4"> {/* Day 2 */}</div>
-    <div className="col-span-1 border rounded-lg p-4"> {/* Day 3 */}</div>
-    <div className="col-span-1 border rounded-lg p-4"> {/* Day 4 */}</div>
-    <div className="col-span-1 border rounded-lg p-4"> {/* Day 5 */}</div>
-
-    <div className="col-span-1 space-y-4 flex flex-col"> {/* Day 6 et 7 */}
-      <div className="border rounded-lg p-4 flex-grow">{/* Day 6 */}</div>
-      <div className="border rounded-lg p-4 flex-grow">{/* Day 7 */}</div>
+  const { currentDate } = useContext(DataContext);
+  // Obtenir le premier jour de la semaine (lundi)
+  const firstDayOfWeek = currentDate.startOf('isoWeek');
+  return (
+    <div className="p-4 h-full flex flex-col">
+    <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4">
+      {[...Array(9).keys()].map((i) => {
+        const dayNumber = i <= 6 ? i : 0;
+        const day = firstDayOfWeek.add(dayNumber, 'day');
+        let title = day.format('dddd DD');
+        let gridCls = "col-span-1 row-span-2";
+        if (i === 5 || i === 6) {
+          gridCls = "col-span-1 row-span-1";
+        }
+        else if (i === 7) {
+          title = "This week";
+          gridCls = 'col-span-3 row-span-1';
+        } else if (i === 8) {
+          title = "One day";
+          gridCls = 'col-span-3 row-span-1';
+        }
+        return (
+          <div className={`${gridCls} border rounded-lg p-4`} key={i}>
+            <Days title={title} dayNumber={dayNumber} />
+          </div>
+        );
+      })}
     </div>
-  </div>
-
-  {/* Section "Someday" */}
-  <div className="flex gap-4 h-1/4"> {/* Section Someday occupe 1/4 de l'écran */}
-    <div className="flex-1 border rounded-lg p-4">{/* Someday Section 1 */}</div>
-    <div className="flex-1 border rounded-lg p-4">{/* Someday Section 2 */}</div>
-  </div>
-</div>
-
-
-    );
+    </div>
+  );
 };
 
 export default MainContent;

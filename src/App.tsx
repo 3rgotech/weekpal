@@ -1,13 +1,16 @@
 import { NextUIProvider } from "@nextui-org/react";
 import React from "react";
 import MainPage from "./MainPage";
+import { DataProvider } from "./contexts/DataContext";
 
 function App() {
   return (
-    <NextUIProvider>
-      <MainPage />
-      
-    </NextUIProvider>
+    <DataProvider>
+      <NextUIProvider>
+        <MainPage />
+        
+      </NextUIProvider>
+    </DataProvider>
   );
 }
 

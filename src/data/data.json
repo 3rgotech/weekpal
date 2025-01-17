@@ -1,0 +1,21 @@
+{
+    "2025w03" : {
+        "0" : [
+            {
+                "type": "task",
+                "done": false,
+                "title": "Hello world",
+                "category": "work"
+            }
+    ],
+        "1" : [],
+        "2" : [],
+        "3" : [],
+        "4" : [],
+        "5" : [],
+        "6" : [],
+        "this_week" : []    
+    },
+    "one_day": []
+
+}
