@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "target": "ESNext",
     "lib": [
@@ -7,7 +9,7 @@
       "DOM.Iterable",
       "ESNext"
     ],
-    "types": ["@testing-library/jest-dom"],
+    "types": ["@testing-library/jest-dom", "node"],
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
