@@ -106,7 +106,7 @@
         "3" : [
             {
                 "type": "task",
-                "done": false,
+                "done": true,
                 "title": "Hello world",
                 "category": "work",
                 "description" : "description"
@@ -115,7 +115,7 @@
         "4" : [
             {
                 "type": "task",
-                "done": false,
+                "done": true,
                 "title": "Hello world",
                 "category": "work",
                 "description" : "description"

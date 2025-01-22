@@ -26,7 +26,7 @@ const TopBar: React.FC = () => {
                 <Menu {...SyncSvg} />
                 <Menu {...PrintSvg} />
                 <Menu {...SettingsSvg} />
-                <Menu {...UserSvg} />
+                <Menu {...UserSvg} />   
             </div>
         </div>
     );

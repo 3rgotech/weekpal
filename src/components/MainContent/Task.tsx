@@ -28,22 +28,24 @@ const Task: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
 
     return (
         <div>
-            <h2>Tâches - Semaine {weekNumber}, Jour {dayNumber}</h2>
+            
             {tasks.length > 0 ? (
                 <ul>
                     {tasks.map((task, index) => (
+                        
                         <li key={index} className={`task ${task.done ? 'done' : ''}`}>
+                            <h2>{task.type}</h2>
                             <h3>{task.title}</h3>
-                            <p>Catégorie : {task.category}</p>
+                            <p>Category : {task.category}</p>
                             <p>Description : {task.description}</p>
                             <label>
-                                Fait : <input type="checkbox" checked={task.done} readOnly />
+                                Done : <input type="checkbox" checked={task.done} readOnly />
                             </label>
                         </li>
                     ))}
                 </ul>
             ) : (
-                <p>Aucune tâche pour cette journée.</p>
+                <p>No tasks for this day.</p>
             )}
         </div>
     );
