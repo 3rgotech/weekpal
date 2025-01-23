@@ -144,9 +144,9 @@
             {
                 "type": "task",
                 "done": false,
-                "title": "Hello world",
+                "title": "this week 4",
                 "category": "work",
-                "description" : "description"
+                "description" : "la 4e semaine"
             }
         ]    
     },
@@ -229,9 +229,9 @@
         {
             "type": "task",
             "done": false,
-            "title": "Hello world",
+            "title": "one_day",
             "category": "work",
-                "description" : "description"
+                "description" : "one_day"
             }
     ]
 

@@ -14,7 +14,7 @@ const MainContent: React.FC = () => {
     <div className="p-4 h-full flex flex-col">
       <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4">
         {[...Array(9).keys()].map((i) => {
-          const dayNumber = i <= 6 ? i : 0; // Jour spécifique ou valeur par défaut
+          const dayNumber = i <= 8 ? i : 0; // Jour spécifique ou valeur par défaut
           const day = firstDayOfWeek.add(dayNumber, 'day');
           let title = day.format('dddd DD');
           let gridCls = "col-span-1 row-span-2";
@@ -32,10 +32,11 @@ const MainContent: React.FC = () => {
           return (
             <div className={`${gridCls} border rounded-lg p-4`} key={i}>
               <Days title={title} dayNumber={dayNumber} />
-              {i <= 6 && (
+              {i <= 8 && (
                 // Afficher les tâches seulement pour les jours spécifiques de la semaine
                 <Task weekNumber={currentWeekNumber} dayNumber={dayNumber} />
               )}
+              
             </div>
           );
         })}
