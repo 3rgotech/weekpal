@@ -20,7 +20,7 @@ const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories = [], onCate
       <label htmlFor="category-select">
       </label>
       <select id="category-select" value={selectedCategory} onChange={handleCategoryChange}>
-        <option value="">{SettingsSvg.title} {/* je veux le svg ici */}</option>
+        {/* <option value="">{SettingsSvg.title} je veux le svg ici</option> */}
         {categories.map((category) => (
           <option key={category} value={category}>
             {category}

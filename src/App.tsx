@@ -5,12 +5,11 @@ import { DataProvider } from "./contexts/DataContext";
 
 function App() {
   return (
-    <DataProvider>
-      <NextUIProvider>
+    <NextUIProvider>
+      <DataProvider>
         <MainPage />
-        
-      </NextUIProvider>
-    </DataProvider>
+      </DataProvider> 
+    </NextUIProvider>
   );
 }
 
