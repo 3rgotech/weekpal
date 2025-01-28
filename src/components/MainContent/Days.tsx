@@ -47,30 +47,6 @@ const Days: React.FC<DaysProps> = ({ title, dayNumber, weekNumber }) => {
     addTask(dayNumber, newTask)
 
 
-    // const storedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
-    // const parsedTasks = storedTasks ? JSON.parse(storedTasks) : {};
-    // const weekKey = `2025w${String(weekNumber).padStart(2, '0')}`;
-
-    // if (!parsedTasks[weekKey]) {
-    //   parsedTasks[weekKey] = {
-    //     0: [],
-    //     1: [],
-    //     2: [],
-    //     3: [],
-    //     4: [],
-    //     5: [],
-    //     6: [],
-    //     this_week: [],
-    //   };
-    // }
-
-    // if (dayNumber === 7) {
-    //   parsedTasks[weekKey]['this_week'].push(newTask);
-    // } else {
-    //   parsedTasks[weekKey][dayNumber].push(newTask);
-    // }
-
-    // localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsedTasks));
     setNewTask({
       type: '',
       title: '',

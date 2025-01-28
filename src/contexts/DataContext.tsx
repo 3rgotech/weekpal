@@ -24,6 +24,7 @@ interface DataContextProps {
     completeTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
     uncompleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
     moveTask: (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => void;
+    deleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
 }
 
 const defaultWeekData: WeekTaskList = {
@@ -121,15 +122,49 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const uncompleteTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
         updateTask(dayOfWeek, taskId, { completed_at: null });
     }
+    
+    const deleteTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
+        setTasks((prevTasks) => {
+            const updatedTasks = {
+                ...prevTasks,
+                [dayOfWeek]: prevTasks[dayOfWeek].filter((task) => task.id !== taskId),
+            };
+    
+            // Mettre à jour le localStorage
+            setTasksStorage((prev) => ({
+                ...prev,
+                [currentWeek]: updatedTasks,
+            }));
+    
+            return updatedTasks;
+        });
+    };
+    
+      
 
     const moveTask = (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => {
         // TODO
     }
 
     return (
-        <DataContext.Provider value={{ tasks, currentDate, goToPreviousWeek, goToNextWeek, goToToday, addTask, updateTask, completeTask, uncompleteTask, moveTask }}>
-            {children}
-        </DataContext.Provider>
+        <DataContext.Provider
+  value={{
+    tasks,
+    currentDate,
+    goToPreviousWeek,
+    goToNextWeek,
+    goToToday,
+    addTask,
+    updateTask,
+    completeTask,
+    uncompleteTask,
+    moveTask,
+    deleteTask,
+  }}
+>
+  {children}
+</DataContext.Provider>
+
     );
 };
 
