@@ -4,6 +4,7 @@ export interface Task {
   description: string;
   completed_at: string | null;
   order: number;
+  category: string; // Ajout de la propriété manquante
 }
 
 export interface WeekTaskList {
@@ -23,4 +24,12 @@ export interface WeekTaskList {
 
 export interface TaskList {
   [weekCode: string]: WeekTaskList;
+}
+
+export interface DataContextProps {
+  tasks: Record<keyof WeekTaskList, Task[]>;
+  completeTask: (day: keyof WeekTaskList, taskId: string) => void;
+  uncompleteTask: (day: keyof WeekTaskList, taskId: string) => void;
+  deleteTask: (day: keyof WeekTaskList, taskId: string) => void;
+  currentWeekNumber: number; // Ajout de la propriété manquante
 }

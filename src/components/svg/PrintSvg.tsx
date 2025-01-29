@@ -21,5 +21,5 @@ const PrintSvg = {
 </svg>
     ),
 };
-
+    
 export default PrintSvg;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Logo from './Logo';
 import WeekSelector from './WeekSelector';
 import CategoryFilter from './CategoryFilter';
@@ -8,28 +8,31 @@ import PrintSvg from '../svg/PrintSvg';
 import SyncSvg from '../svg/SyncSvg';
 import SettingsSvg from '../svg/SettingsSvg';
 
-const categories = ['Technology', 'Health', 'Business', 'Education']; // Exemple de catégories
+const categories = ['all', 'Urgent', 'todo', 'when possible'];
 
-const handleCategorySelect = (category: string) => {
-    console.log('Category selected:', category); // Logique de gestion de la catégorie sélectionnée
-};
+const TopBar: React.FC<{ onCategoryChange: (category: string) => void }> = ({ onCategoryChange }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-const TopBar: React.FC = () => {
-    return (
-        <div className="top-bar flex items-center justify-between w-full p-4">
-            <div className="flex items-center">
-                <Logo />
-                <WeekSelector />
-            </div>
-            <div className="flex items-center">
-                <CategoryFilter categories={categories} onCategorySelect={handleCategorySelect} />
-                <Menu {...SyncSvg} />
-                <Menu {...PrintSvg} />
-                <Menu {...SettingsSvg} />
-                <Menu {...UserSvg} />   
-            </div>
-        </div>
-    );
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    onCategoryChange(category);
+  };
+
+  return (
+    <div className="top-bar flex items-center justify-between w-full p-4">
+      <div className="flex items-center">
+        <Logo />
+        <WeekSelector />
+      </div>
+      <div className="flex items-center">
+        <CategoryFilter categories={categories} onCategorySelect={handleCategorySelect} />
+        <Menu {...SyncSvg} />
+        <Menu {...PrintSvg} />
+        <Menu {...SettingsSvg} />
+        <Menu {...UserSvg} />
+      </div>
+    </div>
+  );
 };
 
 export default TopBar;

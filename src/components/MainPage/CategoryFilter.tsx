@@ -1,36 +1,20 @@
-import React, { useState } from 'react';
-import SettingsSvg from '../svg/SettingsSvg';
+import React from 'react';
 
 interface CategoryFilterProps {
-  categories: string[];
-  onCategorySelect: (category: string) => void;
+  onCategoryChange: (category: string) => void;
 }
 
-const CategoryFilter: React.FC<CategoryFilterProps> = ({ categories = [], onCategorySelect }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+const categories = ['all', 'work', 'personal', 'other'];
 
-  const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const category = event.target.value;
-    setSelectedCategory(category);
-    onCategorySelect(category);
-  };
-
+const CategoryFilter: React.FC<CategoryFilterProps> = ({ onCategoryChange }) => {
   return (
-    <div>
-      <label htmlFor="category-select">
-      </label>
-      <select id="category-select" value={selectedCategory} onChange={handleCategoryChange}>
-        {/* <option value="">{SettingsSvg.title} je veux le svg ici</option> */}
-        {categories.map((category) => (
-          <option key={category} value={category}>
-            {category}
-          </option>
-        ))}
-      </select>
-      <button onClick={() => document.getElementById('category-select')?.focus()}>
-        Focus Select
-      </button>
-    </div>
+    <select onChange={(e) => onCategoryChange(e.target.value)} className="p-2 border rounded">
+      {categories.map((category) => (
+        <option key={category} value={category}>
+          {category}
+        </option>
+      ))}
+    </select>
   );
 };
 

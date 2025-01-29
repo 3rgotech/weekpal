@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   Modal,
   ModalContent,
@@ -14,9 +14,10 @@ import { Task, WeekTaskList } from '../../types';
 interface TaskProps {
   weekNumber: number;
   dayNumber: keyof WeekTaskList;
+  selectedCategory: string;
 }
 
-const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
+const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber, selectedCategory }) => {
   const { tasks, completeTask, uncompleteTask, deleteTask } = useContext(DataContext);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -28,26 +29,31 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
 
   const handleDeleteTask = () => {
     if (selectedTask) {
-      deleteTask(dayNumber, selectedTask.id); // Appel à la fonction deleteTask
-      setSelectedTask(null); // Réinitialiser la tâche sélectionnée
-      onOpenChange(); // Fermer la modale
+      deleteTask(dayNumber, selectedTask.id);
+      setSelectedTask(null);
+      onOpenChange();
     }
   };
 
-  if (!tasks) {
-    return null;
-  }
+  if (!tasks) return null;
+
+  // Filtrage des tâches selon la catégorie sélectionnée
+  const filteredTasks = (tasks[dayNumber] ?? []).filter(
+    (task) => selectedCategory === 'all' || task.category === selectedCategory
+  );
 
   return (
     <div>
       <ul>
-        {(tasks[dayNumber] ?? []).map((task) => (
+        {filteredTasks.map((task) => (
           <li
             key={task.id}
-            className={`p-4 border rounded-lg mb-2 ${task.completed_at !== null ? 'line-through text-gray-500' : ''
-              }`}
+            className={`p-4 border rounded-lg mb-2 ${
+              task.completed_at !== null ? 'line-through text-gray-500' : ''
+            }`}
           >
             <h3 className="text-md font-medium">{task.title}</h3>
+            <p><strong>Category:</strong> {task.category}</p>
 
             <label className="flex items-center space-x-2">
               <span>Done:</span>
@@ -57,16 +63,12 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
                 onChange={(e) => {
                   e.target.checked
                     ? completeTask(dayNumber, task.id)
-                    : uncompleteTask(dayNumber, task.id)
+                    : uncompleteTask(dayNumber, task.id);
                 }}
                 className="cursor-pointer"
               />
             </label>
-            <Button
-              onPress={() => openTaskDetails(task)}
-              className="mt-2"
-              color="primary"
-            >
+            <Button onPress={() => openTaskDetails(task)} className="mt-2" color="primary">
               View Details
             </Button>
           </li>
@@ -82,13 +84,8 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
                 {selectedTask.title}
               </ModalHeader>
               <ModalBody>
-                <p>
-                  <strong>Description:</strong> {selectedTask.description}
-                </p>
-                <p>
-                  <strong>Status:</strong>{' '}
-                  {selectedTask.completed_at !== null ? 'Completed' : 'Not Completed'}
-                </p>
+                <p><strong>Description:</strong> {selectedTask.description}</p>
+                <p><strong>Status:</strong> {selectedTask.completed_at !== null ? 'Completed' : 'Not Completed'}</p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onOpenChange}>

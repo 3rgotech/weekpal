@@ -6,6 +6,7 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Task, TaskList, WeekTaskList } from '../types';
 
+
 // Ajouter le plugin weekOfYear
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
@@ -15,6 +16,7 @@ const LOCAL_STORAGE_KEY = 'tasks';
 
 interface DataContextProps {
     currentDate: dayjs.Dayjs;
+    currentWeekNumber: number;  // ✅ Ajout de currentWeekNumber
     tasks: WeekTaskList | null;
     goToPreviousWeek: () => void;
     goToNextWeek: () => void;
@@ -25,6 +27,8 @@ interface DataContextProps {
     uncompleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
     moveTask: (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => void;
     deleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
+    selectedCategory: string;
+    setSelectedCategory: (category: string) => void;
 }
 
 const defaultWeekData: WeekTaskList = {
@@ -140,7 +144,9 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         });
     };
     
-      
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const currentWeekNumber = currentDate.isoWeek(); // ✅ Définit le numéro de semaine
+
 
     const moveTask = (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => {
         // TODO
@@ -151,6 +157,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   value={{
     tasks,
     currentDate,
+    currentWeekNumber, // ✅ Ajout au Provider
     goToPreviousWeek,
     goToNextWeek,
     goToToday,
@@ -160,6 +167,8 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     uncompleteTask,
     moveTask,
     deleteTask,
+    selectedCategory,
+    setSelectedCategory,
   }}
 >
   {children}
