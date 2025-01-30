@@ -10,7 +10,11 @@ import SettingsSvg from '../svg/SettingsSvg';
 
 const categories = ['all', 'Urgent', 'todo', 'when possible'];
 
-const TopBar: React.FC<{ onCategoryChange: (category: string) => void }> = ({ onCategoryChange }) => {
+interface TopBarProps {
+  onCategoryChange: (category: string) => void;
+}
+
+const TopBar: React.FC<TopBarProps> = ({ onCategoryChange }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const handleCategorySelect = (category: string) => {
