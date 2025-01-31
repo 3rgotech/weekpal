@@ -5,10 +5,9 @@ import { DataContext } from '../../contexts/DataContext';
 import { WeekTaskList } from '../../types';
 
 interface MainContentProps {
-  selectedCategory: string; // ✅ Ajout de la prop
 }
 
-const MainContent: React.FC<MainContentProps> = ({ selectedCategory }) => { // ✅ Utilisation correcte de la prop
+const MainContent: React.FC<MainContentProps> = () => {
   const { currentDate } = useContext(DataContext);
 
   // Obtenir le premier jour de la semaine (lundi)
@@ -30,17 +29,17 @@ const MainContent: React.FC<MainContentProps> = ({ selectedCategory }) => { // �
           return (
             <div className={`${gridCls} border rounded-lg p-4`} key={i}>
               <Days title={title} dayNumber={`${i+1}` as keyof WeekTaskList} weekNumber={currentWeekNumber} />
-              <TaskList weekNumber={currentWeekNumber} dayNumber={`${i+1}` as keyof WeekTaskList} selectedCategory={selectedCategory}/>
+              <TaskList weekNumber={currentWeekNumber} dayNumber={`${i+1}` as keyof WeekTaskList} />
             </div>
           );
         })}
         <div className={`col-span-3 row-span-1 border rounded-lg p-4`}>
           <Days title={"This week"} dayNumber={'0'} weekNumber={currentWeekNumber} />
-          <TaskList weekNumber={currentWeekNumber} dayNumber={'0'} selectedCategory={selectedCategory} />
+          <TaskList weekNumber={currentWeekNumber} dayNumber={'0'} />
         </div>
         <div className={`col-span-3 row-span-1 border rounded-lg p-4`}>
           <Days title={"One day"} dayNumber={"someday"} weekNumber={currentWeekNumber} />
-          <TaskList weekNumber={currentWeekNumber} dayNumber={"someday"} selectedCategory={selectedCategory} />
+          <TaskList weekNumber={currentWeekNumber} dayNumber={"someday"} />
         </div>
       </div>
     </div>

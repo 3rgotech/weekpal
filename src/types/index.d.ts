@@ -4,7 +4,7 @@ export interface Task {
   description: string;
   completed_at: string | null;
   order: number;
-  category: string; // Ajout de la propriété manquante
+  category: number|null; // Ajout de la propriété manquante
 }
 
 export interface WeekTaskList {
@@ -32,4 +32,11 @@ export interface DataContextProps {
   uncompleteTask: (day: keyof WeekTaskList, taskId: string) => void;
   deleteTask: (day: keyof WeekTaskList, taskId: string) => void;
   currentWeekNumber: number; // Ajout de la propriété manquante
+}
+
+
+export interface Category {
+  id: number;
+  label: string;
+  color: string;
 }

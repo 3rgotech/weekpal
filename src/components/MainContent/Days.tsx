@@ -25,35 +25,27 @@ interface DaysProps {
 interface TaskItem {
   type: string;
   title: string;
-  category: string;
+  category: number | null;
   description: string;
-  done: boolean;
 }
 
 const LOCAL_STORAGE_KEY = 'tasks';
 
+const defaultFormData: TaskItem = {
+  type: '',
+  title: '',
+  category: null,
+  description: ''
+};
+
 const Days: React.FC<DaysProps> = ({ title, dayNumber, weekNumber }) => {
-  const { addTask } = useContext(DataContext);
+  const { addTask, categoryList } = useContext(DataContext);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [newTask, setNewTask] = useState<TaskItem>({
-    type: '',
-    title: '',
-    category: '',
-    description: '',
-    done: false,
-  });
+  const [newTask, setNewTask] = useState<TaskItem>(defaultFormData);
 
   const handleAddTask = () => {
-    addTask(dayNumber, newTask)
-
-
-    setNewTask({
-      type: '',
-      title: '',
-      category: '',
-      description: '',
-      done: false,
-    });
+    addTask(dayNumber, newTask);
+    setNewTask(defaultFormData);
     onOpenChange(); // Fermer la modale
   };
 
@@ -94,13 +86,17 @@ const Days: React.FC<DaysProps> = ({ title, dayNumber, weekNumber }) => {
                     className="border p-2 w-full"
                     required
                   />
-                  <input
-                    type="text"
-                    placeholder="Category"
-                    value={newTask.category}
-                    onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                  <select
+                    onChange={(e) => setNewTask({ ...newTask, category: (e.target.value.length === 0 ? null : parseInt(e.target.value, 10)) })}
                     className="border p-2 w-full"
-                  />
+                  >
+                    <option value="" selected={newTask.category === null}>All</option>
+                    {categoryList.map((category) => (
+                      <option key={category.id} value={category.id} selected={category.id === newTask.category}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </select>
                   <textarea
                     placeholder="Description"
                     value={newTask.description}

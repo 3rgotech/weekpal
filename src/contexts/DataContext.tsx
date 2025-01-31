@@ -4,7 +4,7 @@ import weekOfYear from 'dayjs/plugin/weekOfYear';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Task, TaskList, WeekTaskList } from '../types';
+import { Category, Task, TaskList, WeekTaskList } from '../types';
 
 
 // Ajouter le plugin weekOfYear
@@ -27,8 +27,9 @@ interface DataContextProps {
     uncompleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
     moveTask: (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => void;
     deleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
-    selectedCategory: string;
-    setSelectedCategory: (category: string) => void;
+    categoryList: Array<Category>;
+    selectedCategory: number | null;
+    setSelectedCategory: (category: number | null) => void;
 }
 
 const defaultWeekData: WeekTaskList = {
@@ -43,23 +44,22 @@ const defaultWeekData: WeekTaskList = {
     "someday": [],
 }
 
+const categories: Array<Category> = [
+    { id: 1, label: 'Urgent', color: 'red' },
+    { id: 2, label: 'todo', color: 'blue' },
+    { id: 3, label: 'when possible', color: 'green' }
+];
+
 const DataContext = createContext<DataContextProps | undefined>(undefined);
 
 const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [taskStorage, setTasksStorage] = useLocalStorage<TaskList>(LOCAL_STORAGE_KEY, {});
-    const [tasks, setTasks] = useState<WeekTaskList | null>(null);
+    const [tasks, setTasks] = useState<WeekTaskList>(defaultWeekData);
     const [currentDate, setCurrentDate] = useState(dayjs());
     const [highestId, setHighestId] = useState<number>(0);
+    const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-    const goToPreviousWeek = () => {
-        setCurrentDate(cd => cd.subtract(1, 'week'));
-    }
-    const goToNextWeek = () => {
-        setCurrentDate(cd => cd.add(1, 'week'));
-    }
-    const goToToday = () => {
-        setCurrentDate(dayjs());
-    }
+    const currentWeekNumber = currentDate.isoWeek(); // ✅ Définit le numéro de semaine
     const currentWeek = currentDate.format('YYYY[w]WW');
 
     useEffect(() => {
@@ -74,9 +74,34 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }, [taskStorage]);
 
     useEffect(() => {
-        setTasks(taskStorage[currentWeek] ?? defaultWeekData);
-    }, [currentDate])
-    console.log(taskStorage, tasks);
+        console.log(selectedCategory)
+        const allWeekTasks = taskStorage[currentWeek] ?? defaultWeekData;
+        if (selectedCategory === null) {
+            setTasks(allWeekTasks);
+        } else {
+            setTasks(
+                Object.fromEntries(
+                    Object.keys(defaultWeekData)
+                        .map((dayOfWeek) => ([
+                            dayOfWeek,
+                            allWeekTasks[dayOfWeek].filter(task => task.category === selectedCategory)
+                        ]))
+                ) as WeekTaskList
+            );
+        }
+
+    }, [currentDate, selectedCategory])
+    // console.log(taskStorage, tasks);
+
+    const goToPreviousWeek = () => {
+        setCurrentDate(cd => cd.subtract(1, 'week'));
+    }
+    const goToNextWeek = () => {
+        setCurrentDate(cd => cd.add(1, 'week'));
+    }
+    const goToToday = () => {
+        setCurrentDate(dayjs());
+    }
 
     const addTask = (dayOfWeek: keyof WeekTaskList, taskData: Partial<Task>) => {
         if (!tasks) {
@@ -88,9 +113,11 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             title: taskData.title,
             description: taskData.description ?? null,
             order: tasks[dayOfWeek].length,
+            completed_at: null,
+            category: taskData.category ?? null,
         };
 
-        console.log(dayOfWeek, task);
+        // console.log(dayOfWeek, task);
 
         setTasks((prevTasks) => ({ ...prevTasks, [dayOfWeek]: [...prevTasks[dayOfWeek], task] }));
         setTasksStorage((prevTasks) => ({
@@ -126,26 +153,23 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const uncompleteTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
         updateTask(dayOfWeek, taskId, { completed_at: null });
     }
-    
+
     const deleteTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
         setTasks((prevTasks) => {
             const updatedTasks = {
                 ...prevTasks,
                 [dayOfWeek]: prevTasks[dayOfWeek].filter((task) => task.id !== taskId),
             };
-    
+
             // Mettre à jour le localStorage
             setTasksStorage((prev) => ({
                 ...prev,
                 [currentWeek]: updatedTasks,
             }));
-    
+
             return updatedTasks;
         });
     };
-    
-    const [selectedCategory, setSelectedCategory] = useState<string>('all');
-    const currentWeekNumber = currentDate.isoWeek(); // ✅ Définit le numéro de semaine
 
 
     const moveTask = (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => {
@@ -154,25 +178,26 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
     return (
         <DataContext.Provider
-  value={{
-    tasks,
-    currentDate,
-    currentWeekNumber, // ✅ Ajout au Provider
-    goToPreviousWeek,
-    goToNextWeek,
-    goToToday,
-    addTask,
-    updateTask,
-    completeTask,
-    uncompleteTask,
-    moveTask,
-    deleteTask,
-    selectedCategory,
-    setSelectedCategory,
-  }}
->
-  {children}
-</DataContext.Provider>
+            value={{
+                tasks,
+                currentDate,
+                currentWeekNumber, // ✅ Ajout au Provider
+                goToPreviousWeek,
+                goToNextWeek,
+                goToToday,
+                addTask,
+                updateTask,
+                completeTask,
+                uncompleteTask,
+                moveTask,
+                deleteTask,
+                categoryList: categories,
+                selectedCategory,
+                setSelectedCategory,
+            }}
+        >
+            {children}
+        </DataContext.Provider>
 
     );
 };

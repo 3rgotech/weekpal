@@ -8,19 +8,10 @@ import PrintSvg from '../svg/PrintSvg';
 import SyncSvg from '../svg/SyncSvg';
 import SettingsSvg from '../svg/SettingsSvg';
 
-const categories = ['all', 'Urgent', 'todo', 'when possible'];
-
 interface TopBarProps {
-  onCategoryChange: (category: string) => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onCategoryChange }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  const handleCategorySelect = (category: string) => {
-    setSelectedCategory(category);
-    onCategoryChange(category);
-  };
+const TopBar: React.FC<TopBarProps> = () => {
 
   return (
     <div className="top-bar flex items-center justify-between w-full p-4">
@@ -29,7 +20,7 @@ const TopBar: React.FC<TopBarProps> = ({ onCategoryChange }) => {
         <WeekSelector />
       </div>
       <div className="flex items-center">
-        <CategoryFilter categories={categories} onCategorySelect={handleCategorySelect} />
+        <CategoryFilter />
         <Menu {...SyncSvg} />
         <Menu {...PrintSvg} />
         <Menu {...SettingsSvg} />

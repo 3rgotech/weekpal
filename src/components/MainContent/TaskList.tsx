@@ -14,11 +14,10 @@ import { Task, WeekTaskList } from '../../types';
 interface TaskProps {
   weekNumber: number;
   dayNumber: keyof WeekTaskList;
-  selectedCategory: string;
 }
 
-const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber, selectedCategory }) => {
-  const { tasks, completeTask, uncompleteTask, deleteTask } = useContext(DataContext);
+const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
+  const { tasks, categoryList, completeTask, uncompleteTask, deleteTask } = useContext(DataContext);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -35,25 +34,25 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber, selectedCategory
     }
   };
 
-  if (!tasks) return null;
+  // if (!tasks) return null;
 
-  // Filtrage des tâches selon la catégorie sélectionnée
-  const filteredTasks = (tasks[dayNumber] ?? []).filter(
-    (task) => selectedCategory === 'all' || task.category === selectedCategory
-  );
+  console.log("Task List : day=" + dayNumber + " ; tasks=" + (tasks ? tasks[dayNumber].length : 0));
 
   return (
     <div>
       <ul>
-        {filteredTasks.map((task) => (
+        {((tasks ? tasks[dayNumber] : null) ?? []).map((task) => (
           <li
             key={task.id}
-            className={`p-4 border rounded-lg mb-2 ${
-              task.completed_at !== null ? 'line-through text-gray-500' : ''
-            }`}
+            className={`p-4 border rounded-lg mb-2 ${task.completed_at !== null ? 'line-through text-gray-500' : ''
+              }`}
           >
             <h3 className="text-md font-medium">{task.title}</h3>
-            <p><strong>Category:</strong> {task.category}</p>
+            <p>
+              <strong>Category:</strong>
+              {task.category === null && 'Ø'}
+              {task.category !== null && (categoryList.find((c) => c.id === task.category)?.label ?? 'Ø')}
+            </p>
 
             <label className="flex items-center space-x-2">
               <span>Done:</span>
