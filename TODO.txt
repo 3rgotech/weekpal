@@ -1,19 +1,9 @@
-//! 1 Faire la page entiere avec les sous composant
+//! creer les emplacements de drag dans les tasks list
 
-//! 2 Metttre la date de la semaine et mettre le jours sur chaque composant
+//! creer les emplacements dragable dans les tasks 
 
-//! 3 Pouvoir bouger les tasks avec un tab / en ajouter ou en supprimer et le sauvgarder localement
-
-//! 4 Pouvoir changer de semaine 
-
-//! 5 Pouvoir mettre des catégorie sur les taches et les trier par catégorie
-
-//! 6 Pouvoir ouvrir des pop up sans info
-
-//! 7 mettre se qu'on veut dans les pop up
-
-//! 8 Ajouter toutes les actions possible sur une task 
-
-
-afficher les info stocké dans un json de maniere correcte
-Pouvoir les deplacer 
+//! creer la logique qui permet d'enregistrer dans la bdd
+si changement detecté
+verifier dans quel tableau mettre la task 
+décaller tout les elt d'apres de 1 en index
+sauvegarder dans la bdd

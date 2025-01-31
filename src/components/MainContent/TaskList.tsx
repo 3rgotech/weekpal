@@ -34,14 +34,12 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
     }
   };
 
-  // if (!tasks) return null;
-
   console.log("Task List : day=" + dayNumber + " ; tasks=" + (tasks ? tasks[dayNumber].length : 0));
 
   return (
     <div>
       <ul>
-        {((tasks ? tasks[dayNumber] : null) ?? []).map((task) => (
+        {((tasks ? tasks[dayNumber] : null) ?? []).map((task) => ( //todo rajouter un sort pour le sens des tasks
           <li
             key={task.id}
             className={`p-4 border rounded-lg mb-2 ${task.completed_at !== null ? 'line-through text-gray-500' : ''
