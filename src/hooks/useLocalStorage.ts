@@ -27,140 +27,72 @@ export function useLocalStorage<T>(
 ): [T, Dispatch<SetStateAction<T>>, () => void] {
   const { initializeWithValue = true } = options
 
-  const serializer = useCallback<(value: T) => string>(
-    value => {
-      if (options.serializer) {
-        return options.serializer(value)
-      }
-
+  const serializer = (value: T) => {
+    try {
       return JSON.stringify(value)
-    },
-    [options],
-  )
-
-  const deserializer = useCallback<(value: string) => T>(
-    value => {
-      if (options.deserializer) {
-        return options.deserializer(value)
-      }
-      // Support 'undefined' as a value
-      if (value === 'undefined') {
-        return undefined as unknown as T
-      }
-
-      const defaultValue =
-        initialValue instanceof Function ? initialValue() : initialValue
-
-      let parsed: unknown
-      try {
-        parsed = JSON.parse(value)
-      } catch (error) {
-        console.error('Error parsing JSON:', error)
-        return defaultValue // Return initialValue if parsing fails
-      }
-
-      return parsed as T
-    },
-    [options, initialValue],
-  )
-
-  // Get from local storage then
-  // parse stored json or return initialValue
-  const readValue = useCallback((): T => {
-    const initialValueToUse =
-      initialValue instanceof Function ? initialValue() : initialValue
-
-    // Prevent build error "window is undefined" but keep working
-    if (IS_SERVER) {
-      return initialValueToUse
+    } catch (error) {
+      console.error('Error serializing JSON:', error)
+      return ''
     }
+  }
+
+  const deserializer = (value: string) => {
+    try {
+      return JSON.parse(value)
+    } catch (error) {
+      console.error('Error parsing JSON:', error)
+      return initialValue instanceof Function ? initialValue() : initialValue
+    }
+  }
+
+  const readValue = useCallback((): T => {
+    if (typeof window === 'undefined') return initialValue instanceof Function ? initialValue() : initialValue
 
     try {
       const raw = window.localStorage.getItem(key)
-      return raw ? deserializer(raw) : initialValueToUse
+      const parsedValue = raw ? deserializer(raw) : initialValue
+      console.log(`🔄 Reading localStorage key "${key}":`, parsedValue)
+      return parsedValue
     } catch (error) {
-      console.warn(`Error reading localStorage key “${key}”:`, error)
-      return initialValueToUse
+      console.warn(`Error reading localStorage key "${key}":`, error)
+      return initialValue instanceof Function ? initialValue() : initialValue
     }
-  }, [initialValue, key, deserializer])
+  }, [key, initialValue])
 
-  const [storedValue, setStoredValue] = useState(() => {
-    if (initializeWithValue) {
-      return readValue()
-    }
+  const [storedValue, setStoredValue] = useState(readValue)
 
-    return initialValue instanceof Function ? initialValue() : initialValue
-  })
-
-  // Return a wrapped version of useState's setter function that ...
-  // ... persists the new value to localStorage.
-  const setValue: Dispatch<SetStateAction<T>> = useEventCallback(value => {
-    // Prevent build error "window is undefined" but keeps working
-    if (IS_SERVER) {
-      console.warn(
-        `Tried setting localStorage key “${key}” even though environment is not a client`,
-      )
-    }
-
+  const setValue: Dispatch<SetStateAction<T>> = value => {
     try {
-      // Allow value to be a function so we have the same API as useState
       const newValue = value instanceof Function ? value(readValue()) : value
-
-      // Save to local storage
       window.localStorage.setItem(key, serializer(newValue))
-
-      // Save state
       setStoredValue(newValue)
+      console.log(`✅ Saved localStorage key "${key}":`, newValue)
 
-      // We dispatch a custom event so every similar useLocalStorage hook is notified
-      window.dispatchEvent(new StorageEvent('local-storage', { key }))
+      window.dispatchEvent(new CustomEvent('local-storage', { detail: { key } }))
     } catch (error) {
-      console.warn(`Error setting localStorage key “${key}”:`, error)
+      console.warn(`Error setting localStorage key "${key}":`, error)
     }
-  })
-
-  const removeValue = useEventCallback(() => {
-    // Prevent build error "window is undefined" but keeps working
-    if (IS_SERVER) {
-      console.warn(
-        `Tried removing localStorage key “${key}” even though environment is not a client`,
-      )
-    }
-
-    const defaultValue =
-      initialValue instanceof Function ? initialValue() : initialValue
-
-    // Remove the key from local storage
-    window.localStorage.removeItem(key)
-
-    // Save state with default value
-    setStoredValue(defaultValue)
-
-    // We dispatch a custom event so every similar useLocalStorage hook is notified
-    window.dispatchEvent(new StorageEvent('local-storage', { key }))
-  })
+  }
 
   useEffect(() => {
-    setStoredValue(readValue())
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
-
-  const handleStorageChange = useCallback(
-    (event: StorageEvent | CustomEvent) => {
-      if ((event as StorageEvent).key && (event as StorageEvent).key !== key) {
-        return
-      }
+    const handleStorageChange = (event: StorageEvent | CustomEvent) => {
+      if ('key' in event && event.key !== key) return
       setStoredValue(readValue())
-    },
-    [key, readValue],
-  )
+    }
 
-  // this only works for other documents, not the current one
-  useEventListener('storage', handleStorageChange)
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener('local-storage', handleStorageChange)
 
-  // this is a custom event, triggered in writeValueToLocalStorage
-  // See: useLocalStorage()
-  useEventListener('local-storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener('local-storage', handleStorageChange)
+    }
+  }, [key, readValue])
 
-  return [storedValue, setValue, removeValue]
+  return [storedValue, setValue, () => {
+    window.localStorage.removeItem(key)
+    setStoredValue(initialValue instanceof Function ? initialValue() : initialValue)
+    console.log(`🗑 Removed localStorage key "${key}"`)
+  }]
 }
+

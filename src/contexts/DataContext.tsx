@@ -18,6 +18,8 @@ interface DataContextProps {
     currentDate: dayjs.Dayjs;
     currentWeekNumber: number;  // ✅ Ajout de currentWeekNumber
     tasks: WeekTaskList | null;
+    setTasks: React.Dispatch<React.SetStateAction<WeekTaskList>>;
+    setTasksStorage: React.Dispatch<React.SetStateAction<TaskList>>;
     goToPreviousWeek: () => void;
     goToNextWeek: () => void;
     goToToday: () => void;
@@ -180,6 +182,8 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         <DataContext.Provider
             value={{
                 tasks,
+                setTasks,
+                setTasksStorage,
                 currentDate,
                 currentWeekNumber, // ✅ Ajout au Provider
                 goToPreviousWeek,

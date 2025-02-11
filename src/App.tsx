@@ -7,10 +7,10 @@ import Example from "./components/MainContent/test/Exemple";
 function App() {
   return (
     <NextUIProvider>
-      {/* <DataProvider>
+      <DataProvider>
         <MainPage />
-      </DataProvider>  */}
-      <Example />
+      </DataProvider>
+      {/* <Example /> */}
     </NextUIProvider>
   );
 }
