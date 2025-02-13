@@ -174,8 +174,37 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     };
 
 
-    const moveTask = (from: keyof WeekTaskList, to: keyof WeekTaskList, order: number, taskId: number) => {
-        // TODO
+    const moveTask = (fromDay: keyof WeekTaskList, toDay: keyof WeekTaskList, toOrder: number | null, taskId: number) => {
+        setTasks((prevTasks) => {
+            // Create a clone to return later
+            const newTasks = { ...prevTasks };
+            // Find the task to move
+            const taskMoved = prevTasks[fromDay].find((task) => task.id === taskId);
+            if (!taskMoved) {
+                return prevTasks;
+            }
+            // Remove the task from the source and reset the orders
+            const fromTasks = prevTasks[fromDay]
+                .filter((task) => task.id !== taskId)
+                .map((task, index) => ({ ...task, order: index }))
+                .sort((a, b) => a.order - b.order);
+            newTasks[fromDay] = fromTasks;
+
+            // Reset the orders in the target
+            const toTasks = newTasks[toDay]
+                .map((task, index) => ({ ...task, order: (toOrder !== null && index >= toOrder) ? index + 1 : index }));
+
+            toTasks.push({ ...taskMoved, order: toOrder ?? toTasks.length });
+            newTasks[toDay] = toTasks.sort((a, b) => a.order - b.order);
+
+            // Mettre à jour le localStorage
+            setTasksStorage((prev) => ({
+                ...prev,
+                [currentWeek]: newTasks,
+            }));
+
+            return newTasks;
+        });
     }
 
     return (

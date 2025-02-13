@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DndContext } from '@dnd-kit/core'; // Importation du contexte DnD Kit pour gérer le drag-and-drop
-import Draggable from './Draggable'; // Importation du composant Draggable (élément déplaçable)
+import DraggableTask from './Draggable'; // Importation du composant Draggable (élément déplaçable)
 import Droppable from './Droppable'; // Importation du composant Droppable (zone de dépôt)
 
 // Définition du composant Example qui gère le drag-and-drop
@@ -10,9 +10,7 @@ function Example() {
 
     // Élément draggable défini une seule fois pour éviter de le recréer à chaque rendu
     const draggable = (
-        <Draggable id="draggable">
-            Go ahead, drag me. {/* Texte affiché à l'intérieur de l'élément draggable */}
-        </Draggable>
+        <DraggableTask key={""} task={""} dayNumber={""} />
     );
 
     return (
