@@ -27,7 +27,7 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
   return (
     <div ref={setNodeRef}>
       <SortableContext items={taskList.map((task) => task.id)}>
-        <ul>
+        <ul className={`overflow-y-auto max-h-60`}>
           {taskList.map((task) => (
             <DraggableTask key={task.id} task={task} dayNumber={dayNumber} />
           ))}
