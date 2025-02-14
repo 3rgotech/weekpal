@@ -1,26 +1,15 @@
 import React, { useContext } from "react";
-import Days from "./components/MainContent/Days";
-import TaskList from "./components/MainContent/TaskList";
+import Days from "./components/Days";
+import TaskList from "./components/TaskList";
 import { DataContext } from "./contexts/DataContext";
 import { WeekTaskList } from "./types";
 import { DndContext, closestCenter } from "@dnd-kit/core";
-import { arrayMove } from "@dnd-kit/sortable";
 
 interface MainContentProps {}
 
 const MainContent: React.FC<MainContentProps> = () => {
-  const {
-    tasks,
-    setTasks,
-    setTasksStorage,
-    currentDate,
-    deleteTask,
-    addTask,
-    moveTask,
-  } = useContext(DataContext);
-  // Obtenir le premier jour de la semaine (lundi)
-  const firstDayOfWeek = currentDate.startOf("isoWeek");
-  const currentWeekNumber = currentDate.isoWeek(); // Numéro de la semaine
+  const { firstDayOfWeek, currentWeekNumber, moveTask } = useContext(DataContext);
+
   const onDragEnd = (event) => {
     const { active, over } = event;
     if (!over) return;

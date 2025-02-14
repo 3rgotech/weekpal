@@ -8,7 +8,7 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
-import IconButton from "../IconButton";
+import IconButton from "./IconButton";
 
 interface MenuProps {
   title: React.ReactNode; // Accepte du texte ou du JSX

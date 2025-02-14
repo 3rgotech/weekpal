@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Dot } from "lucide-react";
 import React, { useContext } from "react";
-import { DataContext } from "../../contexts/DataContext";
-import IconButton from "../IconButton";
+import { DataContext } from "../contexts/DataContext";
+import IconButton from "./IconButton";
 
 const WeekSelector: React.FC = () => {
   const { currentDate, goToPreviousWeek, goToNextWeek, goToToday } =

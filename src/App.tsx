@@ -1,7 +1,7 @@
 import { NextUIProvider } from "@nextui-org/react";
 import React from "react";
 import { DataProvider } from "./contexts/DataContext";
-import TopBar from "./components/MainPage/TopBar";
+import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
 // import Example from "./components/MainContent/test/Exemple";
 
