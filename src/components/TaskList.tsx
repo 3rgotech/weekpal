@@ -3,18 +3,19 @@ import { SortableContext } from "@dnd-kit/sortable";
 import { DataContext } from "../contexts/DataContext";
 import { WeekTaskList } from "../types";
 import DraggableTask from "./DraggableTask";
-import Droppable from "./Droppable";
 import { useDroppable } from "@dnd-kit/core";
+import TaskListHeader from "./TaskListHeader";
 
 interface TaskProps {
+  title: string;
   weekNumber: number;
   dayNumber: keyof WeekTaskList;
 }
 
-const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
+const TaskList: React.FC<TaskProps> = ({ title, weekNumber, dayNumber }) => {
   const { tasks, setTasks, setTasksStorage, currentWeekNumber } =
     useContext(DataContext);
-  const { setNodeRef } = useDroppable({
+  const { isOver, setNodeRef } = useDroppable({
     id: "day-" + dayNumber,
     data: {
       type: "container",
@@ -24,15 +25,23 @@ const TaskList: React.FC<TaskProps> = ({ weekNumber, dayNumber }) => {
   const taskList = tasks[dayNumber] || [];
 
   return (
-    <div ref={setNodeRef}>
-      <SortableContext items={taskList.map((task) => task.id)}>
-        <ul className={`overflow-y-auto max-h-60`}>
-          {taskList.map((task) => (
-            <DraggableTask key={task.id} task={task} dayNumber={dayNumber} />
-          ))}
-        </ul>
-      </SortableContext>
-    </div>
+    <>
+      <TaskListHeader
+        title={title}
+        dayNumber={dayNumber}
+        weekNumber={currentWeekNumber}
+      />
+      <div ref={setNodeRef}>
+        <SortableContext items={taskList.map((task) => task.id)}>
+          <ul className={`p-1 overflow-y-auto flex flex-col items-stretch gap-y-1 ${isOver ? "bg-gray-100" : ""}`}>
+            {taskList.map((task) => (
+              <DraggableTask key={task.id} task={task} dayNumber={dayNumber} />
+            ))}
+            {/* TODO : Add task button */}
+          </ul>
+        </SortableContext>
+      </div>
+    </>
   );
 };
 

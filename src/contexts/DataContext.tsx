@@ -23,6 +23,7 @@ interface DataContextProps {
   goToPreviousWeek: () => void;
   goToNextWeek: () => void;
   goToToday: () => void;
+  findTask: (taskId: number) => Task | null;
   addTask: (dayOfWeek: keyof WeekTaskList, taskData: Partial<Task>) => void;
   updateTask: (
     dayOfWeek: keyof WeekTaskList,
@@ -118,6 +119,10 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setCurrentDate(dayjs());
   };
 
+  const findTask = (taskId: number) => {
+    return Object.values(tasks).flat().find((task) => task.id === taskId);
+  };
+
   const addTask = (dayOfWeek: keyof WeekTaskList, taskData: Partial<Task>) => {
     if (!tasks) {
       return;
@@ -206,7 +211,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       // Create a clone to return later
       const newTasks = { ...prevTasks };
       // Find the task to move
-      const taskMoved = prevTasks[fromDay].find((task) => task.id === taskId);
+      const taskMoved = (prevTasks[fromDay] ?? []).find((task) => task.id === taskId);
       if (!taskMoved) {
         return prevTasks;
       }
@@ -248,6 +253,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         goToPreviousWeek,
         goToNextWeek,
         goToToday,
+        findTask,
         addTask,
         updateTask,
         completeTask,

@@ -4,7 +4,7 @@ export interface Task {
   description: string;
   completed_at: string | null;
   order: number;
-  category: number|null; // Ajout de la propriété manquante
+  category: number | null; // Ajout de la propriété manquante
 }
 
 export interface WeekTaskList {

@@ -13,10 +13,12 @@ import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import { DataContext } from "../contexts/DataContext";
 import { WeekTaskList } from "../types";
+import IconButton from "./IconButton";
+import { Plus } from "lucide-react";
 
 dayjs.extend(isoWeek);
 
-interface DaysProps {
+interface TaskListHeaderProps {
   title: string;
   dayNumber: keyof WeekTaskList;
   weekNumber: number;
@@ -34,7 +36,7 @@ const defaultFormData: TaskItem = {
   description: "",
 };
 
-const Days: React.FC<DaysProps> = ({ title, dayNumber, weekNumber }) => {
+const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayNumber, weekNumber }) => {
   const { addTask, categoryList } = useContext(DataContext);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [newTask, setNewTask] = useState<TaskItem>(defaultFormData);
@@ -46,14 +48,13 @@ const Days: React.FC<DaysProps> = ({ title, dayNumber, weekNumber }) => {
   };
 
   return (
-    <div className="p-4 border rounded">
-      <h2>{title}</h2>
-      <Button
-        onPress={onOpen}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        Add Task
-      </Button>
+    <div className="border-b rounded">
+      <div className="px-2 py-1 flex items-center justify-between">
+        <h2 className="text-lg font-bold">
+          {title}
+        </h2>
+        <IconButton icon={<Plus />} onClick={onOpen} small />
+      </div>
 
       {/* Modale pour ajouter une nouvelle tâche */}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
@@ -130,4 +131,4 @@ const Days: React.FC<DaysProps> = ({ title, dayNumber, weekNumber }) => {
   );
 };
 
-export default Days;
+export default TaskListHeader;

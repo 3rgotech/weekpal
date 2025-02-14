@@ -21,7 +21,6 @@ function App() {
           </div>
         </TaskModalProvider>
       </DataProvider>
-      {/* <Example /> */}
     </NextUIProvider>
   );
 }

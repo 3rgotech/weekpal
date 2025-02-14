@@ -3,41 +3,17 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { DataContext } from "../contexts/DataContext";
 import { Task, WeekTaskList } from "../types";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  useDisclosure,
-} from "@nextui-org/react";
-import { TaskModalContext } from "../contexts/TaskModalContext";
-
+import { Chip } from "@nextui-org/react";
+import { Check } from "lucide-react";
+import IconButton from "./IconButton";
 interface DraggableTaskProps {
   task: Task;
   dayNumber: keyof WeekTaskList;
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
-  const { tasks, completeTask, uncompleteTask, deleteTask, categoryList } =
+  const { completeTask, uncompleteTask, categoryList } =
     useContext(DataContext);
-  const { open: openTaskModal } = useContext(TaskModalContext);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
-  const openTaskDetails = (task: Task) => {
-    setSelectedTask(task);
-    onOpen();
-  };
-
-  const handleDeleteTask = () => {
-    if (selectedTask) {
-      deleteTask(dayNumber, selectedTask.id);
-      setSelectedTask(null);
-      onOpenChange();
-    }
-  };
   const {
     attributes,
     listeners,
@@ -56,6 +32,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
       dayNumber,
     },
   });
+  const category = task.category ? categoryList.find((c) => c.id === task.category) : null;
+  const cursor = isDragging ? 'grabbing' : 'grab';
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -69,37 +47,26 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
       <li
         ref={setNodeRef}
         style={style}
-        {...attributes}
-        {...listeners}
-        className="p-4 border rounded-lg mb-2"
+        className="flex items-center justify-between px-1 py-1 border rounded-lg"
       >
-        <h3 className="text-md font-medium">{task.title}</h3>
-        <p>
-          <strong>Category:</strong>
-          {task.category === null
-            ? "Ø"
-            : categoryList.find((c) => c.id === task.category)?.label ?? "Ø"}
-        </p>
-        <label className="flex items-center space-x-2">
-          <span>Done:</span>
-          <input
-            type="checkbox"
-            checked={task.completed_at !== null}
-            onChange={(e) => {
-              e.target.checked
-                ? completeTask(dayNumber, task.id)
-                : uncompleteTask(dayNumber, task.id);
-            }}
-            className="cursor-pointer"
-          />
-        </label>
-        <Button
-          onPress={() => openTaskModal(task)}
-          className="mt-2"
-          color="primary"
-        >
-          View Details
-        </Button>
+        <div {...attributes} {...listeners}
+          className={`flex-1 flex items-center gap-x-1 overflow-hidden`} style={{ cursor }}>
+          {category !== null && (
+            <Chip size="sm" className="text-xs rounded-md">{category.label}</Chip>
+          )}
+          <h3 className="text-sm font-medium truncate">{task.title}</h3>
+        </div>
+        <div className="flex items-center gap-x-1">
+          <IconButton icon={<Check />}
+            className={task.completed_at !== null ? 'bg-green-500' : ''}
+            onClick={() => {
+              if (task.completed_at !== null) {
+                uncompleteTask(dayNumber, task.id);
+              } else {
+                completeTask(dayNumber, task.id);
+              }
+            }} small />
+        </div>
       </li>
     </>
   );
