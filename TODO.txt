@@ -1,0 +1,9 @@
+//! creer les emplacements de drag dans les tasks list
+
+//! creer les emplacements dragable dans les tasks 
+
+//! creer la logique qui permet d'enregistrer dans la bdd
+si changement detecté
+verifier dans quel tableau mettre la task 
+décaller tout les elt d'apres de 1 en index
+sauvegarder dans la bdd

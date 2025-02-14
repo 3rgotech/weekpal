@@ -7,6 +7,8 @@
        - CategoryFilter
        - Menu
      - MainContent
-       - TaskList (props : columnCount)
-          - Task
+       - Days
+         - TaskList (props : columnCount)
+            - Task
  - IconButton
+
