@@ -12,6 +12,7 @@ import {
   Button,
   useDisclosure,
 } from "@nextui-org/react";
+import { TaskModalContext } from "../contexts/TaskModalContext";
 
 interface DraggableTaskProps {
   task: Task;
@@ -21,6 +22,7 @@ interface DraggableTaskProps {
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
   const { tasks, completeTask, uncompleteTask, deleteTask, categoryList } =
     useContext(DataContext);
+  const { open: openTaskModal } = useContext(TaskModalContext);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -92,48 +94,13 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
           />
         </label>
         <Button
-          onPress={() => openTaskDetails(task)}
+          onPress={() => openTaskModal(task)}
           className="mt-2"
           color="primary"
         >
           View Details
         </Button>
       </li>
-      {/* Modale pour afficher les détails de la tâche */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {selectedTask && (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                {selectedTask.title}
-              </ModalHeader>
-              <ModalBody>
-                <p>
-                  <strong>Description:</strong> {selectedTask.description}
-                </p>
-                <p>
-                  <strong>Status:</strong>{" "}
-                  {selectedTask.completed_at !== null
-                    ? "Completed"
-                    : "Not Completed"}
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onOpenChange}>
-                  Close
-                </Button>
-                <Button
-                  color="primary"
-                  variant="solid"
-                  onPress={handleDeleteTask}
-                >
-                  Delete Task
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
     </>
   );
 };

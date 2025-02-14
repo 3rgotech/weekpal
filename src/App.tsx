@@ -3,20 +3,23 @@ import React from "react";
 import { DataProvider } from "./contexts/DataContext";
 import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
+import { TaskModalProvider } from "./contexts/TaskModalContext";
 // import Example from "./components/MainContent/test/Exemple";
 
 function App() {
   return (
     <NextUIProvider>
       <DataProvider>
-        <div className="h-screen flex flex-col items-stretch">
-          <header className="flex-none">
-            <TopBar />
-          </header>
-          <div className="flex-grow overflow-auto">
-            <MainContent />
+        <TaskModalProvider>
+          <div className="h-screen flex flex-col items-stretch">
+            <header className="flex-none">
+              <TopBar />
+            </header>
+            <div className="flex-grow overflow-auto">
+              <MainContent />
+            </div>
           </div>
-        </div>
+        </TaskModalProvider>
       </DataProvider>
       {/* <Example /> */}
     </NextUIProvider>
