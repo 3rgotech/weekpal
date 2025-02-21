@@ -48,7 +48,6 @@ const MainContent: React.FC<MainContentProps> = () => {
               <div className={`${gridCls} border rounded-lg`} key={i}>
                 <TaskList
                   title={title}
-                  weekNumber={currentWeekNumber}
                   dayNumber={`${i + 1}` as keyof WeekTaskList}
                 />
               </div>
@@ -57,14 +56,12 @@ const MainContent: React.FC<MainContentProps> = () => {
           <div className={`col-span-3 row-span-1 border rounded-lg`}>
             <TaskList
               title={"This week"}
-              weekNumber={currentWeekNumber}
               dayNumber={"0"}
             />
           </div>
           <div className={`col-span-3 row-span-1 border rounded-lg`}>
             <TaskList
               title={"One day"}
-              weekNumber={currentWeekNumber}
               dayNumber={"someday"}
             />
           </div>
