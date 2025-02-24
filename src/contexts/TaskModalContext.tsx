@@ -2,6 +2,7 @@ import { Button, useDisclosure } from "@nextui-org/react";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@nextui-org/react";
 import React, { createContext, ReactNode, useContext, useState } from "react";
 import Task from "../data/task";
+import { useData } from "./DataContext";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -15,6 +16,7 @@ const TaskModalContext = createContext<TaskModalContextProps | undefined>(
 
 const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [task, setTask] = useState<Task | null>(null);
+  const { deleteTask } = useData();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const open = (task: Task) => {
@@ -23,12 +25,11 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const handleDeleteTask = () => {
-    // TODO : wire delete
-    // if (selectedTask) {
-    //   deleteTask(dayNumber, selectedTask.id);
-    //   setSelectedTask(null);
-    //   onOpenChange();
-    // }
+    if (task) {
+      deleteTask(task);
+      setTask(null);
+      onOpenChange();
+    }
   };
 
   return (

@@ -12,15 +12,15 @@ const CategoryFilter: React.FC = () => {
         )
       }
       className="p-2 border rounded"
+      value={selectedCategory ?? ""}
     >
-      <option value="" selected={selectedCategory === null}>
+      <option value="">
         All
       </option>
       {categories.map((category) => (
         <option
           key={category.id}
           value={category.id}
-          selected={category.id === selectedCategory}
         >
           {category.name}
         </option>

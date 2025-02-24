@@ -1,11 +1,10 @@
 import { ChevronLeft, ChevronRight, Dot } from "lucide-react";
-import React, { useContext } from "react";
-import { DataContext } from "../contexts/DataContext";
+import React from "react";
+import { useCalendar } from "../contexts/CalendarContext";
 import IconButton from "./IconButton";
 
 const WeekSelector: React.FC = () => {
-  const { currentDate, goToPreviousWeek, goToNextWeek, goToToday } =
-    useContext(DataContext);
+  const { currentDate, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
 
   // Obtenir le numéro de la semaine, le mois et l'année
   const weekNumber = currentDate.week();
