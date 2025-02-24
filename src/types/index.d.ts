@@ -1,11 +1,7 @@
-export interface Task {
-  id: number;
-  title: string;
-  description: string;
-  completed_at: string | null;
-  order: number;
-  category: number | null; // Ajout de la propriété manquante
-}
+import Category from "../data/category";
+import Task from "../data/task";
+
+export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";
 
 export interface WeekTaskList {
   // 0 : this week
@@ -27,16 +23,47 @@ export interface TaskList {
 }
 
 export interface DataContextProps {
-  tasks: Record<keyof WeekTaskList, Task[]>;
-  completeTask: (day: keyof WeekTaskList, taskId: string) => void;
-  uncompleteTask: (day: keyof WeekTaskList, taskId: string) => void;
-  deleteTask: (day: keyof WeekTaskList, taskId: string) => void;
+  tasks: Record<DayOfWeek, Task[]>;
+  completeTask: (day: DayOfWeek, taskId: string) => void;
+  uncompleteTask: (day: DayOfWeek, taskId: string) => void;
+  deleteTask: (day: DayOfWeek, taskId: string) => void;
   currentWeekNumber: number; // Ajout de la propriété manquante
 }
 
+export type CategoryColor = "red" | "orange" | "yellow" | "lime" | "green" | "emerald" | "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple" | "fuchsia" | "pink" | "rose";
 
-export interface Category {
-  id: number;
-  label: string;
-  color: string;
+/**
+ * STORES (local storage)
+ */
+export interface ITaskStore {
+  list(weekCode: string): Promise<Task[]>;
+  reload(task: Task | number): Promise<Task | null>;
+  create(task: Task): Promise<Task>;
+  update(task: Task): Promise<Task>;
+  delete(task: Task): Promise<void>;
+}
+
+export interface ICategoryStore {
+  list(): Promise<Category[]>;
+  reload(category: Category | number): Promise<Category | null>;
+  create(category: Category): Promise<Category>;
+  update(category: Category): Promise<Category>;
+  delete(category: Category): Promise<void>;
+}
+
+/**
+ * ADAPTERS (backend storage)
+ */
+export interface ITaskAdapter {
+  getWeek(weekCode: string): Promise<Task[]>;
+  create(task: Task): Promise<number>;
+  update(task: Task): Promise<void>;
+  delete(task: Task): Promise<void>;
+}
+
+export interface ICategoryAdapter {
+  list(): Promise<Category[]>;
+  create(category: Category): Promise<number>;
+  update(category: Category): Promise<void>;
+  delete(category: Category): Promise<void>;
 }

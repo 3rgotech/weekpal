@@ -14,6 +14,10 @@
     "jsx": "react",
     "moduleResolution": "node",
     "module": "ESNext",
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "isolatedModules": true,
+    "strict": true,
     "outDir": "./dist"
   },
   "include": [

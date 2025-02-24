@@ -1,6 +1,7 @@
 import { Plus } from 'lucide-react';
-import React, { useContext, useRef, useState } from 'react'
-import { DataContext } from '../contexts/DataContext';
+import React, { useRef, useState } from 'react'
+import { useData } from '../contexts/DataContext';
+import Task from '../data/task';
 import { WeekTaskList } from '../types';
 import IconButton from './IconButton';
 
@@ -9,7 +10,7 @@ interface NewTaskProps {
 }
 
 const NewTask = ({ dayNumber }: NewTaskProps) => {
-    const { addTask } = useContext(DataContext);
+    const { addTask } = useData();
     const [creatingNewTask, setCreatingNewTask] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -22,13 +23,11 @@ const NewTask = ({ dayNumber }: NewTaskProps) => {
 
     const handleSubmit = () => {
         if (inputValue.trim()) {
-            addTask(dayNumber, { title: inputValue });
-            handleCancel();
-        }
-    };
-
-    const handleClickOutside = (e: MouseEvent) => {
-        if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+            const task = new Task({
+                title: inputValue,
+                dayOfWeek: dayNumber
+            });
+            addTask(task);
             handleCancel();
         }
     };
@@ -41,12 +40,18 @@ const NewTask = ({ dayNumber }: NewTaskProps) => {
     };
 
     React.useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+                handleCancel();
+            }
+        };
+
         if (creatingNewTask) {
             document.addEventListener('mousedown', handleClickOutside);
+            return () => {
+                document.removeEventListener('mousedown', handleClickOutside);
+            };
         }
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
     }, [creatingNewTask]);
 
     return (

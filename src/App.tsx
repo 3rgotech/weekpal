@@ -5,6 +5,7 @@ import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
 import { TaskModalProvider } from "./contexts/TaskModalContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
+import { CalendarProvider } from "./contexts/CalendarContext";
 // import Example from "./components/MainContent/test/Exemple";
 
 function App() {
@@ -28,18 +29,20 @@ function App() {
       {!indexedDBAvailable ? (
         <CannotLoadTheApp reason="indexeddb_unavailable" />
       ) : (
-        <DataProvider>
-          <TaskModalProvider>
-            <div className="h-screen flex flex-col items-stretch">
-              <header className="flex-none">
-                <TopBar />
-              </header>
-              <div className="flex-grow overflow-auto">
-                <MainContent />
+        <CalendarProvider>
+          <DataProvider>
+            <TaskModalProvider>
+              <div className="h-screen flex flex-col items-stretch">
+                <header className="flex-none">
+                  <TopBar />
+                </header>
+                <div className="flex-grow overflow-auto">
+                  <MainContent />
+                </div>
               </div>
-            </div>
-          </TaskModalProvider>
-        </DataProvider>
+            </TaskModalProvider>
+          </DataProvider>
+        </CalendarProvider>
       )}
     </NextUIProvider>
   );

@@ -1,22 +1,10 @@
-import React, { useContext, useState } from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  useDisclosure,
-} from "@nextui-org/react";
-
-import dayjs from "dayjs";
-import isoWeek from "dayjs/plugin/isoWeek";
-import { DataContext } from "../contexts/DataContext";
+import React, { useState } from "react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
+import { useData } from "../contexts/DataContext";
 import { WeekTaskList } from "../types";
 import IconButton from "./IconButton";
 import { Plus } from "lucide-react";
-
-dayjs.extend(isoWeek);
+import Task from "../data/task";
 
 interface TaskListHeaderProps {
   title: string;
@@ -37,15 +25,23 @@ const defaultFormData: TaskItem = {
 };
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayNumber, weekNumber }) => {
-  const { addTask, categoryList } = useContext(DataContext);
+  const { addTask, categories } = useData();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [newTask, setNewTask] = useState<TaskItem>(defaultFormData);
 
   const handleAddTask = () => {
-    addTask(dayNumber, newTask);
+    const task = new Task({
+      title: newTask.title,
+      dayOfWeek: dayNumber,
+      description: newTask.description,
+
+    });
+    addTask(task);
     setNewTask(defaultFormData);
     onOpenChange(); // Fermer la modale
   };
+
+  // TODO : refactor modal into a component
 
   return (
     <div className="border-b rounded">
@@ -95,13 +91,13 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayNumber, weekN
                     <option value="" selected={newTask.category === null}>
                       All
                     </option>
-                    {categoryList.map((category) => (
+                    {categories.map((category) => (
                       <option
                         key={category.id}
                         value={category.id}
                         selected={category.id === newTask.category}
                       >
-                        {category.label}
+                        {category.name}
                       </option>
                     ))}
                   </select>

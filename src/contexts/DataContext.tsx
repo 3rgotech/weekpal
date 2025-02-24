@@ -1,258 +1,118 @@
-import React, { createContext, useState, ReactNode, useEffect } from "react";
-import dayjs from "dayjs";
-import weekOfYear from "dayjs/plugin/weekOfYear";
-import isoWeek from "dayjs/plugin/isoWeek";
-import advancedFormat from "dayjs/plugin/advancedFormat";
-import { Category, Task, TaskList, WeekTaskList } from "../types";
-import { useLocalStorage } from "usehooks-ts";
-
-// Ajouter le plugin weekOfYear
-dayjs.extend(weekOfYear);
-dayjs.extend(isoWeek);
-dayjs.extend(advancedFormat);
-
-const LOCAL_STORAGE_KEY = "tasks";
+import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext } from "react";
+import { DayOfWeek } from "../types";
+import Task from "../data/task";
+import TaskStore from "../store/TaskStore";
+import CategoryStore from "../store/CategoryStore";
+import Category from "../data/category";
+import { useCalendar } from "./CalendarContext";
+import useDayJs from "../utils/dayjs";
 
 interface DataContextProps {
-  currentDate: dayjs.Dayjs;
-  currentWeekNumber: number;
-  firstDayOfWeek: dayjs.Dayjs;
-  tasks: WeekTaskList | null;
-  setTasks: React.Dispatch<React.SetStateAction<WeekTaskList>>;
-  setTasksStorage: React.Dispatch<React.SetStateAction<TaskList>>;
-  goToPreviousWeek: () => void;
-  goToNextWeek: () => void;
-  goToToday: () => void;
+  tasks: Task[];
   findTask: (taskId: number) => Task | null;
-  addTask: (dayOfWeek: keyof WeekTaskList, taskData: Partial<Task>) => void;
-  updateTask: (
-    dayOfWeek: keyof WeekTaskList,
-    taskId: number,
-    taskData: Partial<Task>
-  ) => void;
-  completeTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
-  uncompleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
-  moveTask: (
-    from: keyof WeekTaskList,
-    to: keyof WeekTaskList,
-    order: number,
-    taskId: number
-  ) => void;
-  deleteTask: (dayOfWeek: keyof WeekTaskList, taskId: number) => void;
-  categoryList: Array<Category>;
+  addTask: (task: Task) => void;
+  updateTask: (task: Task) => void;
+  completeTask: (task: Task) => void;
+  uncompleteTask: (task: Task) => void;
+  moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
+  deleteTask: (task: Task) => void;
+  categories: Array<Category>;
   selectedCategory: number | null;
   setSelectedCategory: (category: number | null) => void;
 }
 
-const defaultWeekData: WeekTaskList = {
-  "0": [],
-  "1": [],
-  "2": [],
-  "3": [],
-  "4": [],
-  "5": [],
-  "6": [],
-  "7": [],
-  someday: [],
-};
-
-const categories: Array<Category> = [
-  { id: 1, label: "Urgent", color: "red" },
-  { id: 2, label: "todo", color: "blue" },
-  { id: 3, label: "when possible", color: "green" },
-];
-
 const DataContext = createContext<DataContextProps | undefined>(undefined);
 
 const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [taskStorage, setTasksStorage] = useLocalStorage<TaskList>(
-    LOCAL_STORAGE_KEY,
-    {}
-  );
-  const [tasks, setTasks] = useState<WeekTaskList>(defaultWeekData);
-  const [currentDate, setCurrentDate] = useState(dayjs());
-  const [highestId, setHighestId] = useState<number>(0);
+  const { currentWeek } = useCalendar();
+  const dayjs = useDayJs();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
 
-  const currentWeekNumber = currentDate.isoWeek(); // ✅ Définit le numéro de semaine
-  const currentWeek = currentDate.format("YYYY[w]WW");
-  const firstDayOfWeek = currentDate.startOf("isoWeek");
+  const taskStore = useMemo(() => new TaskStore(), []);
+  const categoryStore = useMemo(() => new CategoryStore(), []);
 
   useEffect(() => {
-    // Find the highest ID
-    const maxId = Object.values(taskStorage).reduce((acc1, weekData) => {
-      const ids = Object.values(weekData).reduce((acc2, dayData) => {
-        return [...acc2, ...dayData.map((task) => task.id)];
-      }, []);
-      return Math.max(acc1, ...ids);
-    }, 0);
-    setHighestId(maxId);
-  }, [taskStorage]);
-
-  useEffect(() => {
-    console.log(selectedCategory);
-    const allWeekTasks = taskStorage[currentWeek] ?? defaultWeekData;
-    if (selectedCategory === null) {
-      setTasks(allWeekTasks);
-    } else {
-      setTasks(
-        Object.fromEntries(
-          Object.keys(defaultWeekData).map((dayOfWeek) => [
-            dayOfWeek,
-            allWeekTasks[dayOfWeek].filter(
-              (task) => task.category === selectedCategory
-            ),
-          ])
-        ) as WeekTaskList
-      );
+    if (taskStore) {
+      taskStore.list(currentWeek).then((dbTasks) => {
+        setTasks(dbTasks.filter(
+          t => selectedCategory === null || t.categoryId === selectedCategory
+        ));
+      });
     }
-  }, [currentDate, selectedCategory]);
-  // console.log(taskStorage, tasks);
-
-  const goToPreviousWeek = () => {
-    setCurrentDate((cd) => cd.subtract(1, "week"));
-  };
-  const goToNextWeek = () => {
-    setCurrentDate((cd) => cd.add(1, "week"));
-  };
-  const goToToday = () => {
-    setCurrentDate(dayjs());
-  };
+    if (categoryStore) {
+      categoryStore.list().then((dbCategories) => {
+        setCategories(dbCategories);
+      });
+    }
+  }, [taskStore, categoryStore, currentWeek, selectedCategory]);
 
   const findTask = (taskId: number) => {
-    return Object.values(tasks).flat().find((task) => task.id === taskId);
+    return tasks.find((task) => task.id === taskId) ?? null;
   };
 
-  const addTask = (dayOfWeek: keyof WeekTaskList, taskData: Partial<Task>) => {
-    if (!tasks) {
+  const addTask = (task: Task) => {
+    if (!taskStore) {
       return;
     }
 
-    const task = {
-      id: highestId + 1,
-      title: taskData.title,
-      description: taskData.description ?? null,
-      order: tasks[dayOfWeek].length,
-      completed_at: null,
-      category: taskData.category ?? null,
-    };
+    // Default properties
+    task.weekCode = task.weekCode ?? currentWeek;
+    task.order = task.order ?? tasks.filter((t) => t.dayOfWeek === task.dayOfWeek).length;
 
-    // console.log(dayOfWeek, task);
-
-    setTasks((prevTasks) => ({
-      ...prevTasks,
-      [dayOfWeek]: [...prevTasks[dayOfWeek], task],
-    }));
-    setTasksStorage((prevTasks) => ({
-      ...prevTasks,
-      [currentWeek]: {
-        ...(prevTasks[currentWeek] ?? defaultWeekData),
-        [dayOfWeek]: [
-          ...((prevTasks[currentWeek] ?? {})[dayOfWeek] ?? []),
-          task,
-        ],
-      },
-    }));
-  };
-
-  const updateTask = (
-    dayOfWeek: keyof WeekTaskList,
-    taskId: number,
-    taskData: Partial<Task>
-  ) => {
-    const updatedTasks = (tasks[dayOfWeek] ?? []).map((task) => {
-      if (task.id === taskId) {
-        return { ...task, ...taskData };
-      }
-      return task;
+    taskStore.create(task).then((t) => {
+      setTasks((prevTasks) => [...prevTasks, t]);
     });
-    setTasks((prevTasks) => ({ ...prevTasks, [dayOfWeek]: updatedTasks }));
-    setTasksStorage((prevTasks) => ({
-      ...prevTasks,
-      [currentWeek]: {
-        ...prevTasks[currentWeek],
-        [dayOfWeek]: updatedTasks,
-      },
-    }));
   };
 
-  const completeTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
-    updateTask(dayOfWeek, taskId, { completed_at: dayjs().toISOString() });
+  const updateTask = (task: Task) => {
+    if (!taskStore) {
+      return;
+    }
+    taskStore.update(task).then((updatedTask) => {
+      setTasks((prevTasks) => prevTasks.map((prevTask) => prevTask.id === updatedTask.id ? updatedTask : prevTask));
+    });
   };
 
-  const uncompleteTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
-    updateTask(dayOfWeek, taskId, { completed_at: null });
+
+  const completeTask = (task: Task) => {
+    task.completedAt = dayjs();
+    updateTask(task);
   };
 
-  const deleteTask = (dayOfWeek: keyof WeekTaskList, taskId: number) => {
-    setTasks((prevTasks) => {
-      const updatedTasks = {
-        ...prevTasks,
-        [dayOfWeek]: prevTasks[dayOfWeek].filter((task) => task.id !== taskId),
-      };
+  const uncompleteTask = (task: Task) => {
+    task.completedAt = null;
+    updateTask(task);
+  };
 
-      // Mettre à jour le localStorage
-      setTasksStorage((prev) => ({
-        ...prev,
-        [currentWeek]: updatedTasks,
-      }));
-
-      return updatedTasks;
+  const deleteTask = (task: Task) => {
+    if (!taskStore) {
+      return;
+    }
+    taskStore.delete(task).then(() => {
+      setTasks((prevTasks) => prevTasks.filter((prevTask) => prevTask.id !== task.id));
     });
   };
 
   const moveTask = (
-    fromDay: keyof WeekTaskList,
-    toDay: keyof WeekTaskList,
-    toOrder: number | null,
-    taskId: number
+    task: Task,
+    toDay: DayOfWeek,
+    toOrder: number | null
   ) => {
-    setTasks((prevTasks) => {
-      // Create a clone to return later
-      const newTasks = { ...prevTasks };
-      // Find the task to move
-      const taskMoved = (prevTasks[fromDay] ?? []).find((task) => task.id === taskId);
-      if (!taskMoved) {
-        return prevTasks;
-      }
-      // Remove the task from the source and reset the orders
-      const fromTasks = prevTasks[fromDay]
-        .filter((task) => task.id !== taskId)
-        .map((task, index) => ({ ...task, order: index }))
-        .sort((a, b) => a.order - b.order);
-      newTasks[fromDay] = fromTasks;
-
-      // Reset the orders in the target
-      const toTasks = newTasks[toDay].map((task, index) => ({
-        ...task,
-        order: toOrder !== null && index >= toOrder ? index + 1 : index,
-      }));
-
-      toTasks.push({ ...taskMoved, order: toOrder ?? toTasks.length });
-      newTasks[toDay] = toTasks.sort((a, b) => a.order - b.order);
-
-      // Mettre à jour le localStorage
-      setTasksStorage((prev) => ({
-        ...prev,
-        [currentWeek]: newTasks,
-      }));
-
-      return newTasks;
-    });
+    task.dayOfWeek = toDay;
+    if (toOrder === null) {
+      task.order = tasks.filter((t) => t.dayOfWeek === toDay).length;
+    } else {
+      task.order = toOrder;
+    }
+    updateTask(task);
   };
 
   return (
     <DataContext.Provider
       value={{
         tasks,
-        setTasks,
-        setTasksStorage,
-        currentDate,
-        currentWeekNumber,
-        firstDayOfWeek,
-        goToPreviousWeek,
-        goToNextWeek,
-        goToToday,
         findTask,
         addTask,
         updateTask,
@@ -260,7 +120,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         uncompleteTask,
         moveTask,
         deleteTask,
-        categoryList: categories,
+        categories,
         selectedCategory,
         setSelectedCategory,
       }}
@@ -270,4 +130,12 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
-export { DataContext, DataProvider };
+const useData = () => {
+  const context = useContext(DataContext);
+  if (!context) {
+    throw new Error("useData must be used within a DataProvider");
+  }
+  return context;
+};
+
+export { DataContext, DataProvider, useData };

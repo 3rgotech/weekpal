@@ -1,19 +1,20 @@
-import React, { useContext, useState } from "react";
+import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { DataContext } from "../contexts/DataContext";
-import { Task, WeekTaskList } from "../types";
+import { useData } from "../contexts/DataContext";
+import { WeekTaskList } from "../types";
 import { Chip } from "@nextui-org/react";
 import { Check } from "lucide-react";
 import IconButton from "./IconButton";
+import Task from "../data/task";
 interface DraggableTaskProps {
   task: Task;
   dayNumber: keyof WeekTaskList;
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
-  const { completeTask, uncompleteTask, categoryList } =
-    useContext(DataContext);
+  const { completeTask, uncompleteTask, categories } =
+    useData();
   const {
     attributes,
     listeners,
@@ -32,7 +33,9 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
       dayNumber,
     },
   });
-  const category = task.category ? categoryList.find((c) => c.id === task.category) : null;
+
+  const category = categories.find((c) => c.id === task.categoryId);
+
   const cursor = isDragging ? 'grabbing' : 'grab';
 
   const style = {
@@ -51,19 +54,19 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
       >
         <div {...attributes} {...listeners}
           className={`flex-1 flex items-center gap-x-1 overflow-hidden`} style={{ cursor }}>
-          {category !== null && (
-            <Chip size="sm" className="text-xs rounded-md">{category.label}</Chip>
+          {category && (
+            <Chip size="sm" className="text-xs rounded-md">{category.name}</Chip>
           )}
           <h3 className="text-sm font-medium truncate">{task.title}</h3>
         </div>
         <div className="flex items-center gap-x-1">
           <IconButton icon={<Check />}
-            className={task.completed_at !== null ? 'bg-green-500' : ''}
+            className={task.completed ? 'bg-green-500' : ''}
             onClick={() => {
-              if (task.completed_at !== null) {
-                uncompleteTask(dayNumber, task.id);
+              if (task.completed) {
+                uncompleteTask(task);
               } else {
-                completeTask(dayNumber, task.id);
+                completeTask(task);
               }
             }} small />
         </div>

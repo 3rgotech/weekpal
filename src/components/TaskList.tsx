@@ -1,22 +1,22 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React from "react";
 import { SortableContext } from "@dnd-kit/sortable";
-import { DataContext } from "../contexts/DataContext";
-import { WeekTaskList } from "../types";
+import { useData } from "../contexts/DataContext";
+import { DayOfWeek } from "../types";
 import DraggableTask from "./DraggableTask";
 import { useDroppable } from "@dnd-kit/core";
 import TaskListHeader from "./TaskListHeader";
-import { Plus } from "lucide-react";
-import IconButton from "./IconButton";
 import NewTask from "./NewTask";
+import { useCalendar } from "../contexts/CalendarContext";
 
 interface TaskProps {
   title: string;
-  dayNumber: keyof WeekTaskList;
+  dayNumber: DayOfWeek;
 }
 
 const TaskList: React.FC<TaskProps> = ({ title, dayNumber }) => {
-  const { tasks, currentWeekNumber, addTask } =
-    useContext(DataContext);
+  const { currentWeekNumber } = useCalendar();
+  const { tasks } = useData();
+
   const { isOver, setNodeRef } = useDroppable({
     id: "day-" + dayNumber,
     data: {
@@ -24,9 +24,8 @@ const TaskList: React.FC<TaskProps> = ({ title, dayNumber }) => {
       dayNumber,
     },
   });
-  const taskList = tasks[dayNumber] || [];
 
-
+  const taskList = tasks.filter((task) => task.dayOfWeek === dayNumber);
 
   return (
     <>
@@ -41,7 +40,6 @@ const TaskList: React.FC<TaskProps> = ({ title, dayNumber }) => {
             {taskList.map((task) => (
               <DraggableTask key={task.id} task={task} dayNumber={dayNumber} />
             ))}
-            {/* TODO : Add task button */}
           </SortableContext>
           <NewTask dayNumber={dayNumber} />
         </ul>

@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
-import { DataContext } from "../contexts/DataContext";
+import React from "react";
+import { useData } from "../contexts/DataContext";
 
 const CategoryFilter: React.FC = () => {
-  const { categoryList, selectedCategory, setSelectedCategory } =
-    useContext(DataContext);
+  const { categories, selectedCategory, setSelectedCategory } =
+    useData();
   return (
     <select
       onChange={(e) =>
@@ -16,13 +16,13 @@ const CategoryFilter: React.FC = () => {
       <option value="" selected={selectedCategory === null}>
         All
       </option>
-      {categoryList.map((category) => (
+      {categories.map((category) => (
         <option
           key={category.id}
           value={category.id}
           selected={category.id === selectedCategory}
         >
-          {category.label}
+          {category.name}
         </option>
       ))}
     </select>

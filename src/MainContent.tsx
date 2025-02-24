@@ -1,33 +1,37 @@
-import React, { useContext, useState } from "react";
+import React from "react";
 import TaskList from "./components/TaskList";
-import { DataContext } from "./contexts/DataContext";
-import { Task, WeekTaskList } from "./types";
-import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
-import { TaskModalContext } from "./contexts/TaskModalContext";
-import DraggableTask from "./components/DraggableTask";
+import { useData } from "./contexts/DataContext";
+import { WeekTaskList } from "./types";
+import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import { useTaskModal } from "./contexts/TaskModalContext";
+import { useCalendar } from "./contexts/CalendarContext";
 
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
-  const { firstDayOfWeek, currentWeekNumber, moveTask, findTask } = useContext(DataContext);
-  const { open: openTaskModal } = useContext(TaskModalContext);
+  const { firstDayOfWeek } = useCalendar();
+  const { moveTask, findTask } = useData();
+  const { open: openTaskModal } = useTaskModal();
 
-  const handleDragEnd = (event) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
 
-    const taskId = active.data.current.id;
+    const taskId = active.data.current?.id ?? null;
+    if (!taskId) return;
+    const task = findTask(taskId);
+    if (!task) return;
     const delta = Math.abs(event.delta.x) + Math.abs(event.delta.y);
     if (delta < 10) {
-      openTaskModal(findTask(taskId));
+      openTaskModal(task);
     } else {
-      const fromDay = active.data.current.dayNumber;
-      const toDay = over.data.current.dayNumber;
+      const toDay = over.data.current?.dayNumber ?? null;
+      if (!toDay) return;
       const toOrder =
-        over.data.current.type === "container"
+        over.data.current?.type === "container"
           ? null
-          : over.data.current.currentOrder;
-      moveTask(fromDay, toDay, toOrder, taskId);
+          : over.data.current?.currentOrder;
+      moveTask(task, toDay, toOrder);
     }
 
   };

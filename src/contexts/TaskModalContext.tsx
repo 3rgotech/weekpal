@@ -1,10 +1,10 @@
 import { Button, useDisclosure } from "@nextui-org/react";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@nextui-org/react";
-import React, { createContext, ReactNode, useState } from "react";
-import { Task } from "../types";
+import React, { createContext, ReactNode, useContext, useState } from "react";
+import Task from "../data/task";
 
 interface TaskModalContextProps {
-  task: Task;
+  task: Task | null;
   isOpen: boolean;
   open: (task: Task) => void;
 }
@@ -47,9 +47,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 </p>
                 <p>
                   <strong>Status:</strong>{" "}
-                  {task.completed_at !== null
-                    ? "Completed"
-                    : "Not Completed"}
+                  {task.completed ? "Completed" : "Not Completed"}
                 </p>
               </ModalBody>
               <ModalFooter>
@@ -72,4 +70,12 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   );
 };
 
-export { TaskModalContext, TaskModalProvider };
+const useTaskModal = () => {
+  const context = useContext(TaskModalContext);
+  if (!context) {
+    throw new Error("useTaskModal must be used within a TaskModalProvider");
+  }
+  return context;
+};
+
+export { TaskModalContext, TaskModalProvider, useTaskModal };
