@@ -58,7 +58,7 @@ const NewTask = ({ dayNumber }: NewTaskProps) => {
     }, [creatingNewTask]);
 
     return (
-        <li className={`flex items-center justify-between px-1 py-1 border ${creatingNewTask ? "border-gray-200" : "border-transparent"} rounded-lg`}>
+        <li className={`flex items-center justify-between h-10 px-1 border ${creatingNewTask ? "border-gray-200" : "border-transparent"} rounded-lg`}>
             <div
                 ref={wrapperRef}
                 className="flex w-full items-center"
@@ -84,7 +84,7 @@ const NewTask = ({ dayNumber }: NewTaskProps) => {
                             }}
                             className="w-full ring-0 outline-none h-8"
                         />
-                        <IconButton icon={<Plus />} onClick={handleSubmit} small />
+                        <IconButton icon="plus" onClick={handleSubmit} size="xs" />
                     </>
                 ) : (
                     <button

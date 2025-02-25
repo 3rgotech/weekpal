@@ -49,7 +49,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayNumber, weekN
         <h2 className="text-lg font-bold">
           {title}
         </h2>
-        <IconButton icon={<Plus />} onClick={onOpen} small />
+        <IconButton icon="plus" onClick={onOpen} size="sm" />
       </div>
 
       {/* Modale pour ajouter une nouvelle tâche */}

@@ -7,6 +7,7 @@ import { Chip } from "@nextui-org/react";
 import { Check } from "lucide-react";
 import IconButton from "./IconButton";
 import Task from "../data/task";
+import clsx from "clsx";
 interface DraggableTaskProps {
   task: Task;
   dayNumber: keyof WeekTaskList;
@@ -50,25 +51,28 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
       <li
         ref={setNodeRef}
         style={style}
-        className="flex items-center justify-between px-1 py-1 border rounded-lg"
+        className="group flex items-center justify-between px-1 py-1 border rounded-lg h-10"
       >
         <div {...attributes} {...listeners}
-          className={`flex-1 flex items-center gap-x-1 overflow-hidden`} style={{ cursor }}>
+          className="flex-1 flex items-center gap-x-1 overflow-hidden" style={{ cursor }}>
           {category && (
             <Chip size="sm" className="text-xs rounded-md">{category.name}</Chip>
           )}
-          <h3 className="text-sm font-medium truncate">{task.title}</h3>
+          <h3 className={clsx("text-sm font-medium truncate", task.completed && "text-gray-400 line-through")}>
+            {task.title}
+          </h3>
         </div>
-        <div className="flex items-center gap-x-1">
-          <IconButton icon={<Check />}
-            className={task.completed ? 'bg-green-500' : ''}
+        <div className="group-hover:flex hidden items-center gap-x-1">
+          <IconButton icon="check"
+            className={clsx(task.completed && 'bg-green-500')}
+            color={task.completed ? 'white' : 'currentColor'}
             onClick={() => {
               if (task.completed) {
                 uncompleteTask(task);
               } else {
                 completeTask(task);
               }
-            }} small />
+            }} size="xs" />
         </div>
       </li>
     </>

@@ -16,9 +16,9 @@ const WeekSelector: React.FC = () => {
       <div className="flex items-center gap-2">
         <div>{`Week ${weekNumber} - ${month} ${year}`}</div>
         <div className="flex gap-2">
-          <IconButton icon={<ChevronLeft />} onClick={goToPreviousWeek} />
-          <IconButton icon={<Dot />} onClick={goToToday} />
-          <IconButton icon={<ChevronRight />} onClick={goToNextWeek} />
+          <IconButton icon="chevronLeft" onClick={goToPreviousWeek} />
+          <IconButton icon="dot" onClick={goToToday} />
+          <IconButton icon="chevronRight" onClick={goToNextWeek} />
         </div>
       </div>
     </div>

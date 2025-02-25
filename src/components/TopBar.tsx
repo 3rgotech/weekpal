@@ -3,9 +3,8 @@ import Logo from "./Logo";
 import WeekSelector from "./WeekSelector";
 import CategoryFilter from "./CategoryFilter";
 import Menu from "./Menu";
-import { Printer, RefreshCw, Settings, User } from "lucide-react";
 
-interface TopBarProps {}
+interface TopBarProps { }
 
 const TopBar: React.FC<TopBarProps> = () => {
   return (
@@ -16,10 +15,10 @@ const TopBar: React.FC<TopBarProps> = () => {
       </div>
       <div className="flex items-center gap-2">
         <CategoryFilter />
-        <Menu icon={<RefreshCw />} title="Refresh" />
-        <Menu icon={<Printer />} title="Print" />
-        <Menu icon={<Settings />} title="Settings" />
-        <Menu icon={<User />} title="User" />
+        <Menu icon="refresh" title="Refresh" />
+        <Menu icon="print" title="Print" />
+        <Menu icon="settings" title="Settings" />
+        <Menu icon="user" title="User" />
       </div>
     </div>
   );

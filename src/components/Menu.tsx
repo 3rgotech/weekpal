@@ -9,10 +9,11 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import IconButton from "./IconButton";
+import { icons } from "../utils/icon";
 
 interface MenuProps {
   title: React.ReactNode; // Accepte du texte ou du JSX
-  icon: React.ReactNode;
+  icon: keyof typeof icons;
 }
 
 const Menu: React.FC<MenuProps> = ({ title, icon }) => {
@@ -20,7 +21,7 @@ const Menu: React.FC<MenuProps> = ({ title, icon }) => {
 
   return (
     <>
-      <IconButton icon={icon} onClick={onOpen} />
+      <IconButton icon={icon} onClick={onOpen} size="md" />
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
