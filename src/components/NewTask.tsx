@@ -29,6 +29,9 @@ const NewTask = ({ dayNumber }: NewTaskProps) => {
             });
             addTask(task);
             handleCancel();
+            setTimeout(() => {
+                setCreatingNewTask(true);
+            }, 100);
         }
     };
 
