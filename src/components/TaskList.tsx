@@ -36,14 +36,14 @@ const TaskList: React.FC<TaskProps> = ({ title, dayNumber }) => {
   return (
     <div
       ref={setNodeRef}
-      className={`border rounded-lg flex flex-col h-full border-gray-100`}
+      className={`border rounded-lg h-full border-gray-100 flex flex-col`}
     >
       <TaskListHeader
         title={title}
         dayNumber={dayNumber}
         weekNumber={currentWeekNumber}
       />
-      <ul className={clsx("flex-grow space-y-2 overflow-y-auto p-2", isOver && "border-2 border-dashed border-blue-500 animate-pulse bg-blue-50")}>
+      <ul className={clsx("flex-1 overflow-y-auto p-2 space-y-2", isOver && "border-2 border-dashed border-blue-500 animate-pulse bg-blue-50")}>
         <SortableContext items={taskIds}>
           {filteredTasks.map((task) => (
             <DraggableTask

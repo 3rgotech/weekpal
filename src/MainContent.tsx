@@ -62,8 +62,8 @@ const MainContent: React.FC<MainContentProps> = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="p-4 h-full flex flex-col">
-        <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4">
+      <div className="p-4 h-full flex flex-col overflow-hidden">
+        <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4 overflow-hidden">
           {[...Array(7).keys()].map((i) => {
             const day = firstDayOfWeek.add(i, "day");
             let title = day.format("dddd DD");
@@ -74,7 +74,7 @@ const MainContent: React.FC<MainContentProps> = () => {
             }
 
             return (
-              <div className={`${gridCls} border rounded-lg`} key={i}>
+              <div className={`${gridCls} border rounded-lg overflow-hidden`} key={i}>
                 <TaskList
                   title={title}
                   dayNumber={`${i + 1}` as keyof WeekTaskList}
@@ -82,13 +82,13 @@ const MainContent: React.FC<MainContentProps> = () => {
               </div>
             );
           })}
-          <div className={`col-span-3 row-span-1 border rounded-lg`}>
+          <div className={`col-span-3 row-span-1 border rounded-lg overflow-hidden`}>
             <TaskList
               title={"This week"}
               dayNumber={"0"}
             />
           </div>
-          <div className={`col-span-3 row-span-1 border rounded-lg`}>
+          <div className={`col-span-3 row-span-1 border rounded-lg overflow-hidden`}>
             <TaskList
               title={"One day"}
               dayNumber={"someday"}
