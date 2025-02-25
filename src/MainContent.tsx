@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import TaskList from "./components/TaskList";
 import { useData } from "./contexts/DataContext";
 import { WeekTaskList } from "./types";
-import { DndContext, closestCenter, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { useTaskModal } from "./contexts/TaskModalContext";
 import { useCalendar } from "./contexts/CalendarContext";
+import DraggableTask from "./components/DraggableTask";
+import Task from "./data/task";
 
 interface MainContentProps { }
 
@@ -12,8 +14,27 @@ const MainContent: React.FC<MainContentProps> = () => {
   const { firstDayOfWeek } = useCalendar();
   const { moveTask, findTask } = useData();
   const { open: openTaskModal } = useTaskModal();
+  const [activeTask, setActiveTask] = useState<{ task: Task | null, dayNumber: keyof WeekTaskList | null }>({
+    task: null,
+    dayNumber: null
+  });
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const taskId = active.data.current?.id ?? null;
+    const dayNumber = active.data.current?.dayNumber ?? null;
+
+    if (taskId) {
+      const task = findTask(taskId);
+      if (task) {
+        setActiveTask({ task, dayNumber });
+      }
+    }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTask({ task: null, dayNumber: null });
+
     const { active, over } = event;
     if (!over) return;
 
@@ -36,7 +57,11 @@ const MainContent: React.FC<MainContentProps> = () => {
 
   };
   return (
-    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+    <DndContext
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       <div className="p-4 h-full flex flex-col">
         <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4">
           {[...Array(7).keys()].map((i) => {
@@ -70,6 +95,17 @@ const MainContent: React.FC<MainContentProps> = () => {
             />
           </div>
         </div>
+
+        <DragOverlay>
+          {activeTask.task ? (
+            <div className="shadow-lg opacity-90">
+              <DraggableTask
+                task={activeTask.task}
+                dayNumber={activeTask.dayNumber as keyof WeekTaskList}
+              />
+            </div>
+          ) : null}
+        </DragOverlay>
       </div>
     </DndContext>
   );

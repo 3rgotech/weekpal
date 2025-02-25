@@ -3,10 +3,11 @@ import { SortableContext } from "@dnd-kit/sortable";
 import { useData } from "../contexts/DataContext";
 import { DayOfWeek } from "../types";
 import DraggableTask from "./DraggableTask";
-import { useDroppable } from "@dnd-kit/core";
+import { useDroppable, useDndContext } from "@dnd-kit/core";
 import TaskListHeader from "./TaskListHeader";
 import NewTask from "./NewTask";
 import { useCalendar } from "../contexts/CalendarContext";
+import clsx from "clsx";
 
 interface TaskProps {
   title: string;
@@ -15,36 +16,46 @@ interface TaskProps {
 
 const TaskList: React.FC<TaskProps> = ({ title, dayNumber }) => {
   const { currentWeekNumber } = useCalendar();
-  const { tasks } = useData();
+  const { tasks, selectedCategory } = useData();
 
-  const { isOver, setNodeRef } = useDroppable({
-    id: "day-" + dayNumber,
+  const { setNodeRef, isOver } = useDroppable({
+    id: `${dayNumber}-droppable`,
     data: {
-      type: "container",
       dayNumber,
+      type: "container",
     },
   });
 
-  const taskList = tasks.filter((task) => task.dayOfWeek === dayNumber);
+  const filteredTasks = tasks.filter(
+    (task) => task.dayOfWeek === dayNumber &&
+      (selectedCategory === null || task.categoryId === selectedCategory)
+  );
+
+  const taskIds = filteredTasks.map((task) => task.id);
 
   return (
-    <>
+    <div
+      ref={setNodeRef}
+      className={`border rounded-lg flex flex-col h-full border-gray-100`}
+    >
       <TaskListHeader
         title={title}
         dayNumber={dayNumber}
         weekNumber={currentWeekNumber}
       />
-      <div ref={setNodeRef}>
-        <ul className={`p-1 overflow-y-auto flex flex-col items-stretch gap-y-1 ${isOver ? "bg-gray-100" : ""}`}>
-          <SortableContext items={taskList.map((task) => task.id)}>
-            {taskList.map((task) => (
-              <DraggableTask key={task.id} task={task} dayNumber={dayNumber} />
-            ))}
-          </SortableContext>
-          <NewTask dayNumber={dayNumber} />
-        </ul>
-      </div>
-    </>
+      <ul className={clsx("flex-grow space-y-2 overflow-y-auto p-2", isOver && "border-2 border-dashed border-blue-500 animate-pulse bg-blue-50")}>
+        <SortableContext items={taskIds}>
+          {filteredTasks.map((task) => (
+            <DraggableTask
+              key={task.id}
+              task={task}
+              dayNumber={dayNumber}
+            />
+          ))}
+        </SortableContext>
+        {!isOver && <NewTask dayNumber={dayNumber} />}
+      </ul>
+    </div>
   );
 };
 
