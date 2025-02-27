@@ -1,17 +1,17 @@
 import Task from "../data/task";
 import { ITaskAdapter, ITaskStore } from "../types";
 import BaseStore from "./BaseStore";
-import { TaskDB } from "./db";
+import { WeekpalDB } from "./db";
 
 
 class TaskStore extends BaseStore implements ITaskStore {
 
     declare protected adapter: ITaskAdapter | null;
-    private db: TaskDB;
+    private db: WeekpalDB;
 
     constructor(adapter?: ITaskAdapter) {
         super(adapter);
-        this.db = new TaskDB();
+        this.db = new WeekpalDB();
     }
 
     async list(weekCode: string): Promise<Task[]> {

@@ -1,16 +1,16 @@
 import Category from "../data/category";
 import { ICategoryAdapter, ICategoryStore } from "../types";
 import BaseStore from "./BaseStore";
-import { CategoryDB } from "./db";
+import { WeekpalDB } from "./db";
 
 class CategoryStore extends BaseStore implements ICategoryStore {
 
     declare protected adapter: ICategoryAdapter | null;
-    private db: CategoryDB;
+    private db: WeekpalDB;
 
     constructor(adapter?: ICategoryAdapter) {
         super(adapter);
-        this.db = new CategoryDB();
+        this.db = new WeekpalDB();
     }
 
     async list(): Promise<Category[]> {
