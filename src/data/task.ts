@@ -39,18 +39,19 @@ class Task extends Base {
         return this.completedAt !== null;
     }
 
-    // serialize(): Record<string, any> {
-    //     return {
-    //         id: this.id,
-    //         title: this.title,
-    //         description: this.description ?? null,
-    //         order: this.order,
-    //         category: this.category?.id ?? null,
-    //         created_at: this.createdAt.toISOString(),
-    //         updated_at: this.updatedAt.toISOString(),
-    //         completedAt: this.completedAt?.toISOString() ?? null,
-    //     }
-    // }
+    serialize(): Record<string, any> {
+        return {
+            id: this.id,
+            serverId: this.serverId,
+            title: this.title,
+            description: this.description ?? null,
+            order: this.order,
+            categoryId: this.categoryId ?? null,
+            createdAt: this.createdAt?.toISOString(),
+            updatedAt: this.updatedAt?.toISOString(),
+            completedAt: this.completedAt?.toISOString() ?? null,
+        }
+    }
 }
 
 export default Task;

@@ -6,6 +6,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@heroui/input": "^2.4.15",
     "@heroui/modal": "^2.2.12",
     "@heroui/react": "^2.7.4",
     "@heroui/system": "^2.4.11",
