@@ -1,5 +1,5 @@
-import { NextUIProvider } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
+import { HeroUIProvider } from "@heroui/react";
 import { DataProvider } from "./contexts/DataContext";
 import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
@@ -25,7 +25,7 @@ function App() {
   }
 
   return (
-    <NextUIProvider>
+    <HeroUIProvider>
       {!indexedDBAvailable ? (
         <CannotLoadTheApp reason="indexeddb_unavailable" />
       ) : (
@@ -44,7 +44,7 @@ function App() {
           </DataProvider>
         </CalendarProvider>
       )}
-    </NextUIProvider>
+    </HeroUIProvider>
   );
 }
 

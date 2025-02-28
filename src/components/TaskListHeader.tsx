@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@nextui-org/react";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
+import { Button } from "@heroui/react";
 import { useData } from "../contexts/DataContext";
 import { WeekTaskList } from "../types";
 import IconButton from "./IconButton";

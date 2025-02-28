@@ -3,7 +3,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useData } from "../contexts/DataContext";
 import { WeekTaskList } from "../types";
-import { Chip } from "@nextui-org/react";
+import { Chip } from "@heroui/react";
 import { Check } from "lucide-react";
 import IconButton from "./IconButton";
 import Task from "../data/task";

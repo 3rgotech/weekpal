@@ -1,6 +1,6 @@
-import { Button, useDisclosure } from "@nextui-org/react";
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@nextui-org/react";
 import React, { createContext, ReactNode, useContext, useState } from "react";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
+import { Button } from "@heroui/react";
 import Task from "../data/task";
 import { useData } from "./DataContext";
 

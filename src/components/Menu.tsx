@@ -1,15 +1,8 @@
 import React from "react";
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  useDisclosure,
-} from "@nextui-org/react";
 import IconButton from "./IconButton";
 import { icons } from "../utils/icon";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
+import { Button } from "@heroui/react";
 
 interface MenuProps {
   title: React.ReactNode; // Accepte du texte ou du JSX
