@@ -32,7 +32,11 @@ class TaskStore extends BaseStore implements ITaskStore {
     }
 
     async reload(task: number | Task): Promise<Task | null> {
-        const reloadedTask = await this.db.tasks.get(typeof task === 'number' ? task : task.id);
+        const taskId = typeof task === 'number' ? task : task.id;
+        if (!taskId) {
+            return null;
+        }
+        const reloadedTask = await this.db.tasks.get(taskId);
         return reloadedTask ?? null;
     }
 
@@ -66,6 +70,9 @@ class TaskStore extends BaseStore implements ITaskStore {
     }
 
     async delete(task: Task): Promise<void> {
+        if (!task.id) {
+            return;
+        }
         await this.db.tasks.delete(task.id);
         if (this.canSync()) {
             try {

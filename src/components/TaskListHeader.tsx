@@ -1,48 +1,16 @@
-import React, { useState } from "react";
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
-import { Button } from "@heroui/react";
-import { useData } from "../contexts/DataContext";
-import { WeekTaskList } from "../types";
+import React from "react";
+import { DayOfWeek } from "../types";
 import IconButton from "./IconButton";
-import { Plus } from "lucide-react";
-import Task from "../data/task";
+import { useTaskModal } from "../contexts/TaskModalContext";
 
 interface TaskListHeaderProps {
   title: string;
-  dayNumber: keyof WeekTaskList;
-  weekNumber: number;
+  dayOfWeek: DayOfWeek;
+  weekCode: string;
 }
 
-interface TaskItem {
-  title: string;
-  category: number | null;
-  description: string;
-}
-
-const defaultFormData: TaskItem = {
-  title: "",
-  category: null,
-  description: "",
-};
-
-const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayNumber, weekNumber }) => {
-  const { addTask, categories } = useData();
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const [newTask, setNewTask] = useState<TaskItem>(defaultFormData);
-
-  const handleAddTask = () => {
-    const task = new Task({
-      title: newTask.title,
-      dayOfWeek: dayNumber,
-      description: newTask.description,
-
-    });
-    addTask(task);
-    setNewTask(defaultFormData);
-    onOpenChange(); // Fermer la modale
-  };
-
-  // TODO : refactor modal into a component
+const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayOfWeek, weekCode }) => {
+  const { openNewTask } = useTaskModal();
 
   return (
     <div className="border-b rounded">
@@ -50,80 +18,8 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayNumber, weekN
         <h2 className="text-lg font-bold">
           {title}
         </h2>
-        <IconButton icon="plus" onClick={onOpen} size="sm" />
+        <IconButton icon="plus" onClick={() => { openNewTask(weekCode, dayOfWeek) }} size="sm" />
       </div>
-
-      {/* Modale pour ajouter une nouvelle tâche */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader>Add New Task</ModalHeader>
-              <ModalBody>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleAddTask();
-                  }}
-                  className="space-y-2"
-                >
-                  <input
-                    type="text"
-                    placeholder="Task Title"
-                    value={newTask.title}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, title: e.target.value })
-                    }
-                    className="border p-2 w-full"
-                    required
-                  />
-                  <select
-                    onChange={(e) =>
-                      setNewTask({
-                        ...newTask,
-                        category:
-                          e.target.value.length === 0
-                            ? null
-                            : parseInt(e.target.value, 10),
-                      })
-                    }
-                    className="border p-2 w-full"
-                  >
-                    <option value="" selected={newTask.category === null}>
-                      All
-                    </option>
-                    {categories.map((category) => (
-                      <option
-                        key={category.id}
-                        value={category.id}
-                        selected={category.id === newTask.category}
-                      >
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                  <textarea
-                    placeholder="Description"
-                    value={newTask.description}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, description: e.target.value })
-                    }
-                    className="border p-2 w-full"
-                  />
-                  <Button type="submit" color="primary" className="w-full">
-                    Save Task
-                  </Button>
-                </form>
-              </ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Close
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
     </div>
   );
 };

@@ -3,6 +3,11 @@ import { getDayJs } from "../utils/dayjs";
 import { DayOfWeek } from "../types";
 import Base from "./base";
 
+interface TaskUpdateData {
+    title?: string;
+    description?: string;
+}
+
 class Task extends Base {
     public title: string;
     public description: string | null;
@@ -33,6 +38,15 @@ class Task extends Base {
         this.updatedAt = data.updatedAt ? dayjs(data.updatedAt) : null;
 
         this.categoryId = data.categoryId ?? null;
+    }
+
+    update(data: TaskUpdateData) {
+        if (data.title !== undefined) {
+            this.title = data.title;
+        }
+        if (data.description !== undefined) {
+            this.description = data.description;
+        }
     }
 
     get completed(): boolean {

@@ -2,7 +2,7 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useData } from "../contexts/DataContext";
-import { WeekTaskList } from "../types";
+import { DayOfWeek, WeekTaskList } from "../types";
 import { Chip } from "@heroui/react";
 import { Check } from "lucide-react";
 import IconButton from "./IconButton";
@@ -10,10 +10,10 @@ import Task from "../data/task";
 import clsx from "clsx";
 interface DraggableTaskProps {
   task: Task;
-  dayNumber: keyof WeekTaskList;
+  dayOfWeek: DayOfWeek;
 }
 
-const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
+const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
   const { completeTask, uncompleteTask, categories } =
     useData();
   const {
@@ -31,7 +31,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayNumber }) => {
       type: "task",
       id: task.id,
       currentOrder: task.order,
-      dayNumber,
+      dayOfWeek,
     },
   });
 

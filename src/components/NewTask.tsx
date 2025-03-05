@@ -2,14 +2,16 @@ import { Plus } from 'lucide-react';
 import React, { useRef, useState } from 'react'
 import { useData } from '../contexts/DataContext';
 import Task from '../data/task';
-import { WeekTaskList } from '../types';
+import { DayOfWeek, WeekTaskList } from '../types';
 import IconButton from './IconButton';
+import { useCalendar } from '../contexts/CalendarContext';
 
 interface NewTaskProps {
-    dayNumber: keyof WeekTaskList;
+    dayOfWeek: DayOfWeek;
 }
 
-const NewTask = ({ dayNumber }: NewTaskProps) => {
+const NewTask = ({ dayOfWeek }: NewTaskProps) => {
+    const { currentWeek } = useCalendar();
     const { addTask } = useData();
     const [creatingNewTask, setCreatingNewTask] = useState(false);
     const [inputValue, setInputValue] = useState('');
@@ -25,7 +27,8 @@ const NewTask = ({ dayNumber }: NewTaskProps) => {
         if (inputValue.trim()) {
             const task = new Task({
                 title: inputValue,
-                dayOfWeek: dayNumber
+                weekCode: currentWeek,
+                dayOfWeek
             });
             addTask(task);
             handleCancel();

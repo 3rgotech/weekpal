@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import TaskList from "./components/TaskList";
 import { useData } from "./contexts/DataContext";
-import { WeekTaskList } from "./types";
+import { DayOfWeek } from "./types";
 import { DndContext, closestCenter, DragEndEvent, DragStartEvent, DragOverlay } from "@dnd-kit/core";
 import { useTaskModal } from "./contexts/TaskModalContext";
 import { useCalendar } from "./contexts/CalendarContext";
 import DraggableTask from "./components/DraggableTask";
 import Task from "./data/task";
+import clsx from "clsx";
 
 interface MainContentProps { }
 
@@ -14,7 +15,7 @@ const MainContent: React.FC<MainContentProps> = () => {
   const { firstDayOfWeek } = useCalendar();
   const { moveTask, findTask } = useData();
   const { open: openTaskModal } = useTaskModal();
-  const [activeTask, setActiveTask] = useState<{ task: Task | null, dayNumber: keyof WeekTaskList | null }>({
+  const [activeTask, setActiveTask] = useState<{ task: Task | null, dayNumber: DayOfWeek | null }>({
     task: null,
     dayNumber: null
   });
@@ -64,34 +65,24 @@ const MainContent: React.FC<MainContentProps> = () => {
     >
       <div className="p-4 h-full flex flex-col overflow-hidden">
         <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4 overflow-hidden">
-          {[...Array(7).keys()].map((i) => {
-            const day = firstDayOfWeek.add(i, "day");
-            let title = day.format("dddd DD");
-            let gridCls = "col-span-1 row-span-2";
-
-            if (i === 5 || i === 6) {
-              gridCls = "col-span-1 row-span-1";
-            }
-
-            return (
-              <div className={`${gridCls} border rounded-lg overflow-hidden`} key={i}>
-                <TaskList
-                  title={title}
-                  dayNumber={`${i + 1}` as keyof WeekTaskList}
-                />
-              </div>
-            );
-          })}
+          {[...Array(7).keys()].map((i) => (
+            <div className={clsx(`border rounded-lg overflow-hidden`, [5, 6].includes(i) ? "col-span-1 row-span-1" : "col-span-1 row-span-2")} key={i}>
+              <TaskList
+                title={firstDayOfWeek.add(i, "day").format("dddd DD")}
+                dayOfWeek={`${i + 1}` as DayOfWeek}
+              />
+            </div>
+          ))}
           <div className={`col-span-3 row-span-1 border rounded-lg overflow-hidden`}>
             <TaskList
               title={"This week"}
-              dayNumber={"0"}
+              dayOfWeek={"0"}
             />
           </div>
           <div className={`col-span-3 row-span-1 border rounded-lg overflow-hidden`}>
             <TaskList
               title={"One day"}
-              dayNumber={"someday"}
+              dayOfWeek={"someday"}
             />
           </div>
         </div>
@@ -101,7 +92,7 @@ const MainContent: React.FC<MainContentProps> = () => {
             <div className="shadow-lg opacity-90">
               <DraggableTask
                 task={activeTask.task}
-                dayNumber={activeTask.dayNumber as keyof WeekTaskList}
+                dayOfWeek={activeTask.dayNumber as DayOfWeek}
               />
             </div>
           ) : null}
