@@ -6,6 +6,7 @@ import Base from "./base";
 interface TaskUpdateData {
     title?: string;
     description?: string;
+    categoryId?: number;
 }
 
 class Task extends Base {
@@ -46,6 +47,9 @@ class Task extends Base {
         }
         if (data.description !== undefined) {
             this.description = data.description;
+        }
+        if (data.categoryId !== undefined) {
+            this.categoryId = data.categoryId;
         }
     }
 

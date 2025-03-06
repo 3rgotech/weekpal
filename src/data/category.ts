@@ -15,6 +15,10 @@ class Category extends Base {
     getColorClasses() {
         return COLORS[this.color];
     }
+
+    getColorClass(type: "bg" | "text" | "border") {
+        return this.getColorClasses()[type];
+    }
 }
 
 export default Category;

@@ -1,9 +1,10 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
-import { Button, Input, Textarea } from "@heroui/react";
+import { Button, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
 import Task from "../data/task";
 import { useData } from "./DataContext";
 import { DayOfWeek } from "../types";
+import clsx from "clsx";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -20,7 +21,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [task, setTask] = useState<Task | null>(null);
   const [data, setData] = useState<Record<string, any>>({});
   const [mode, setMode] = useState<"CREATE" | "EDIT" | null>(null);
-  const { addTask, updateTask, deleteTask } = useData();
+  const { addTask, updateTask, deleteTask, categories } = useData();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   const open = (task: Task) => {
@@ -62,8 +63,15 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
   };
 
-  const updateField = (field: keyof Task) => (value: string) => {
-    setData(prevData => ({ ...prevData, [field]: value }));
+  const updateField = (field: keyof Task) => (value: string | SharedSelection) => {
+    let transformedValue;
+    if (field === 'categoryId') {
+      transformedValue = [...value][0] ?? null;
+      transformedValue = transformedValue !== null ? parseInt(`${transformedValue}`, 10) : null;
+    } else {
+      transformedValue = value;
+    }
+    setData(prevData => ({ ...prevData, [field]: transformedValue }));
   }
 
   const saveTask = () => {
@@ -103,6 +111,22 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   value={data.description}
                   onValueChange={updateField('description')}
                 />
+                <Select
+                  label="Category"
+                  placeholder="None"
+                  selectedKeys={data.categoryId !== null ? [`${data.categoryId}`] : []}
+                  onSelectionChange={updateField('categoryId')}
+                  disallowEmptySelection={false}
+                >
+                  {categories.map(category => (
+                    <SelectItem
+                      key={category.id}
+                      startContent={<div className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}></div>}
+                    >
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </Select>
               </ModalBody>
               <ModalFooter>
                 <Button color="warning" variant="light" onPress={onOpenChange}>
