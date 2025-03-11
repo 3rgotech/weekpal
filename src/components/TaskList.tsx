@@ -31,7 +31,9 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
       (selectedCategory === null || task.categoryId === selectedCategory)
   );
 
-  const taskIds = filteredTasks.map((task) => task.id);
+  const taskIds = filteredTasks.map((task) => task.id)
+    .filter((id) => id !== null && id !== undefined)
+    .map((id) => `task-${id}`);
 
   return (
     <div
@@ -43,7 +45,7 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
         dayOfWeek={dayOfWeek}
         weekCode={currentWeek}
       />
-      <ul className={clsx("flex-1 overflow-y-auto p-2 space-y-2", isOver && "border-2 border-dashed border-blue-500 animate-pulse bg-blue-50")}>
+      <ul className={clsx("flex-1 overflow-y-auto p-2 space-y-2")}>
         <SortableContext items={taskIds}>
           {filteredTasks.map((task) => (
             <DraggableTask

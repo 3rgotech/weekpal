@@ -47,12 +47,12 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     // Throttle the data update to avoid too many re-renders
-    const timeout = setTimeout(() => {
-      console.log('data updated', data);
-      // TODO : store updated task
-    }, 500);
+    // TODO : store updated task
+    // const timeout = setTimeout(() => {
+    //   console.log('data updated', data);
+    // }, 500);
 
-    return () => clearTimeout(timeout);
+    // return () => clearTimeout(timeout);
   }, [data]);
 
   const handleDeleteTask = () => {

@@ -100,19 +100,69 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     toDay: DayOfWeek,
     toOrder: number | null
   ) => {
-    task.dayOfWeek = toDay;
-    if (toOrder === null) {
-      task.order = tasks.filter((t) => t.dayOfWeek === toDay).length;
+    const tasksSourceDay = tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === task.dayOfWeek);
+    const tasksDestinationDay = tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay);
+    const updatedTasks = [];
+
+    if (task.dayOfWeek !== toDay) {
+      const sourceTasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
+      sourceTasksWithoutMoved.forEach((t, index) => {
+        if (t.order !== index) {
+          t.order = index;
+          updatedTasks.push(t);
+        }
+      });
+
+      const destinationTasksWithoutMoved = tasksDestinationDay.filter((t) => t.id !== task.id);
+      const targetOrder = toOrder ?? destinationTasksWithoutMoved.length;
+
+      destinationTasksWithoutMoved.forEach((t) => {
+        if ((t.order ?? 0) >= targetOrder) {
+          t.order = (t.order ?? 0) + 1;
+          updatedTasks.push(t);
+        }
+      });
+
+      task.dayOfWeek = toDay;
+      task.order = targetOrder;
+      updatedTasks.push(task);
     } else {
-      task.order = toOrder;
+      const tasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
+      const targetOrder = toOrder ?? tasksWithoutMoved.length;
+      const currentOrder = task.order ?? 0;
+
+      if (currentOrder !== targetOrder) {
+        const allTasks = [...tasksWithoutMoved];
+        allTasks.splice(targetOrder, 0, task);
+        allTasks.forEach((t, index) => {
+          if (t.order !== index) {
+            t.order = index;
+            updatedTasks.push(t);
+          }
+        });
+      }
     }
-    updateTask(task);
+
+    const uniqueUpdatedTasks = updatedTasks.filter((t, i, self) =>
+      self.findIndex(t2 => t2.id === t.id) === i
+    );
+
+    uniqueUpdatedTasks.forEach((t) => updateTask(t));
   };
+
+  const memoizedTasks = useMemo(() => {
+    return tasks.sort((a, b) => {
+      if (a.order === b.order) {
+        return 0;
+      }
+      return (a.order ?? 0) > (b.order ?? 0) ? 1 : -1;
+    });
+  }, [tasks]);
 
   return (
     <DataContext.Provider
       value={{
-        tasks,
+        tasks: memoizedTasks,
         findTask,
         addTask,
         updateTask,

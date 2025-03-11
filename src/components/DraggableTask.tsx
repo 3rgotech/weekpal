@@ -4,13 +4,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { useData } from "../contexts/DataContext";
 import { DayOfWeek, WeekTaskList } from "../types";
 import { Chip } from "@heroui/react";
-import { Check } from "lucide-react";
 import IconButton from "./IconButton";
 import Task from "../data/task";
 import clsx from "clsx";
 interface DraggableTaskProps {
   task: Task;
-  dayOfWeek: DayOfWeek;
+  dayOfWeek?: DayOfWeek;
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
@@ -25,8 +24,6 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
     isDragging,
   } = useSortable({
     id: "task-" + task.id,
-    animateLayoutChanges: ({ isSorting }) => (isSorting ? false : true),
-    // Active une animation douce lors de la réorganisation
     data: {
       type: "task",
       id: task.id,
@@ -41,9 +38,9 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: transition ?? "transform 200ms ease",
-    opacity: isDragging ? 0.5 : 1, // Effet semi-transparent lors du drag
-    boxShadow: isDragging ? "0px 4px 10px rgba(0,0,0,0.2)" : "none", // Ombre pour effet de levitation
+    transition: isDragging ? undefined : transition,
+    opacity: isDragging ? 0.5 : 1,
+    boxShadow: isDragging ? "0px 4px 10px rgba(0,0,0,0.2)" : "none",
   };
 
   return (
@@ -51,12 +48,13 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
       <li
         ref={setNodeRef}
         style={style}
+        {...attributes} {...listeners}
         className={clsx(
           "group flex items-center justify-between px-1 py-1 border rounded-lg h-10",
           !task.completed && category && category.getColorClass('border')
         )}
       >
-        <div {...attributes} {...listeners}
+        <div
           className="flex-1 flex items-center gap-x-1 overflow-hidden" style={{ cursor }}>
           {category && (
             <Chip size="sm" className={clsx("text-xs rounded-md text-white", category.getColorClass('bg'))}>{category.name}</Chip>

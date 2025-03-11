@@ -19,7 +19,7 @@ export class WeekpalDB extends Dexie {
         super("WeekpalDB");
         this.version(1).stores({
             categories: '++id, &serverId, name',
-            tasks: '++id, &serverId, name, categoryId, weekCode'
+            tasks: '++id, &serverId, title, categoryId, weekCode, order'
         });
         this.tasks.mapToClass(Task);
         this.categories.mapToClass(Category);
@@ -28,13 +28,5 @@ export class WeekpalDB extends Dexie {
                 testCategories.map((c) => (new Category(c)))
             );
         });
-    }
-
-    async resetDatabase(): Promise<void> {
-        await this.delete();
-        await this.open();
-        this.categories.bulkAdd(
-            testCategories.map((c) => (new Category(c)))
-        )
     }
 }
