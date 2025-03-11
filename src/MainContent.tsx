@@ -109,7 +109,6 @@ const MainContent: React.FC<MainContentProps> = () => {
     if (delta < 10) {
       openTaskModal(task);
     } else {
-      console.log(event);
       const toDay = over.data.current?.dayOfWeek ?? null;
       if (!toDay) return;
       let toOrder =
@@ -119,7 +118,6 @@ const MainContent: React.FC<MainContentProps> = () => {
       if (toOrder === null) {
         toOrder = tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay).length;
       }
-      console.log('move', task.dayOfWeek + ' => ' + toDay, task.order + '=>' + toOrder);
       moveTask(task, toDay, toOrder);
     }
   };

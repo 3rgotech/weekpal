@@ -26,7 +26,6 @@ class Task extends Base {
     constructor(data: Record<string, any>) {
         super(data);
 
-        const dayjs = getDayJs();
         this.title = data.title;
         this.description = data.description ?? null;
 
@@ -34,9 +33,9 @@ class Task extends Base {
         this.dayOfWeek = data.dayOfWeek ?? null;
         this.order = data.order ?? null;
 
-        this.completedAt = data.completedAt ? dayjs(data.completedAt) : null;
-        this.createdAt = data.createdAt ? dayjs(data.createdAt) : null;
-        this.updatedAt = data.updatedAt ? dayjs(data.updatedAt) : null;
+        this.completedAt = this.parseDate(data.completedAt);
+        this.createdAt = this.parseDate(data.createdAt);
+        this.updatedAt = this.parseDate(data.updatedAt);
 
         this.categoryId = data.categoryId ?? null;
     }

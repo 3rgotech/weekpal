@@ -28,7 +28,7 @@ class TaskStore extends BaseStore implements ITaskStore {
         }
 
         const tasks = await this.db.tasks.where('weekCode').equals(weekCode).toArray();
-        return tasks;
+        return tasks.map((task) => new Task(task));
     }
 
     async reload(task: number | Task): Promise<Task | null> {

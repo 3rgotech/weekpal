@@ -21,7 +21,12 @@ export class WeekpalDB extends Dexie {
             categories: '++id, &serverId, name',
             tasks: '++id, &serverId, title, categoryId, weekCode, order'
         });
-        this.tasks.mapToClass(Task);
+        this.tasks.hook('reading', (task) => {
+            console.log(task);
+            const obj = new Task(task);
+            console.log(obj);
+            return obj;
+        });
         this.categories.mapToClass(Category);
         this.on("populate", function (transaction: Transaction) {
             (transaction.db as WeekpalDB).categories.bulkAdd(

@@ -48,13 +48,13 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
       <li
         ref={setNodeRef}
         style={style}
-        {...attributes} {...listeners}
         className={clsx(
           "group flex items-center justify-between px-1 py-1 border rounded-lg h-10",
           !task.completed && category && category.getColorClass('border')
         )}
       >
         <div
+          {...attributes} {...listeners}
           className="flex-1 flex items-center gap-x-1 overflow-hidden" style={{ cursor }}>
           {category && (
             <Chip size="sm" className={clsx("text-xs rounded-md text-white", category.getColorClass('bg'))}>{category.name}</Chip>

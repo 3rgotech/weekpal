@@ -100,8 +100,26 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     toDay: DayOfWeek,
     toOrder: number | null
   ) => {
-    const tasksSourceDay = tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === task.dayOfWeek);
-    const tasksDestinationDay = tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay);
+    // If the task is completed, we don't allow reordering
+    if (task.completedAt !== null) {
+      if (task.dayOfWeek !== toDay) {
+        // Only allow moving to different day, keeping it at the end
+        task.dayOfWeek = toDay;
+        updateTask(task);
+      }
+      return;
+    }
+
+    const tasksSourceDay = tasks.filter((t) =>
+      t.weekCode === task.weekCode &&
+      t.dayOfWeek === task.dayOfWeek &&
+      t.completedAt === null // Only consider incomplete tasks for reordering
+    );
+    const tasksDestinationDay = tasks.filter((t) =>
+      t.weekCode === task.weekCode &&
+      t.dayOfWeek === toDay &&
+      t.completedAt === null // Only consider incomplete tasks for reordering
+    );
     const updatedTasks = [];
 
     if (task.dayOfWeek !== toDay) {
@@ -152,9 +170,16 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const memoizedTasks = useMemo(() => {
     return tasks.sort((a, b) => {
-      if (a.order === b.order) {
-        return 0;
+      // First sort by completion status
+      if (a.completedAt === null && b.completedAt !== null) return -1;
+      if (a.completedAt !== null && b.completedAt === null) return 1;
+
+      // Then sort completed tasks by completion date
+      if (a.completedAt && b.completedAt) {
+        return dayjs(a.completedAt).isBefore(dayjs(b.completedAt)) ? -1 : 1;
       }
+
+      // Sort incomplete tasks by order
       return (a.order ?? 0) > (b.order ?? 0) ? 1 : -1;
     });
   }, [tasks]);
