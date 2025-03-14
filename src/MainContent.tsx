@@ -8,10 +8,12 @@ import { useCalendar } from "./contexts/CalendarContext";
 import DraggableTask from "./components/DraggableTask";
 import Task from "./data/task";
 import clsx from "clsx";
+import { useSettings } from "./contexts/SettingsContext";
 
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
+  const { settings: { dayHeaderFormat } } = useSettings();
   const { firstDayOfWeek } = useCalendar();
   const { tasks, moveTask, findTask } = useData();
   const { open: openTaskModal } = useTaskModal();
@@ -198,7 +200,7 @@ const MainContent: React.FC<MainContentProps> = () => {
           {[...Array(7).keys()].map((i) => (
             <div className={clsx(`border rounded-lg overflow-hidden`, [5, 6].includes(i) ? "col-span-1 row-span-1" : "col-span-1 row-span-2")} key={i}>
               <TaskList
-                title={firstDayOfWeek.add(i, "day").format("dddd DD")}
+                title={firstDayOfWeek.add(i, "day").format(dayHeaderFormat)}
                 dayOfWeek={`${i + 1}` as DayOfWeek}
               />
             </div>

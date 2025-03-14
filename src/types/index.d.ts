@@ -1,6 +1,16 @@
 import Category from "../data/category";
 import Task from "../data/task";
 
+export type Theme = "light" | "dark" | "system";
+export type Language = "en" | "fr";
+
+export interface Settings {
+  theme: Theme;
+  language: Language;
+  dayHeaderFormat: string;
+  weekHeaderFormat: string;
+}
+
 export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";
 
 export interface WeekTaskList {

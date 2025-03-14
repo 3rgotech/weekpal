@@ -21,13 +21,10 @@ export class WeekpalDB extends Dexie {
             categories: '++id, &serverId, name',
             tasks: '++id, &serverId, title, categoryId, weekCode, order'
         });
-        this.tasks.hook('reading', (task) => {
-            console.log(task);
-            const obj = new Task(task);
-            console.log(obj);
-            return obj;
-        });
-        this.categories.mapToClass(Category);
+        // Custom hook to convert the objects to class instances (because default Dexia behaviour is to use prototype)
+        this.tasks.hook('reading', (task) => new Task(task));
+        this.categories.hook('reading', (category) => new Category(category));
+
         this.on("populate", function (transaction: Transaction) {
             (transaction.db as WeekpalDB).categories.bulkAdd(
                 testCategories.map((c) => (new Category(c)))

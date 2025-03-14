@@ -6,6 +6,7 @@ import MainContent from "./MainContent";
 import { TaskModalProvider } from "./contexts/TaskModalContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
 // import Example from "./components/MainContent/test/Exemple";
 
 function App() {
@@ -29,20 +30,22 @@ function App() {
       {!indexedDBAvailable ? (
         <CannotLoadTheApp reason="indexeddb_unavailable" />
       ) : (
-        <CalendarProvider>
-          <DataProvider>
-            <TaskModalProvider>
-              <div className="h-screen flex flex-col items-stretch overflow-hidden">
-                <header className="flex-none">
-                  <TopBar />
-                </header>
-                <div className="flex-grow overflow-hidden">
-                  <MainContent />
+        <SettingsProvider>
+          <CalendarProvider>
+            <DataProvider>
+              <TaskModalProvider>
+                <div className="h-screen flex flex-col items-stretch overflow-hidden">
+                  <header className="flex-none">
+                    <TopBar />
+                  </header>
+                  <div className="flex-grow overflow-hidden">
+                    <MainContent />
+                  </div>
                 </div>
-              </div>
-            </TaskModalProvider>
-          </DataProvider>
-        </CalendarProvider>
+              </TaskModalProvider>
+            </DataProvider>
+          </CalendarProvider>
+        </SettingsProvider>
       )}
     </HeroUIProvider>
   );

@@ -1,20 +1,13 @@
 import React, { createContext, useState, ReactNode, useContext } from "react";
-import dayjs from "dayjs";
-import weekOfYear from "dayjs/plugin/weekOfYear";
-import isoWeek from "dayjs/plugin/isoWeek";
-import advancedFormat from "dayjs/plugin/advancedFormat";
-
-// Ajouter le plugin weekOfYear
-dayjs.extend(weekOfYear);
-dayjs.extend(isoWeek);
-dayjs.extend(advancedFormat);
-
+import useDayJs from "../utils/dayjs";
+import { useSettings } from "./SettingsContext";
+import { Dayjs } from "dayjs";
 
 interface CalendarContextProps {
-  currentDate: dayjs.Dayjs;
+  currentDate: Dayjs;
   currentWeek: string;
   currentWeekNumber: number;
-  firstDayOfWeek: dayjs.Dayjs;
+  firstDayOfWeek: Dayjs;
   goToPreviousWeek: () => void;
   goToNextWeek: () => void;
   goToToday: () => void;
@@ -23,6 +16,8 @@ interface CalendarContextProps {
 const CalendarContext = createContext<CalendarContextProps | undefined>(undefined);
 
 const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { settings } = useSettings();
+  const dayjs = useDayJs(settings.language);
   const [currentDate, setCurrentDate] = useState(dayjs());
 
   const currentWeekNumber = currentDate.isoWeek(); // ✅ Définit le numéro de semaine
