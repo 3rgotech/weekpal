@@ -1,31 +1,60 @@
-import React from "react";
+import React, { useState } from "react";
 import { useData } from "../contexts/DataContext";
+import { Select, SelectItem } from "@heroui/react";
+import clsx from "clsx";
+import { CircleSlash2, RotateCcw, Tag } from "lucide-react";
 
 const CategoryFilter: React.FC = () => {
-  const { categories, selectedCategory, setSelectedCategory } =
-    useData();
+  const { categories, selectedCategories, setSelectedCategories } = useData();
+  const [isOpen, setIsOpen] = useState(false);
+
+
+  const items: Array<{ key: string, label: string, startContent?: React.JSX.Element }> = [
+    { key: "-2", label: "All", startContent: <RotateCcw /> },
+    ...categories.map(category => ({
+      key: (category.id ?? 0).toString(),
+      label: category.name,
+      startContent: <div className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}></div>
+    })),
+    { key: "-1", label: "None", startContent: <CircleSlash2 /> },
+  ]
+  console.log("categories", categories);
+  console.log("items", items);
+  console.log("selectedCategories", selectedCategories);
   return (
-    <select
-      onChange={(e) =>
-        setSelectedCategory(
-          e.target.value.length === 0 ? null : parseInt(e.target.value, 10)
-        )
-      }
-      className="p-2 border rounded bg-white text-slate-800 border-blue-200 dark:bg-slate-700 dark:border-blue-700 dark:text-white"
-      value={selectedCategory ?? ""}
+    <Select
+      startContent={<Tag />}
+      className="max-w-lg w-48 flex-1"
+      size="md"
+      selectionMode="multiple"
+      placeholder="All"
+      selectedKeys={selectedCategories.map(String)}
+      onSelectionChange={(keys) => {
+        let selectedKeys = Array.from(keys).map(Number);
+        if (selectedKeys.includes(-2)) {
+          selectedKeys = [];
+          setTimeout(() => {
+            setIsOpen(false);
+          }, 100);
+        }
+        console.log("selectedKeys", selectedKeys);
+        setSelectedCategories(selectedKeys);
+      }}
+      disallowEmptySelection={false}
+      isOpen={isOpen}
+      onOpenChange={(open) => open !== isOpen && setIsOpen(open)}
     >
-      <option value="">
-        All
-      </option>
-      {categories.map((category) => (
-        <option
-          key={category.id}
-          value={category.id}
+      {items.map(item => (
+        <SelectItem
+          key={item.key}
+          startContent={item.startContent}
+          className="dark:text-white"
         >
-          {category.name}
-        </option>
+          {item.label}
+        </SelectItem>
       ))}
-    </select>
+
+    </Select>
   );
 };
 

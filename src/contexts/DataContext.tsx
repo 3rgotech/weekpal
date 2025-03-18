@@ -17,8 +17,8 @@ interface DataContextProps {
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
   deleteTask: (task: Task) => void;
   categories: Array<Category>;
-  selectedCategory: number | null;
-  setSelectedCategory: (category: number | null) => void;
+  selectedCategories: number[];
+  setSelectedCategories: (categories: number[]) => void;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -28,7 +28,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const dayjs = useDayJs();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const taskStore = useMemo(() => new TaskStore(), []);
   const categoryStore = useMemo(() => new CategoryStore(), []);
@@ -36,9 +36,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     if (taskStore) {
       taskStore.list(currentWeek).then((dbTasks) => {
-        setTasks(dbTasks.filter(
-          t => selectedCategory === null || t.categoryId === selectedCategory
-        ));
+        setTasks(dbTasks);
       });
     }
     if (categoryStore) {
@@ -46,7 +44,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setCategories(dbCategories);
       });
     }
-  }, [taskStore, categoryStore, currentWeek, selectedCategory]);
+  }, [taskStore, categoryStore, currentWeek, selectedCategories]);
 
   const findTask = (taskId: number) => {
     return tasks.find((task) => task.id === taskId) ?? null;
@@ -169,20 +167,22 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const memoizedTasks = useMemo(() => {
-    return tasks.sort((a, b) => {
-      // First sort by completion status
-      if (a.completedAt === null && b.completedAt !== null) return -1;
-      if (a.completedAt !== null && b.completedAt === null) return 1;
+    return tasks
+      .filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.categoryId ?? -1))
+      .sort((a, b) => {
+        // First sort by completion status
+        if (a.completedAt === null && b.completedAt !== null) return -1;
+        if (a.completedAt !== null && b.completedAt === null) return 1;
 
-      // Then sort completed tasks by completion date
-      if (a.completedAt && b.completedAt) {
-        return dayjs(a.completedAt).isBefore(dayjs(b.completedAt)) ? -1 : 1;
-      }
+        // Then sort completed tasks by completion date
+        if (a.completedAt && b.completedAt) {
+          return dayjs(a.completedAt).isBefore(dayjs(b.completedAt)) ? -1 : 1;
+        }
 
-      // Sort incomplete tasks by order
-      return (a.order ?? 0) > (b.order ?? 0) ? 1 : -1;
-    });
-  }, [tasks]);
+        // Sort incomplete tasks by order
+        return (a.order ?? 0) > (b.order ?? 0) ? 1 : -1;
+      });
+  }, [tasks, selectedCategories]);
 
   return (
     <DataContext.Provider
@@ -196,8 +196,8 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         moveTask,
         deleteTask,
         categories,
-        selectedCategory,
-        setSelectedCategory,
+        selectedCategories,
+        setSelectedCategories,
       }}
     >
       {children}

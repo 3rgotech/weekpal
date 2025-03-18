@@ -16,7 +16,7 @@ interface TaskProps {
 
 const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
   const { currentWeek } = useCalendar();
-  const { tasks, selectedCategory } = useData();
+  const { tasks } = useData();
 
   const { setNodeRef, isOver } = useDroppable({
     id: `${dayOfWeek}-droppable`,
@@ -26,10 +26,7 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
     },
   });
 
-  const filteredTasks = tasks.filter(
-    (task) => task.dayOfWeek === dayOfWeek &&
-      (selectedCategory === null || task.categoryId === selectedCategory)
-  );
+  const filteredTasks = tasks.filter((task) => task.dayOfWeek === dayOfWeek);
 
   const taskIds = filteredTasks.map((task) => task.id)
     .filter((id) => id !== null && id !== undefined)
