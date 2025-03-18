@@ -61,7 +61,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
     }, [creatingNewTask]);
 
     return (
-        <li className={`flex items-center justify-between h-10 px-1 border ${creatingNewTask ? "border-gray-200 dark:border-gray-600" : "border-transparent"} rounded-lg dark:bg-gray-700`}>
+        <li className={`flex items-center justify-between h-10 px-2 py-1 border ${creatingNewTask ? "border-blue-300 dark:border-blue-700" : "border-transparent"} rounded-md bg-white dark:bg-slate-700 shadow-sm`}>
             <div
                 ref={wrapperRef}
                 className="flex w-full items-center"
@@ -85,13 +85,13 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
                                     handleSubmit();
                                 }
                             }}
-                            className="w-full ring-0 outline-none h-8 dark:bg-gray-700 dark:text-white"
+                            className="w-full ring-0 outline-none h-8 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200"
                         />
-                        <IconButton icon="plus" onClick={handleSubmit} size="xs" />
+                        <IconButton icon="plus" onClick={handleSubmit} size="xs" className="bg-blue-50 dark:bg-blue-900" />
                     </>
                 ) : (
                     <button
-                        className="text-sm text-gray-500 dark:text-gray-300 h-8"
+                        className="text-sm text-slate-400 dark:text-slate-400 h-8"
                         onClick={() => setCreatingNewTask(true)}>
                         Click to add task
                     </button>

@@ -2,12 +2,14 @@ import clsx from "clsx";
 import React from "react";
 import { icons, defaultIcon } from "../utils/icon";
 
+type ButtonColor = 'green';
+
 interface IconButtonProps {
   icon: keyof typeof icons;
   onClick: () => void;
   size?: 'xs' | 'sm' | 'md';
   className?: string;
-  color?: string;
+  color?: ButtonColor | null;
 }
 
 const iconSizes = {
@@ -22,16 +24,21 @@ const btnClasses = {
   md: 'p-2',
 }
 
-const iconClasses = {};
+const colorClasses: Record<ButtonColor | 'default', string> = {
+  green: 'border-green-700 bg-green-500 text-white hover:bg-green-600',
+  default: 'border-blue-200 dark:border-blue-700 hover:bg-blue-600 hover:border-white text-slate-800 dark:text-slate-100 hover:text-white dark:hover:text-slate-800 dark:hover:bg-blue-500 dark:hover:border-blue-500 bg-white dark:bg-slate-700',
+}
 
-const IconButton: React.FC<IconButtonProps> = ({ icon, onClick, size = 'md', color = 'currentColor', className = '' }) => {
+const IconButton: React.FC<IconButtonProps> = ({ icon, onClick, size = 'md', color = null, className = '' }) => {
   const Icon = icons[icon] ?? defaultIcon;
   return (
-    <button className={clsx('rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
+    <button className={clsx(
+      'rounded-full transition-colors border',
       btnClasses[size],
-      className
+      className,
+      color ? colorClasses[color as ButtonColor] : colorClasses.default,
     )} onClick={onClick}>
-      <Icon size={iconSizes[size]} color={color} />
+      <Icon size={iconSizes[size]} />
     </button>
   );
 };

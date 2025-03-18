@@ -34,7 +34,7 @@ function App() {
           <CalendarProvider>
             <DataProvider>
               <TaskModalProvider>
-                <div className="h-screen flex flex-col items-stretch overflow-hidden dark:bg-gray-900">
+                <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
                   <header className="flex-none">
                     <TopBar />
                   </header>

@@ -122,6 +122,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     <SelectItem
                       key={category.id}
                       startContent={<div className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}></div>}
+                      className="dark:text-white"
                     >
                       {category.name}
                     </SelectItem>

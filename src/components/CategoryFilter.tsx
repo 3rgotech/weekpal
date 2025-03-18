@@ -11,7 +11,7 @@ const CategoryFilter: React.FC = () => {
           e.target.value.length === 0 ? null : parseInt(e.target.value, 10)
         )
       }
-      className="p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+      className="p-2 border rounded bg-white text-slate-800 border-blue-200 dark:bg-slate-700 dark:border-blue-700 dark:text-white"
       value={selectedCategory ?? ""}
     >
       <option value="">

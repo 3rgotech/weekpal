@@ -5,13 +5,15 @@ import CategoryFilter from "./CategoryFilter";
 import Menu from "./Menu";
 import IconButton from "./IconButton";
 import { useSettings } from "../contexts/SettingsContext";
+
 interface TopBarProps { }
 
 const TopBar: React.FC<TopBarProps> = () => {
   const { openSettingsModal } = useSettings();
+
   return (
-    <div className="top-bar flex items-center justify-between w-full p-4 dark:bg-gray-800 dark:text-white">
-      <div className="flex items-center">
+    <div className="top-bar flex items-center justify-between w-full p-4 bg-blue-600 dark:bg-blue-800 text-white">
+      <div className="flex items-center gap-x-4">
         <Logo />
         <WeekSelector />
       </div>
@@ -19,7 +21,11 @@ const TopBar: React.FC<TopBarProps> = () => {
         <CategoryFilter />
         <Menu icon="refresh" title="Refresh" />
         <Menu icon="print" title="Print" />
-        <IconButton icon="settings" onClick={openSettingsModal} size="md" />
+        <IconButton
+          icon="settings"
+          onClick={openSettingsModal}
+          size="md"
+        />
         <Menu icon="user" title="User" />
       </div>
     </div>

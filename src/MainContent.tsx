@@ -198,20 +198,20 @@ const MainContent: React.FC<MainContentProps> = () => {
       <div className="p-4 h-full flex flex-col overflow-hidden">
         <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4 overflow-hidden">
           {[...Array(7).keys()].map((i) => (
-            <div className={clsx(`border rounded-lg overflow-hidden`, [5, 6].includes(i) ? "col-span-1 row-span-1" : "col-span-1 row-span-2")} key={i}>
+            <div className={clsx(`overflow-hidden shadow-sm rounded-lg`, [5, 6].includes(i) ? "col-span-1 row-span-1" : "col-span-1 row-span-2")} key={i}>
               <TaskList
                 title={firstDayOfWeek.add(i, "day").format(dayHeaderFormat)}
                 dayOfWeek={`${i + 1}` as DayOfWeek}
               />
             </div>
           ))}
-          <div className={`col-span-3 row-span-1 border rounded-lg overflow-hidden`}>
+          <div className={`col-span-3 row-span-1 overflow-hidden shadow-sm rounded-lg`}>
             <TaskList
               title={"This week"}
               dayOfWeek={"0"}
             />
           </div>
-          <div className={`col-span-3 row-span-1 border rounded-lg overflow-hidden`}>
+          <div className={`col-span-3 row-span-1 overflow-hidden shadow-sm rounded-lg`}>
             <TaskList
               title={"One day"}
               dayOfWeek={"someday"}

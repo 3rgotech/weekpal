@@ -111,7 +111,10 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 required
               >
                 {WEEK_HEADER_FORMATS.map(format => (
-                  <SelectItem key={format}>
+                  <SelectItem
+                    key={format}
+                    className="dark:text-white"
+                  >
                     {/* TODO : Translation */}
                     {dayjs().format(format).replace('[WEEK]', 'Week').replace('[OF]', 'of')}
                   </SelectItem>
@@ -126,7 +129,10 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 required
               >
                 {DAY_HEADER_FORMATS.map(format => (
-                  <SelectItem key={format}>
+                  <SelectItem
+                    key={format}
+                    className="dark:text-white"
+                  >
                     {/* TODO : Translation */}
                     {dayjs().format(format)}
                   </SelectItem>

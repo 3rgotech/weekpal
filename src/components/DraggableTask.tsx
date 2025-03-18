@@ -49,20 +49,20 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
         ref={setNodeRef}
         style={style}
         className={clsx(
-          "group flex items-center justify-between px-1 py-1 border rounded-lg h-10",
+          "group flex items-center justify-between px-2 py-1 border rounded-md h-10 shadow-sm transition-colors",
           !task.completed && category && category.getColorClass('border'),
-          "dark:bg-gray-700 dark:border-gray-600"
+          "bg-white dark:bg-slate-700 border-slate-100 dark:border-slate-600"
         )}
       >
         <div
           {...attributes} {...listeners}
-          className="flex-1 flex items-center gap-x-1 overflow-hidden" style={{ cursor }}>
+          className="flex-1 flex items-center gap-x-2 overflow-hidden" style={{ cursor }}>
           {category && (
             <Chip size="sm" className={clsx("text-xs rounded-md text-white", category.getColorClass('bg'))}>{category.name}</Chip>
           )}
           <h3 className={clsx(
             "text-sm font-medium truncate",
-            task.completed && "text-gray-400 line-through dark:text-gray-300",
+            task.completed && "text-slate-300 line-through dark:text-slate-300",
             !task.completed && category && category.getColorClass('text')
           )}>
             {task.title}
@@ -70,8 +70,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
         </div>
         <div className="group-hover:flex hidden items-center gap-x-1">
           <IconButton icon="check"
-            className={clsx(task.completed && 'bg-green-500')}
-            color={task.completed ? 'white' : 'currentColor'}
+            color={task.completed ? 'green' : null}
             onClick={() => {
               if (task.completed) {
                 uncompleteTask(task);

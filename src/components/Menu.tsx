@@ -7,14 +7,19 @@ import { Button } from "@heroui/react";
 interface MenuProps {
   title: React.ReactNode; // Accepte du texte ou du JSX
   icon: keyof typeof icons;
+  buttonClassName?: string;
 }
 
-const Menu: React.FC<MenuProps> = ({ title, icon }) => {
+const Menu: React.FC<MenuProps> = ({ title, icon, buttonClassName }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   return (
     <>
-      <IconButton icon={icon} onClick={onOpen} size="md" />
+      <IconButton
+        icon={icon}
+        onClick={onOpen}
+        size="md"
+      />
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
