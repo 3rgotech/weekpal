@@ -22,7 +22,7 @@ const WeekSelector: React.FC = () => {
     .replace('[OF]', 'of');
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-2 dark:text-white">
       <div className="flex items-center gap-2">
         <div>{title}</div>
         <div className="flex gap-2">

@@ -50,7 +50,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
         style={style}
         className={clsx(
           "group flex items-center justify-between px-1 py-1 border rounded-lg h-10",
-          !task.completed && category && category.getColorClass('border')
+          !task.completed && category && category.getColorClass('border'),
+          "dark:bg-gray-700 dark:border-gray-600"
         )}
       >
         <div
@@ -61,7 +62,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
           )}
           <h3 className={clsx(
             "text-sm font-medium truncate",
-            task.completed && "text-gray-400 line-through",
+            task.completed && "text-gray-400 line-through dark:text-gray-300",
             !task.completed && category && category.getColorClass('text')
           )}>
             {task.title}

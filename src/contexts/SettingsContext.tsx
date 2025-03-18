@@ -49,14 +49,14 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <SettingsContext.Provider value={providedValues}>
       {children}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" backdrop="blur">
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-1">
+          <ModalHeader className="flex flex-col gap-1 dark:text-white">
             Settings
           </ModalHeader>
           <ModalBody>
             <div className="grid grid-cols-3 gap-x-4 gap-y-8 items-center mb-4">
-              <h3 className="text-base">Theme</h3>
+              <h3 className="text-base dark:text-white">Theme</h3>
               <ButtonGroup size="sm" className="col-span-2 justify-start">
                 <Button
                   startContent={<SunIcon />}
@@ -83,7 +83,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   System
                 </Button>
               </ButtonGroup>
-              <h3 className="text-base">Language</h3>
+              <h3 className="text-base dark:text-white">Language</h3>
               <Select
                 size="sm"
                 selectedKeys={[settings.language]}
@@ -92,13 +92,17 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 className="col-span-2"
               >
                 {LANGUAGES.map(language => (
-                  <SelectItem key={language} startContent={<span className={`fi fi-${LANGUAGE_FLAGS[language]}`} />}>
+                  <SelectItem
+                    key={language}
+                    startContent={<span className={`fi fi-${LANGUAGE_FLAGS[language]}`} />}
+                    className="dark:text-white"
+                  >
                     {/* TODO : Translation */}
                     {language}
                   </SelectItem>
                 ))}
               </Select>
-              <h3 className="text-base">Week header format</h3>
+              <h3 className="text-base dark:text-white">Week header format</h3>
               <Select
                 size="sm"
                 selectedKeys={[settings.weekHeaderFormat]}
@@ -113,7 +117,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   </SelectItem>
                 ))}
               </Select>
-              <h3 className="text-base">Day header format</h3>
+              <h3 className="text-base dark:text-white">Day header format</h3>
               <Select
                 size="sm"
                 selectedKeys={[settings.dayHeaderFormat]}

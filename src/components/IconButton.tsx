@@ -27,7 +27,7 @@ const iconClasses = {};
 const IconButton: React.FC<IconButtonProps> = ({ icon, onClick, size = 'md', color = 'currentColor', className = '' }) => {
   const Icon = icons[icon] ?? defaultIcon;
   return (
-    <button className={clsx('rounded-full border border-gray-300',
+    <button className={clsx('rounded-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white',
       btnClasses[size],
       className
     )} onClick={onClick}>
