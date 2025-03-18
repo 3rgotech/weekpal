@@ -60,7 +60,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
               <ButtonGroup size="sm" className="col-span-2 justify-start">
                 <Button
                   startContent={<SunIcon />}
-                  className={clsx({ "bg-blue-500": settings.theme === "light" })}
+                  className={clsx({ "bg-sky-500": settings.theme === "light" })}
                   onPress={() => updateSettings({ theme: "light" })}
                 >
                   {/* TODO : Translation */}
@@ -68,7 +68,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 </Button>
                 <Button
                   startContent={<MoonIcon />}
-                  className={clsx({ "bg-blue-500": settings.theme === "dark" })}
+                  className={clsx({ "bg-sky-500": settings.theme === "dark" })}
                   onPress={() => updateSettings({ theme: "dark" })}
                 >
                   {/* TODO : Translation */}
@@ -76,7 +76,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 </Button>
                 <Button
                   startContent={<MonitorIcon />}
-                  className={clsx({ "bg-blue-500": settings.theme === "system" })}
+                  className={clsx({ "bg-sky-500": settings.theme === "system" })}
                   onPress={() => updateSettings({ theme: "system" })}
                 >
                   {/* TODO : Translation */}

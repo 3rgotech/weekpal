@@ -43,6 +43,11 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
     boxShadow: isDragging ? "0px 4px 10px rgba(0,0,0,0.2)" : "none",
   };
 
+  let borderClass = "border-slate-300 dark:border-slate-600";
+  if (!task.completed && category) {
+    borderClass = category.getColorClass('border') ?? borderClass;
+  }
+
   return (
     <>
       <li
@@ -50,8 +55,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
         style={style}
         className={clsx(
           "group flex items-center justify-between px-2 py-1 border rounded-md h-10 shadow-sm transition-colors",
-          !task.completed && category && category.getColorClass('border'),
-          "bg-white dark:bg-slate-700 border-slate-100 dark:border-slate-600"
+          "bg-white dark:bg-slate-700",
+          borderClass
         )}
       >
         <div

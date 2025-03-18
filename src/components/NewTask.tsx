@@ -5,6 +5,7 @@ import Task from '../data/task';
 import { DayOfWeek, WeekTaskList } from '../types';
 import IconButton from './IconButton';
 import { useCalendar } from '../contexts/CalendarContext';
+import clsx from 'clsx';
 
 interface NewTaskProps {
     dayOfWeek: DayOfWeek;
@@ -61,7 +62,10 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
     }, [creatingNewTask]);
 
     return (
-        <li className={`flex items-center justify-between h-10 px-2 py-1 border ${creatingNewTask ? "border-blue-300 dark:border-blue-700" : "border-transparent"} rounded-md bg-white dark:bg-slate-700 shadow-sm`}>
+        <li className={clsx(
+            `flex items-center justify-between h-10 px-2 py-1 border rounded-md bg-white dark:bg-slate-700 shadow-sm`,
+            creatingNewTask ? "border-slate-400 dark:border-slate-600" : "border-transparent"
+        )}>
             <div
                 ref={wrapperRef}
                 className="flex w-full items-center"
@@ -87,7 +91,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
                             }}
                             className="w-full ring-0 outline-none h-8 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200"
                         />
-                        <IconButton icon="plus" onClick={handleSubmit} size="xs" className="bg-blue-50 dark:bg-blue-900" />
+                        <IconButton icon="plus" onClick={handleSubmit} size="xs" className="bg-sky-50 dark:bg-sky-900" />
                     </>
                 ) : (
                     <button

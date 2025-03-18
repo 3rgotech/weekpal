@@ -26,7 +26,7 @@ const btnClasses = {
 
 const colorClasses: Record<ButtonColor | 'default', string> = {
   green: 'border-green-700 bg-green-500 text-white hover:bg-green-600',
-  default: 'border-blue-200 dark:border-blue-700 hover:bg-blue-600 hover:border-white text-slate-800 dark:text-slate-100 hover:text-white dark:hover:text-slate-800 dark:hover:bg-blue-500 dark:hover:border-blue-500 bg-white dark:bg-slate-700',
+  default: 'border-sky-200 dark:border-sky-700 hover:bg-sky-600 hover:border-white text-slate-800 dark:text-slate-100 hover:text-white dark:hover:text-slate-800 dark:hover:bg-sky-500 dark:hover:border-sky-500 bg-white dark:bg-slate-700',
 }
 
 const IconButton: React.FC<IconButtonProps> = ({ icon, onClick, size = 'md', color = null, className = '' }) => {

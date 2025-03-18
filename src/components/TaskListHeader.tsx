@@ -13,9 +13,9 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayOfWeek, weekC
   const { openNewTask } = useTaskModal();
 
   return (
-    <div className="border-b border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-slate-700">
+    <div className="border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-slate-700">
       <div className="px-3 py-2 flex items-center justify-between">
-        <h2 className="text-lg font-medium text-blue-700 dark:text-blue-200">
+        <h2 className="text-lg font-medium text-sky-700 dark:text-sky-200">
           {title}
         </h2>
         <IconButton icon="plus" onClick={() => { openNewTask(weekCode, dayOfWeek) }} size="sm" />

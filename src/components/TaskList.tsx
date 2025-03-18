@@ -35,7 +35,7 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
   return (
     <div
       ref={setNodeRef}
-      className={`border rounded-lg h-full border-blue-200 dark:border-blue-800 flex flex-col bg-white dark:bg-slate-800 shadow-sm`}
+      className={`border rounded-lg h-full border-sky-200 dark:border-sky-800 flex flex-col bg-slate-100 dark:bg-slate-800 shadow-sm`}
     >
       <TaskListHeader
         title={title}

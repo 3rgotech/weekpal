@@ -12,7 +12,7 @@ const TopBar: React.FC<TopBarProps> = () => {
   const { openSettingsModal } = useSettings();
 
   return (
-    <div className="top-bar flex items-center justify-between w-full p-4 bg-blue-600 dark:bg-blue-800 text-white">
+    <div className="top-bar flex items-center justify-between w-full p-4 bg-sky-600 dark:bg-sky-800 text-white">
       <div className="flex items-center gap-x-4">
         <Logo />
         <WeekSelector />
