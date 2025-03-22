@@ -8,6 +8,7 @@ import { DAY_HEADER_FORMATS, DEFAULT_SETTINGS, LANGUAGES, LANGUAGE_FLAGS, WEEK_H
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import "/node_modules/flag-icons/css/flag-icons.min.css";
 import useDayJs from "../utils/dayjs";
+import { useTranslation } from "react-i18next";
 
 
 interface SettingsContextProps {
@@ -22,6 +23,7 @@ const SettingsContext = createContext<SettingsContextProps | undefined>(
 );
 
 const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { t, i18n } = useTranslation();
   const [settings, setSettings] = useLocalStorage<Settings>("settings", DEFAULT_SETTINGS);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const dayjs = useDayJs(settings.language);
@@ -39,6 +41,10 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, [settings.theme])
 
+  useEffect(() => {
+    i18n.changeLanguage(settings.language);
+  }, [settings.language])
+
   const providedValues = {
     settings,
     updateSettings,
@@ -52,7 +58,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" backdrop="blur">
         <ModalContent>
           <ModalHeader className="flex flex-col gap-1 dark:text-white">
-            Settings
+            {t('settings.settings')}
           </ModalHeader>
           <ModalBody>
             <div className="grid grid-cols-3 gap-x-4 gap-y-8 items-center mb-4">
@@ -63,27 +69,26 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   className={clsx({ "bg-sky-500": settings.theme === "light" })}
                   onPress={() => updateSettings({ theme: "light" })}
                 >
-                  {/* TODO : Translation */}
-                  Light
+                  {t('theme.light')}
                 </Button>
                 <Button
                   startContent={<MoonIcon />}
                   className={clsx({ "bg-sky-500": settings.theme === "dark" })}
                   onPress={() => updateSettings({ theme: "dark" })}
                 >
-                  {/* TODO : Translation */}
-                  Dark
+                  {t('theme.dark')}
                 </Button>
                 <Button
                   startContent={<MonitorIcon />}
                   className={clsx({ "bg-sky-500": settings.theme === "system" })}
                   onPress={() => updateSettings({ theme: "system" })}
                 >
-                  {/* TODO : Translation */}
-                  System
+                  {t('theme.system')}
                 </Button>
               </ButtonGroup>
-              <h3 className="text-base dark:text-white">Language</h3>
+              <h3 className="text-base dark:text-white">
+                {t('settings.language')}
+              </h3>
               <Select
                 size="sm"
                 selectedKeys={[settings.language]}
@@ -97,12 +102,13 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     startContent={<span className={`fi fi-${LANGUAGE_FLAGS[language]}`} />}
                     className="dark:text-white"
                   >
-                    {/* TODO : Translation */}
-                    {language}
+                    {t(`language.${language}`)}
                   </SelectItem>
                 ))}
               </Select>
-              <h3 className="text-base dark:text-white">Week header format</h3>
+              <h3 className="text-base dark:text-white">
+                {t('settings.weekHeaderFormat')}
+              </h3>
               <Select
                 size="sm"
                 selectedKeys={[settings.weekHeaderFormat]}
@@ -116,11 +122,13 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     className="dark:text-white"
                   >
                     {/* TODO : Translation */}
-                    {dayjs().format(format).replace('[WEEK]', 'Week').replace('[OF]', 'of')}
+                    {dayjs().format(format).replace('[WEEK]', t('misc.week')).replace('[OF]', t('misc.of'))}
                   </SelectItem>
                 ))}
               </Select>
-              <h3 className="text-base dark:text-white">Day header format</h3>
+              <h3 className="text-base dark:text-white">
+                {t('settings.dayHeaderFormat')}
+              </h3>
               <Select
                 size="sm"
                 selectedKeys={[settings.dayHeaderFormat]}
@@ -133,7 +141,6 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     key={format}
                     className="dark:text-white"
                   >
-                    {/* TODO : Translation */}
                     {dayjs().format(format)}
                   </SelectItem>
                 ))}

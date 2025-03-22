@@ -6,6 +6,7 @@ import { DayOfWeek, WeekTaskList } from '../types';
 import IconButton from './IconButton';
 import { useCalendar } from '../contexts/CalendarContext';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 
 interface NewTaskProps {
     dayOfWeek: DayOfWeek;
@@ -14,6 +15,7 @@ interface NewTaskProps {
 const NewTask = ({ dayOfWeek }: NewTaskProps) => {
     const { currentWeek } = useCalendar();
     const { addTask } = useData();
+    const { t } = useTranslation();
     const [creatingNewTask, setCreatingNewTask] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const inputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +99,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
                     <button
                         className="text-sm text-slate-400 dark:text-slate-400 h-8"
                         onClick={() => setCreatingNewTask(true)}>
-                        Click to add task
+                        {t('main.add_new_task')}
                     </button>
                 )}
             </div>

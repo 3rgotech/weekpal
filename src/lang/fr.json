@@ -1,0 +1,37 @@
+{
+    "theme": {
+        "light": "Clair",
+        "dark": "Sombre",
+        "system": "Système"
+    },
+    "language": {
+        "en": "English",
+        "fr": "Français"
+    },
+    "settings": {
+        "settings": "Paramètres",
+        "theme": "Thème",
+        "language": "Langue",
+        "weekHeaderFormat": "Format de la semaine",
+        "dayHeaderFormat": "Format du jour"
+    },
+    "main": {
+        "this_week": "Cette semaine",
+        "some_day": "Un jour",
+        "add_new_task": "Cliquez pour ajouter une tâche"
+    },
+    "category": {
+        "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",
+        "all": "Toutes",
+        "none": "Aucune"
+    },
+    "task": {
+        "title": "Titre",
+        "description": "Description",
+        "category": "Catégorie"
+    },
+    "misc": {
+        "of": "de",
+        "week": "Semaine"
+    }
+}

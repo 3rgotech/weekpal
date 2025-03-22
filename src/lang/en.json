@@ -1,0 +1,37 @@
+{
+    "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
+    },
+    "language": {
+        "en": "English",
+        "fr": "Français"
+    },
+    "settings": {
+        "settings": "Settings",
+        "theme": "Theme",
+        "language": "Language",
+        "weekHeaderFormat": "Week header format",
+        "dayHeaderFormat": "Day header format"
+    },
+    "main": {
+        "this_week": "This week",
+        "some_day": "Some day",
+        "add_new_task": "Click to add task"
+    },
+    "category": {
+        "help": "Select one or more categories to only display them",
+        "all": "All",
+        "none": "None"
+    },
+    "task": {
+        "title": "Title",
+        "description": "Description",
+        "category": "Category"
+    },
+    "misc": {
+        "of": "of",
+        "week": "Week"
+    }
+}

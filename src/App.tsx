@@ -7,6 +7,7 @@ import { TaskModalProvider } from "./contexts/TaskModalContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
+import './i18n';
 // import Example from "./components/MainContent/test/Exemple";
 
 function App() {

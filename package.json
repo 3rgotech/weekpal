@@ -18,10 +18,13 @@
     "dexie-react-hooks": "^1.1.7",
     "flag-icons": "^7.3.2",
     "framer-motion": "^11.18.2",
+    "i18next": "^24.2.3",
+    "i18next-browser-languagedetector": "^8.0.4",
     "lodash": "^4.17.21",
     "lucide-react": "^0.471.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-i18next": "^15.4.1",
     "usehooks-ts": "^3.1.1",
     "uuid": "^11.1.0"
   },

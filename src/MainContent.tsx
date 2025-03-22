@@ -9,10 +9,12 @@ import DraggableTask from "./components/DraggableTask";
 import Task from "./data/task";
 import clsx from "clsx";
 import { useSettings } from "./contexts/SettingsContext";
+import { useTranslation } from "react-i18next";
 
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
+  const { t } = useTranslation();
   const { settings: { dayHeaderFormat } } = useSettings();
   const { firstDayOfWeek } = useCalendar();
   const { tasks, moveTask, findTask } = useData();
@@ -207,13 +209,13 @@ const MainContent: React.FC<MainContentProps> = () => {
           ))}
           <div className={`col-span-3 row-span-1 overflow-hidden shadow-sm rounded-lg`}>
             <TaskList
-              title={"This week"}
+              title={t('main.this_week')}
               dayOfWeek={"0"}
             />
           </div>
           <div className={`col-span-3 row-span-1 overflow-hidden shadow-sm rounded-lg`}>
             <TaskList
-              title={"One day"}
+              title={t('main.some_day')}
               dayOfWeek={"someday"}
             />
           </div>
