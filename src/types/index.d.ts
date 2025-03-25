@@ -1,4 +1,5 @@
 import Category from "../data/category";
+import Event from "../data/event";
 import Task from "../data/task";
 
 export type Theme = "light" | "dark" | "system";
@@ -53,6 +54,11 @@ export interface ITaskStore {
   delete(task: Task): Promise<void>;
 }
 
+export interface IEventStore {
+  list(weekCode: string): Promise<Event[]>;
+  reload(event: Event | number): Promise<Event | null>;
+}
+
 export interface ICategoryStore {
   list(): Promise<Category[]>;
   reload(category: Category | number): Promise<Category | null>;
@@ -69,6 +75,10 @@ export interface ITaskAdapter {
   create(task: Task): Promise<number>;
   update(task: Task): Promise<void>;
   delete(task: Task): Promise<void>;
+}
+
+export interface IEventAdapter {
+  getWeek(weekCode: string): Promise<Event[]>;
 }
 
 export interface ICategoryAdapter {

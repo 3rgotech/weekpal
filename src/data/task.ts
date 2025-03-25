@@ -55,20 +55,6 @@ class Task extends Base {
     get completed(): boolean {
         return this.completedAt !== null;
     }
-
-    serialize(): Record<string, any> {
-        return {
-            id: this.id,
-            serverId: this.serverId,
-            title: this.title,
-            description: this.description ?? null,
-            order: this.order,
-            categoryId: this.categoryId ?? null,
-            createdAt: this.createdAt?.toISOString(),
-            updatedAt: this.updatedAt?.toISOString(),
-            completedAt: this.completedAt?.toISOString() ?? null,
-        }
-    }
 }
 
 export default Task;

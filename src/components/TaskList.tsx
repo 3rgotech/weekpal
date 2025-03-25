@@ -8,6 +8,8 @@ import TaskListHeader from "./TaskListHeader";
 import NewTask from "./NewTask";
 import { useCalendar } from "../contexts/CalendarContext";
 import clsx from "clsx";
+import { Dayjs } from "dayjs";
+import EventList from "./EventList";
 
 interface TaskProps {
   title: string;
@@ -15,8 +17,8 @@ interface TaskProps {
 }
 
 const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
-  const { currentWeek } = useCalendar();
-  const { tasks } = useData();
+  const { currentWeek, firstDayOfWeek } = useCalendar();
+  const { tasks, events } = useData();
 
   const { setNodeRef, isOver } = useDroppable({
     id: `${dayOfWeek}-droppable`,
@@ -32,6 +34,8 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
     .filter((id) => id !== null && id !== undefined)
     .map((id) => `task-${id}`);
 
+  const filteredEvents = events.filter((event) => event.dayOfWeek === dayOfWeek);
+
   return (
     <div
       ref={setNodeRef}
@@ -42,7 +46,10 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
         dayOfWeek={dayOfWeek}
         weekCode={currentWeek}
       />
-      <ul className={clsx("flex-1 overflow-y-auto p-2 space-y-2")}>
+      {filteredEvents.length > 0 && (
+        <EventList events={filteredEvents} />
+      )}
+      <ul className={clsx("flex-1 overflow-y-auto px-2 py-1 space-y-2")}>
         <SortableContext items={taskIds}>
           {filteredTasks.map((task) => (
             <DraggableTask

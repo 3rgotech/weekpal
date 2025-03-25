@@ -21,7 +21,7 @@ const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentDate, setCurrentDate] = useState(dayjs());
 
   const currentWeekNumber = currentDate.isoWeek(); // ✅ Définit le numéro de semaine
-  const currentWeek = currentDate.format("YYYY[w]WW");
+  const currentWeek = currentDate.format("GGGG[w]WW");
   const firstDayOfWeek = currentDate.startOf("isoWeek");
 
   const goToPreviousWeek = () => {

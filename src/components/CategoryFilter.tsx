@@ -19,11 +19,10 @@ const CategoryFilter: React.FC = () => {
     })),
     { key: "-1", label: t('category.none'), startContent: <CircleSlash2 /> },
   ]
-  console.log("categories", categories);
-  console.log("items", items);
-  console.log("selectedCategories", selectedCategories);
+
   return (
     <Select
+      aria-label="Category selection"
       startContent={<Tag color="black" />}
       className="max-w-lg w-48 flex-1"
       size="md"

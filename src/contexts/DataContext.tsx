@@ -6,9 +6,11 @@ import CategoryStore from "../store/CategoryStore";
 import Category from "../data/category";
 import { useCalendar } from "./CalendarContext";
 import useDayJs from "../utils/dayjs";
+import Event from "../data/event";
+import EventStore from "../store/EventStore";
 
 interface DataContextProps {
-  tasks: Task[];
+  tasks: Array<Task>;
   findTask: (taskId: number) => Task | null;
   addTask: (task: Task) => void;
   updateTask: (task: Task) => void;
@@ -16,6 +18,7 @@ interface DataContextProps {
   uncompleteTask: (task: Task) => void;
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
   deleteTask: (task: Task) => void;
+  events: Array<Event>;
   categories: Array<Category>;
   selectedCategories: number[];
   setSelectedCategories: (categories: number[]) => void;
@@ -27,12 +30,13 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { currentWeek } = useCalendar();
   const dayjs = useDayJs();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   const taskStore = useMemo(() => new TaskStore(), []);
   const categoryStore = useMemo(() => new CategoryStore(), []);
-
+  const eventStore = useMemo(() => new EventStore(), []);
   useEffect(() => {
     if (taskStore) {
       taskStore.list(currentWeek).then((dbTasks) => {
@@ -44,7 +48,12 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         setCategories(dbCategories);
       });
     }
-  }, [taskStore, categoryStore, currentWeek, selectedCategories]);
+    if (eventStore) {
+      eventStore.list(currentWeek).then((dbEvents) => {
+        setEvents(dbEvents);
+      });
+    }
+  }, [taskStore, categoryStore, eventStore, currentWeek, selectedCategories]);
 
   const findTask = (taskId: number) => {
     return tasks.find((task) => task.id === taskId) ?? null;
@@ -184,6 +193,14 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       });
   }, [tasks, selectedCategories]);
 
+  const memoizedEvents = useMemo(() => {
+    return events
+      .filter(e => selectedCategories.length === 0 || selectedCategories.includes(e.categoryId ?? -1))
+      .sort((a, b) => {
+        return dayjs(a.startDate).isBefore(dayjs(b.startDate)) ? -1 : 1;
+      });
+  }, [events, selectedCategories]);
+
   return (
     <DataContext.Provider
       value={{
@@ -195,6 +212,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         uncompleteTask,
         moveTask,
         deleteTask,
+        events: memoizedEvents,
         categories,
         selectedCategories,
         setSelectedCategories,
