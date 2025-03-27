@@ -3,7 +3,6 @@ import Event from '../data/event';
 import clsx from 'clsx';
 import { useData } from '../contexts/DataContext';
 import { Calendar } from 'lucide-react';
-import { Chip } from '@heroui/react';
 
 interface EventListProps {
     events: Event[];
@@ -40,7 +39,6 @@ const EventEntry = ({ event }: { event: Event }) => {
 }
 
 const EventList = ({ events }: EventListProps) => {
-    const { categories } = useData();
     return (
         <ul className={clsx("px-1 h-auto max-h-40 overflow-y-auto border-b border-gray-200 dark:border-gray-800")}>
             {events.map((event) => (
