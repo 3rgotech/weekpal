@@ -8,8 +8,8 @@ import TaskListHeader from "./TaskListHeader";
 import NewTask from "./NewTask";
 import { useCalendar } from "../contexts/CalendarContext";
 import clsx from "clsx";
-import { Dayjs } from "dayjs";
 import EventList from "./EventList";
+import { useSettings } from "../contexts/SettingsContext";
 
 interface TaskProps {
   title: string;
@@ -18,6 +18,7 @@ interface TaskProps {
 
 const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
   const { currentWeek, firstDayOfWeek } = useCalendar();
+  const { settings } = useSettings();
   const { tasks, events } = useData();
 
   const { setNodeRef, isOver } = useDroppable({
@@ -28,7 +29,7 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
     },
   });
 
-  const filteredTasks = tasks.filter((task) => task.dayOfWeek === dayOfWeek);
+  const filteredTasks = tasks.filter((task) => task.dayOfWeek === dayOfWeek && (!settings.showCompletedTasks || !task.completed));
 
   const taskIds = filteredTasks.map((task) => task.id)
     .filter((id) => id !== null && id !== undefined)

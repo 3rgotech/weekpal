@@ -9,7 +9,7 @@ import { useSettings } from "../contexts/SettingsContext";
 interface TopBarProps { }
 
 const TopBar: React.FC<TopBarProps> = () => {
-  const { openSettingsModal } = useSettings();
+  const { settings, updateSettings, openSettingsModal } = useSettings();
 
   return (
     <div className="top-bar flex items-center justify-between w-full p-4 bg-sky-600 dark:bg-sky-800 text-white">
@@ -21,6 +21,13 @@ const TopBar: React.FC<TopBarProps> = () => {
         <CategoryFilter />
         <Menu icon="refresh" title="Refresh" />
         <Menu icon="print" title="Print" />
+        <IconButton
+          icon={settings.showCompletedTasks ? "eyeOff" : "eye"}
+          onClick={() => {
+            updateSettings({ showCompletedTasks: !settings.showCompletedTasks });
+          }}
+          size="md"
+        />
         <IconButton
           icon="settings"
           onClick={openSettingsModal}
