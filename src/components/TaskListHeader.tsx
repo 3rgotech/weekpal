@@ -19,7 +19,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   const [day, date] = title.split(" | ");
 
   return (
-    <div className="flex items-center pb-4 border-b-2 border-slate-200">
+    <div className="flex items-center pb-3 border-b-2 border-slate-200">
       <h2 className="flex-1 text-center">
         <span className="text-lg leading-[4px]">{day}</span>
         <br />

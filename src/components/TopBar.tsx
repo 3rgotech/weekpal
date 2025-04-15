@@ -16,7 +16,7 @@ const TopBar: React.FC<TopBarProps> = () => {
   const wrapperClass =
     "border-slate-300 dark:border-sky-900 hover:bg-sky-950 hover:dark:bg-white group";
   return (
-    <div className="top-bar flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
+    <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
       <div className="flex items-stretch">
         <Logo />
         <WeekSelector />
