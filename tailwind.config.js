@@ -8,6 +8,9 @@ module.exports = {
   ],
   theme: {
     extend: {},
+    fontFamily: {
+      sans: ["Lato", "sans-serif"],
+    },
   },
   darkMode: "class",
   plugins: [heroui()],
