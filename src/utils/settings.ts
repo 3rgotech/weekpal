@@ -3,8 +3,9 @@ import { Language, Settings } from "../types";
 export const DEFAULT_SETTINGS: Settings = {
     theme: "system",
     language: "en",
-    dayHeaderFormat: "MMM D, YYYY",
-    weekHeaderFormat: "[WEEK] W - MMMM YYYY",
+    dayHeaderFormat: "dddd | D MMMM YYYY",
+    weekHeaderFormat: "[[WEEK]] W - MMMM YYYY",
+    showCompletedTasks: true,
 }
 
 export const LANGUAGES: Array<Language> = [
@@ -17,20 +18,19 @@ export const LANGUAGE_FLAGS: Record<Language, string> = {
     'en': 'us',
 }
 
+// Pipe is line break
 export const DAY_HEADER_FORMATS = [
-    "dddd D",
     "dddd",
-    "ddd D",
-    "ddd",
-    "dd D",
-    "dd",
+    "dddd D",
+    "dddd | D MMMM",
+    "dddd | D MMMM YYYY",
+    "dddd | MMMM D",
+    "dddd | MMMM D YYYY",
 ];
 
 export const WEEK_HEADER_FORMATS = [
     "[[WEEK]] W - MMMM YYYY",
     "[[WEEK]] W [[OF]] YYYY",
-    "YYYY[w]W",
-    "DD/MM/YYYY",
-    "MM/DD/YYYY",
-    "YYYY-MM-DD",
+    "MMMM YYYY - [[WEEK]] W",
+    "YYYY - [[WEEK]] W",
 ];

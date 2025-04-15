@@ -7,7 +7,7 @@ import { TaskModalProvider } from "./contexts/TaskModalContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
-import './i18n';
+import "./i18n";
 // import Example from "./components/MainContent/test/Exemple";
 
 function App() {
@@ -23,7 +23,7 @@ function App() {
 
   if (loading) {
     // TODO : add a better loader
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -35,7 +35,7 @@ function App() {
           <CalendarProvider>
             <DataProvider>
               <TaskModalProvider>
-                <div className="h-screen flex flex-col items-stretch overflow-hidden bg-slate-200 dark:bg-slate-900 text-slate-800 dark:text-slate-100">
+                <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white">
                   <header className="flex-none">
                     <TopBar />
                   </header>

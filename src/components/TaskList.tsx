@@ -29,35 +29,33 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
     },
   });
 
-  const filteredTasks = tasks.filter((task) => task.dayOfWeek === dayOfWeek && (!settings.showCompletedTasks || !task.completed));
+  const filteredTasks = tasks.filter(
+    (task) =>
+      task.dayOfWeek === dayOfWeek &&
+      (!settings.showCompletedTasks || !task.completed)
+  );
 
-  const taskIds = filteredTasks.map((task) => task.id)
+  const taskIds = filteredTasks
+    .map((task) => task.id)
     .filter((id) => id !== null && id !== undefined)
     .map((id) => `task-${id}`);
 
-  const filteredEvents = events.filter((event) => event.dayOfWeek === dayOfWeek);
+  const filteredEvents = events.filter(
+    (event) => event.dayOfWeek === dayOfWeek
+  );
 
   return (
-    <div
-      ref={setNodeRef}
-      className={`border rounded-lg h-full border-sky-200 dark:border-sky-800 flex flex-col bg-slate-100 dark:bg-slate-800 shadow-sm`}
-    >
+    <div ref={setNodeRef} className={`h-full flex flex-col shadow-sm`}>
       <TaskListHeader
         title={title}
         dayOfWeek={dayOfWeek}
         weekCode={currentWeek}
       />
-      {filteredEvents.length > 0 && (
-        <EventList events={filteredEvents} />
-      )}
-      <ul className={clsx("flex-1 overflow-y-auto px-2 py-1 space-y-2")}>
+      {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
+      <ul className={clsx("flex-1 overflow-y-auto py-1 space-y-2")}>
         <SortableContext items={taskIds}>
           {filteredTasks.map((task) => (
-            <DraggableTask
-              key={task.id}
-              task={task}
-              dayOfWeek={dayOfWeek}
-            />
+            <DraggableTask key={task.id} task={task} dayOfWeek={dayOfWeek} />
           ))}
         </SortableContext>
         {!isOver && <NewTask dayOfWeek={dayOfWeek} />}

@@ -13,8 +13,7 @@ interface DraggableTaskProps {
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
-  const { completeTask, uncompleteTask, categories } =
-    useData();
+  const { completeTask, uncompleteTask, categories } = useData();
   const {
     attributes,
     listeners,
@@ -34,7 +33,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
 
   const category = categories.find((c) => c.id === task.categoryId);
 
-  const cursor = isDragging ? 'grabbing' : 'grab';
+  const cursor = isDragging ? "grabbing" : "grab";
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,46 +42,59 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
     boxShadow: isDragging ? "0px 4px 10px rgba(0,0,0,0.2)" : "none",
   };
 
-  let borderClass = "border-slate-300 dark:border-slate-600";
-  if (!task.completed && category) {
-    borderClass = category.getColorClass('border') ?? borderClass;
-  }
-
   return (
     <>
       <li
         ref={setNodeRef}
         style={style}
         className={clsx(
-          "group flex items-center justify-between px-2 py-1 border rounded-md h-10 shadow-sm transition-colors",
-          "bg-white dark:bg-slate-700",
-          borderClass
+          "group flex items-center justify-between h-10 rounded-md transition-colors"
         )}
       >
         <div
-          {...attributes} {...listeners}
-          className="flex-1 flex items-center gap-x-2 overflow-hidden" style={{ cursor }}>
-          {category && (
-            <Chip size="sm" className={clsx("text-xs rounded-md text-white", category.getColorClass('bg'))}>{category.name}</Chip>
-          )}
-          <h3 className={clsx(
-            "text-sm font-medium truncate",
-            task.completed && "text-slate-300 line-through dark:text-slate-300",
-            !task.completed && category && category.getColorClass('text')
-          )}>
-            {task.title}
-          </h3>
-        </div>
-        <div className="group-hover:flex hidden items-center gap-x-1">
-          <IconButton icon="check"
-            color={task.completed ? 'green' : null}
-            onClick={() => {
-              if (task.completed) {
-                uncompleteTask(task);
-              } else {
-                completeTask(task);
-              }
-            }} size="xs" />
+          {...attributes}
+          {...listeners}
+          className="flex-1 flex items-center gap-x-2 h-10 px-2 py-1.5 overflow-hidden focus:outline-none border-b border-slate-200"
+          style={{ cursor }}
+        >
+          <div className="flex flex-1 items-center gap-x-2">
+            {category && (
+              <Chip
+                size="sm"
+                className={clsx(
+                  "text-xs rounded-md text-white",
+                  category.getColorClass("bg")
+                )}
+              >
+                {category.name}
+              </Chip>
+            )}
+            <h3
+              className={clsx(
+                "text-sm font-medium truncate",
+                task.completed &&
+                  "text-slate-300 line-through dark:text-slate-300",
+                !task.completed && category && category.getColorClass("text")
+              )}
+            >
+              {task.title}
+            </h3>
+          </div>
+          <div className="group-hover:flex hidden items-center">
+            <IconButton
+              icon="check"
+              iconClass={task.completed ? "text-white" : ""}
+              wrapperClass={task.completed ? "bg-green-500" : ""}
+              onClick={() => {
+                if (task.completed) {
+                  uncompleteTask(task);
+                } else {
+                  completeTask(task);
+                }
+              }}
+              size="xs"
+            />
+          </div>
         </div>
       </li>
     </>

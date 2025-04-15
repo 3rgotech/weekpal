@@ -23,7 +23,8 @@
     "category": {
         "help": "Select one or more categories to only display them",
         "all": "All",
-        "none": "None"
+        "none": "No category",
+        "show_all": "Show all"
     },
     "task": {
         "title": "Title",

@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Dot, Eye, EyeOff, Link2Off, Plus, Printer, RefreshCw, Settings, User } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Dot, EllipsisVertical, Eye, EyeOff, Link2Off, Plus, Printer, RefreshCw, Settings, User } from "lucide-react";
 
 export const icons = {
     check: Check,
@@ -12,6 +12,7 @@ export const icons = {
     refresh: RefreshCw,
     settings: Settings,
     user: User,
+    verticalDots: EllipsisVertical,
 }
 
 export const defaultIcon = Link2Off;

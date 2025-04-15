@@ -1,15 +1,13 @@
-import React from 'react';
+import React from "react";
 
-interface LogoProps {
-    large?: boolean;
-}
+import iconWhite from "../assets/icon_white.svg";
+import iconDark from "../assets/icon_dark.svg";
 
-const Logo: React.FC<LogoProps> = ({ large = false }) => {
-    return (
-        <div className="flex justify-center items-center">
-            <img src="./logo192.png" alt="Logo" className={large ? "w-20 h-20" : "w-10 h-10"} />
-        </div>
-    );
-};
+const Logo: React.FC = () => (
+  <div className="flex justify-center items-center bg-slate-200 dark:bg-sky-900">
+    <img src={iconWhite} alt="Logo" className="w-16 h-16 hidden dark:block" />
+    <img src={iconDark} alt="Logo" className="w-16 h-16 block dark:hidden" />
+  </div>
+);
 
 export default Logo;

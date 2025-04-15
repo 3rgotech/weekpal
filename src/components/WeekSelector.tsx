@@ -4,10 +4,13 @@ import { useCalendar } from "../contexts/CalendarContext";
 import IconButton from "./IconButton";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
+import { useTranslation } from "react-i18next";
 
 const WeekSelector: React.FC = () => {
   const { settings } = useSettings();
-  const { currentDate, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
+  const { t } = useTranslation();
+  const { currentDate, goToPreviousWeek, goToNextWeek, goToToday } =
+    useCalendar();
   const dayjs = useDayJs(settings.language);
 
   // Obtenir le numéro de la semaine, le mois et l'année
@@ -16,20 +19,44 @@ const WeekSelector: React.FC = () => {
   const year = currentDate.format("YYYY"); // Année (ex: "2025")
 
   // TODO : Translation
-  const title = dayjs(currentDate)
+
+  const [title1, title2] = dayjs(currentDate)
     .format(settings.weekHeaderFormat)
-    .replace('[WEEK]', 'Week')
-    .replace('[OF]', 'of');
+    .replace("[WEEK]", t("misc.week"))
+    .replace("[OF]", t("misc.of"))
+    .split(" - ");
 
   return (
-    <div className="flex flex-col items-center gap-2 dark:text-white">
-      <div className="flex items-center gap-2">
-        <div>{title}</div>
-        <div className="flex gap-2">
-          <IconButton icon="chevronLeft" onClick={goToPreviousWeek} />
-          <IconButton icon="dot" onClick={goToToday} />
-          <IconButton icon="chevronRight" onClick={goToNextWeek} />
+    <div className="flex items-stretch">
+      <div className="flex items-center justify-center border-r border-slate-300 dark:border-sky-900">
+        <div className="px-8">
+          <span className="font-bold">{title1}</span>
+          <span className=""> - {title2}</span>
         </div>
+      </div>
+      <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
+        <IconButton
+          icon="chevronLeft"
+          onClick={goToPreviousWeek}
+          iconClass={"text-sky-950 dark:text-white"}
+          wrapperClass={"border-slate-300 dark:border-sky-900"}
+        />
+      </div>
+      <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
+        <IconButton
+          icon="dot"
+          onClick={goToToday}
+          iconClass={"text-sky-950 dark:text-white"}
+          wrapperClass={"border-slate-300 dark:border-sky-900"}
+        />
+      </div>
+      <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
+        <IconButton
+          icon="chevronRight"
+          onClick={goToNextWeek}
+          iconClass={"text-sky-950 dark:text-white"}
+          wrapperClass={"border-slate-300 dark:border-sky-900"}
+        />
       </div>
     </div>
   );

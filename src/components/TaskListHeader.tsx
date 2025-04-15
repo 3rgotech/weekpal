@@ -9,17 +9,32 @@ interface TaskListHeaderProps {
   weekCode: string;
 }
 
-const TaskListHeader: React.FC<TaskListHeaderProps> = ({ title, dayOfWeek, weekCode }) => {
+const TaskListHeader: React.FC<TaskListHeaderProps> = ({
+  title,
+  dayOfWeek,
+  weekCode,
+}) => {
   const { openNewTask } = useTaskModal();
 
+  const [day, date] = title.split(" | ");
+
   return (
-    <div className="border-b border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-slate-700">
-      <div className="px-3 py-2 flex items-center justify-between">
-        <h2 className="text-lg font-medium text-sky-700 dark:text-sky-200">
-          {title}
-        </h2>
-        <IconButton icon="plus" onClick={() => { openNewTask(weekCode, dayOfWeek) }} size="sm" />
-      </div>
+    <div className="flex items-center pb-4 border-b-2 border-slate-200">
+      <h2 className="flex-1 text-center">
+        <span className="text-lg leading-[4px]">{day}</span>
+        <br />
+        <span className="text-base leading-[4px] uppercase">{date}</span>
+      </h2>
+      {/* TODO : Add menu */}
+      <IconButton
+        icon="verticalDots"
+        onClick={() => {
+          openNewTask(weekCode, dayOfWeek);
+        }}
+        size="md"
+        iconClass={"text-sky-950 dark:text-white"}
+        wrapperClass={"border-0"}
+      />
     </div>
   );
 };
