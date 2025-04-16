@@ -74,7 +74,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
     >
       <div
         ref={wrapperRef}
-        className="flex w-full items-center py-1 px-2 border-b border-slate-200"
+        className="flex w-full items-center py-2 px-2 border-b border-slate-200"
         onFocusCapture={(e) => {
           if (!creatingNewTask) setCreatingNewTask(true);
         }}
@@ -95,7 +95,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
                   handleSubmit();
                 }
               }}
-              className="w-full ring-0 outline-none bg-transparent text-sm font-medium"
+              className="w-full ring-0 outline-none bg-transparent text-sm font-medium mt-[3px]"
             />
             <IconButton
               icon="plus"
@@ -107,7 +107,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
           </>
         ) : (
           <button
-            className="text-sm text-slate-400 dark:text-slate-400 h-full w-full text-left cursor-text"
+            className="text-sm text-slate-400 dark:text-slate-400 h-full mt-[3px] w-full text-left cursor-text"
             onClick={() => setCreatingNewTask(true)}
           >
             {t("main.add_new_task")}

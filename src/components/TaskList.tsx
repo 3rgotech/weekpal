@@ -14,9 +14,14 @@ import { useSettings } from "../contexts/SettingsContext";
 interface TaskProps {
   title: string;
   dayOfWeek: DayOfWeek;
+  isToday?: boolean;
 }
 
-const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
+const TaskList: React.FC<TaskProps> = ({
+  title,
+  dayOfWeek,
+  isToday = false,
+}) => {
   const { currentWeek, firstDayOfWeek } = useCalendar();
   const { settings } = useSettings();
   const { tasks, events } = useData();
@@ -50,6 +55,7 @@ const TaskList: React.FC<TaskProps> = ({ title, dayOfWeek }) => {
         title={title}
         dayOfWeek={dayOfWeek}
         weekCode={currentWeek}
+        isToday={isToday}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul className={clsx("flex-1 overflow-y-auto py-1 space-y-2")}>

@@ -51,19 +51,20 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
           "group flex items-center justify-between h-10 rounded-md transition-colors"
         )}
       >
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex-1 flex items-center gap-x-2 h-10 px-2 py-1.5 overflow-hidden focus:outline-none border-b border-slate-200"
-          style={{ cursor }}
-        >
-          <div className="flex flex-1 items-center gap-x-2">
+        <div className="flex-1 flex items-center gap-x-2 h-10 px-2 py-1.5 overflow-hidden focus:outline-none border-b border-slate-200">
+          <div
+            {...attributes}
+            {...listeners}
+            className="flex flex-1 items-center gap-x-1"
+            style={{ cursor }}
+          >
             {category && (
               <Chip
                 size="sm"
                 className={clsx(
                   "text-xs rounded-md text-white",
-                  category.getColorClass("bg")
+                  category.getColorClass("bg"),
+                  task.completed && "bg-opacity-60"
                 )}
               >
                 {category.name}
@@ -73,7 +74,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
               className={clsx(
                 "text-sm font-medium truncate",
                 task.completed &&
-                  "text-slate-300 line-through dark:text-slate-300",
+                  "text-slate-400 line-through dark:text-slate-400",
                 !task.completed && category && category.getColorClass("text")
               )}
             >
