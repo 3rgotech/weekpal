@@ -45,7 +45,7 @@ function App() {
     // Set minimum splash screen time
     const timer = setTimeout(() => {
       setMinSplashTimeElapsed(true);
-    }, 2000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);

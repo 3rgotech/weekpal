@@ -2,12 +2,18 @@ import React, { useEffect, useState } from "react";
 import SquareCheckAnimation from "./SquareCheckAnimation";
 import letteringDark from "../assets/lettering_dark.svg";
 import letteringWhite from "../assets/lettering_white.svg";
+import { useSettings } from "../contexts/SettingsContext";
+import { useMediaQuery } from "usehooks-ts";
 
 // Animation timings - total animation 1500ms
 const DURATION = 1500;
+const displayTheme = document.body.classList.contains("dark")
+  ? "dark"
+  : "light";
 
 const SplashScreen = () => {
   const [start, setStart] = useState(false);
+
   useEffect(() => {
     // Elements
     const path1 = document.querySelectorAll(
@@ -112,13 +118,8 @@ const SplashScreen = () => {
           <style>
             {`
               .check { fill: #00a6f4; }
-              .bar { fill: #052f4a; }
+              .bar { fill: ${displayTheme === "dark" ? "#fff" : "#052f4a"}; }
               .empty { fill: none; }
-
-              /* Dark mode colors */
-              @media (prefers-color-scheme: dark) {
-                .bar { fill: #fff; }
-              }
             `}
           </style>
         </defs>
