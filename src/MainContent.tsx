@@ -22,7 +22,7 @@ import clsx from "clsx";
 import { useSettings } from "./contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import useDayJs from "./utils/dayjs";
-interface MainContentProps {}
+interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
   const { t } = useTranslation();
@@ -235,7 +235,7 @@ const MainContent: React.FC<MainContentProps> = () => {
           {[...Array(7).keys()].map((i) => (
             <div
               className={clsx(
-                `overflow-hidden shadow-sm rounded-lg`,
+                `overflow-hidden rounded-lg`,
                 [5, 6].includes(i)
                   ? "col-span-1 row-span-1"
                   : "col-span-1 row-span-2"
@@ -250,12 +250,12 @@ const MainContent: React.FC<MainContentProps> = () => {
             </div>
           ))}
           <div
-            className={`col-span-3 row-span-1 overflow-hidden shadow-sm rounded-lg`}
+            className={`col-span-3 row-span-1 overflow-hidden rounded-lg`}
           >
             <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
           </div>
           <div
-            className={`col-span-3 row-span-1 overflow-hidden shadow-sm rounded-lg`}
+            className={`col-span-3 row-span-1 overflow-hidden rounded-lg`}
           >
             <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
           </div>
@@ -266,7 +266,7 @@ const MainContent: React.FC<MainContentProps> = () => {
             <div className="shadow-lg opacity-90">
               <DraggableTask
                 task={activeTask.task}
-                // dayOfWeek={activeTask.dayOfWeek as DayOfWeek}
+              // dayOfWeek={activeTask.dayOfWeek as DayOfWeek}
               />
             </div>
           ) : null}

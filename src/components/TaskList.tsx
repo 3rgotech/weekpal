@@ -50,7 +50,7 @@ const TaskList: React.FC<TaskProps> = ({
   );
 
   return (
-    <div ref={setNodeRef} className={`h-full flex flex-col shadow-sm`}>
+    <div ref={setNodeRef} className={`h-full flex flex-col`}>
       <TaskListHeader
         title={title}
         dayOfWeek={dayOfWeek}
