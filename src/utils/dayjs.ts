@@ -5,6 +5,7 @@ import advancedFormat from "dayjs/plugin/advancedFormat";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import fr from "../dayjs/fr";
 import en from "dayjs/locale/en";
+import { useMemo } from 'react';
 
 export const getDayJs = (locale: "fr" | "en" = "en") => {
     const locales = {
@@ -21,6 +22,6 @@ export const getDayJs = (locale: "fr" | "en" = "en") => {
     return dayjs;
 };
 
-const useDayJs = (locale: "fr" | "en" = "en") => getDayJs(locale);
+const useDayJs = (locale: "fr" | "en" = "en") => useMemo(() => getDayJs(locale), [locale]);
 
 export default useDayJs;

@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode, useContext } from "react";
+import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 import useDayJs from "../utils/dayjs";
 import { useSettings } from "./SettingsContext";
 import { Dayjs } from "dayjs";
@@ -33,6 +33,10 @@ const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const goToToday = () => {
     setCurrentDate(dayjs());
   };
+
+  useEffect(() => {
+    setCurrentDate(cd => cd.locale(settings.language));
+  }, [settings.language]);
 
   return (
     <CalendarContext.Provider
