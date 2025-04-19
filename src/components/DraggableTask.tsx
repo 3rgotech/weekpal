@@ -7,6 +7,7 @@ import { Chip } from "@heroui/react";
 import IconButton from "./IconButton";
 import Task from "../data/task";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 interface DraggableTaskProps {
   task: Task;
   dayOfWeek?: DayOfWeek;
@@ -14,6 +15,7 @@ interface DraggableTaskProps {
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
   const { completeTask, uncompleteTask, categories } = useData();
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -74,7 +76,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
               className={clsx(
                 "text-sm font-medium truncate",
                 task.completed &&
-                  "text-slate-400 line-through dark:text-slate-400",
+                "text-slate-400 line-through dark:text-slate-400",
                 !task.completed && category && category.getColorClass("text")
               )}
             >
@@ -94,6 +96,8 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
                 }
               }}
               size="xs"
+              tooltip={task.completed ? t("actions.uncomplete_task") : t("actions.complete_task")}
+              tooltipPosition="left"
             />
           </div>
         </div>

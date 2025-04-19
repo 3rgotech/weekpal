@@ -103,6 +103,8 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
               size="xs"
               iconClass={"text-sky-950 dark:text-white"}
               wrapperClass={"border-slate-200 dark:border-sky-900"}
+              tooltip={t("actions.add_task")}
+              tooltipPosition="left"
             />
           </>
         ) : (

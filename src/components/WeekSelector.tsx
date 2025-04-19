@@ -18,6 +18,11 @@ const WeekSelector: React.FC = () => {
     .replace("[OF]", t("misc.of"))
     .split(" - ");
 
+  const iconClass =
+    "text-sky-950 dark:text-white group-hover:text-white group-hover:dark:text-sky-950";
+  const wrapperClass =
+    "border-slate-300 dark:border-sky-900 hover:bg-sky-950 hover:dark:bg-white group";
+
   return (
     <div className="flex items-stretch">
       <div className="flex items-center justify-center border-r border-slate-300 dark:border-sky-900">
@@ -30,24 +35,27 @@ const WeekSelector: React.FC = () => {
         <IconButton
           icon="chevronLeft"
           onClick={goToPreviousWeek}
-          iconClass={"text-sky-950 dark:text-white"}
-          wrapperClass={"border-slate-300 dark:border-sky-900"}
+          iconClass={iconClass}
+          wrapperClass={wrapperClass}
+          tooltip={t("actions.previous_week")}
         />
       </div>
       <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
         <IconButton
           icon="dot"
           onClick={goToToday}
-          iconClass={"text-sky-950 dark:text-white"}
-          wrapperClass={"border-slate-300 dark:border-sky-900"}
+          iconClass={iconClass}
+          wrapperClass={wrapperClass}
+          tooltip={t("actions.this_week")}
         />
       </div>
       <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
         <IconButton
           icon="chevronRight"
           onClick={goToNextWeek}
-          iconClass={"text-sky-950 dark:text-white"}
-          wrapperClass={"border-slate-300 dark:border-sky-900"}
+          iconClass={iconClass}
+          wrapperClass={wrapperClass}
+          tooltip={t("actions.next_week")}
         />
       </div>
     </div>

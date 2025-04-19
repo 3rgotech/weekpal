@@ -20,6 +20,20 @@
         "some_day": "Un jour",
         "add_new_task": "Cliquez pour ajouter une tâche"
     },
+    "actions": {
+        "add_task": "Ajouter la tâche",
+        "category_filter": "Filtrer les catégories",
+        "complete_task": "Marquer comme terminée",
+        "hide_completed_tasks": "Masquer les tâches complétées",
+        "next_week": "Semaine suivante",
+        "previous_week": "Semaine précédente",
+        "print": "Imprimer",
+        "settings": "Paramètres",
+        "show_completed_tasks": "Afficher les tâches complétées",
+        "this_week": "Cette semaine",
+        "uncomplete_task": "Marquer comme non terminée",
+        "user_menu": "Menu utilisateur"
+    },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",
         "all": "Toutes",

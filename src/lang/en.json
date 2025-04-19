@@ -20,6 +20,20 @@
         "some_day": "Some day",
         "add_new_task": "Click to add task"
     },
+    "actions": {
+        "add_task": "Add task",
+        "category_filter": "Category filter",
+        "complete_task": "Complete task",
+        "hide_completed_tasks": "Hide completed tasks",
+        "next_week": "Next week",
+        "previous_week": "Previous week",
+        "print": "Print",
+        "settings": "Settings",
+        "show_completed_tasks": "Show completed tasks",
+        "this_week": "This week",
+        "uncomplete_task": "Uncomplete task",
+        "user_menu": "User menu"
+    },
     "category": {
         "help": "Select one or more categories to only display them",
         "all": "All",

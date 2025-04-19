@@ -37,7 +37,7 @@ const TaskList: React.FC<TaskProps> = ({
   const filteredTasks = tasks.filter(
     (task) =>
       task.dayOfWeek === dayOfWeek &&
-      (!settings.showCompletedTasks || !task.completed)
+      (settings.showCompletedTasks || !task.completed)
   );
 
   const taskIds = filteredTasks

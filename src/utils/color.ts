@@ -16,3 +16,10 @@ export const COLORS = {
     "pink": { bg: "bg-pink-500", text: "text-pink-700", border: "border-pink-500" },
     "rose": { bg: "bg-rose-500", text: "text-rose-700", border: "border-rose-500" },
 }
+
+export const TOOLTIP_COLORS = "bg-sky-950 dark:bg-white text-white dark:text-sky-950";
+export const TOOLTIP_ARROW_COLORS = "before:bg-sky-950 dark:before:bg-white";
+export const TOOLTIP_CLASSES = {
+    base: TOOLTIP_ARROW_COLORS,
+    content: TOOLTIP_COLORS,
+};
