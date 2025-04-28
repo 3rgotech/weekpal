@@ -1,10 +1,13 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
-import { Button, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
 import Task from "../data/task";
 import { useData } from "./DataContext";
 import { DayOfWeek } from "../types";
 import clsx from "clsx";
+import IconButton from "../components/IconButton";
+import { Copy, EllipsisVertical, SquareArrowDownLeft, SquareArrowDownRight, SquareArrowRight, SquareArrowUpRight, Trash } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -21,6 +24,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [task, setTask] = useState<Task | null>(null);
   const [data, setData] = useState<Record<string, any>>({});
   const [mode, setMode] = useState<"CREATE" | "EDIT" | null>(null);
+  const { t } = useTranslation();
   const { addTask, updateTask, deleteTask, categories } = useData();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
@@ -89,31 +93,100 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     reset();
   }
 
+  const taskToolbar = (
+    <div className="flex flex-row gap-1">
+      <Dropdown placement="bottom-end">
+        <DropdownTrigger>
+          <button className="p-0.5">
+            <EllipsisVertical size={16} />
+          </button>
+        </DropdownTrigger>
+        <DropdownMenu>
+          <DropdownSection title="Move task to">
+            {/* TODO : move task to today if task is not on today, to tomorrow if task is on today */}
+            <DropdownItem
+              key="move_to_tomorrow"
+              endContent={<SquareArrowRight size={12} />}
+            >
+              <span>Tomorrow</span>
+            </DropdownItem>
+            <DropdownItem
+              key="move_to_next_monday"
+              endContent={<SquareArrowUpRight size={12} />}
+            >
+              <span>Next Monday</span>
+            </DropdownItem>
+            <DropdownItem
+              key="move_to_next_week"
+              endContent={<SquareArrowUpRight size={12} />}
+            >
+              <span>Next Week (same day)</span>
+            </DropdownItem>
+            <DropdownItem
+              key="move_to_this_week"
+              endContent={<SquareArrowDownLeft size={12} />}
+            >
+              <span>This week</span>
+            </DropdownItem>
+            <DropdownItem
+              key="move_to_someday"
+              endContent={<SquareArrowDownRight size={12} />}
+            >
+              <span>Some day</span>
+            </DropdownItem>
+          </DropdownSection>
+          <DropdownSection title="Actions">
+            <DropdownItem key="duplicate" endContent={<Copy size={12} />}>
+              <span>Duplicate</span>
+            </DropdownItem>
+            <DropdownItem
+              key="Delete"
+              color="danger"
+              classNames={{
+                base: "text-red-700",
+                description: "text-red-700",
+              }}
+              endContent={<Trash size={12} />}
+              onPress={() => {
+                handleDeleteTask();
+                onOpenChange();
+              }}
+            >
+              Delete
+            </DropdownItem>
+          </DropdownSection>
+        </DropdownMenu>
+      </Dropdown>
+    </div>
+  );
+
   return (
     <TaskModalContext.Provider value={{ task, isOpen, open, openNewTask }}>
       {children}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size={"2xl"} hideCloseButton>
         <ModalContent>
           {task && (
             <>
-              <ModalHeader className="flex flex-col gap-1">
+              <ModalHeader className="flex flex-row justify-between items-center gap-1">
+                <span className="text-lg font-bold">{t('actions.edit_task')}</span>
+                {taskToolbar}
+              </ModalHeader>
+              <ModalBody>
                 <Input
-                  label="Task"
-                  placeholder="Buy food"
+                  label={t('task.title')}
+                  placeholder={t('task.placeholder.title')}
                   value={data.title}
                   onValueChange={updateField('title')}
                 />
-              </ModalHeader>
-              <ModalBody>
                 <Textarea
-                  label="Description"
-                  placeholder="Carrots, Onions, Potatoes, ..."
+                  label={t('task.description')}
+                  placeholder={t('task.placeholder.description')}
                   value={data.description}
                   onValueChange={updateField('description')}
                 />
                 <Select
-                  label="Category"
-                  placeholder="None"
+                  label={t('task.category')}
+                  placeholder={t('task.placeholder.category')}
                   selectedKeys={data.categoryId !== null ? [`${data.categoryId}`] : []}
                   onSelectionChange={updateField('categoryId')}
                   disallowEmptySelection={false}
@@ -130,16 +203,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 </Select>
               </ModalBody>
               <ModalFooter>
-                <Button color="warning" variant="light" onPress={onOpenChange}>
-                  Close
-                </Button>
-                <Button
-                  color="danger"
-                  variant="solid"
-                  onPress={handleDeleteTask}
-                >
-                  Delete
-                </Button>
+                {/* TODO : save on change */}
                 <Button
                   color="primary"
                   variant="solid"

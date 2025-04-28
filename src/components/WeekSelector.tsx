@@ -4,6 +4,7 @@ import IconButton from "./IconButton";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
+import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS } from "../utils/color";
 
 const WeekSelector: React.FC = () => {
   const { settings } = useSettings();
@@ -18,11 +19,6 @@ const WeekSelector: React.FC = () => {
     .replace("[OF]", t("misc.of"))
     .split(" - ");
 
-  const iconClass =
-    "text-sky-950 dark:text-white group-hover:text-white group-hover:dark:text-sky-950";
-  const wrapperClass =
-    "border-slate-300 dark:border-sky-900 hover:bg-sky-950 hover:dark:bg-white group";
-
   return (
     <div className="flex items-stretch">
       <div className="flex items-center justify-center border-r border-slate-300 dark:border-sky-900">
@@ -35,8 +31,8 @@ const WeekSelector: React.FC = () => {
         <IconButton
           icon="chevronLeft"
           onClick={goToPreviousWeek}
-          iconClass={iconClass}
-          wrapperClass={wrapperClass}
+          iconClass={ICON_BUTTON_CLASS}
+          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
           tooltip={t("actions.previous_week")}
         />
       </div>
@@ -44,8 +40,8 @@ const WeekSelector: React.FC = () => {
         <IconButton
           icon="dot"
           onClick={goToToday}
-          iconClass={iconClass}
-          wrapperClass={wrapperClass}
+          iconClass={ICON_BUTTON_CLASS}
+          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
           tooltip={t("actions.this_week")}
         />
       </div>
@@ -53,8 +49,8 @@ const WeekSelector: React.FC = () => {
         <IconButton
           icon="chevronRight"
           onClick={goToNextWeek}
-          iconClass={iconClass}
-          wrapperClass={wrapperClass}
+          iconClass={ICON_BUTTON_CLASS}
+          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
           tooltip={t("actions.next_week")}
         />
       </div>

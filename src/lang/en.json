@@ -24,6 +24,7 @@
         "add_task": "Add task",
         "category_filter": "Category filter",
         "complete_task": "Complete task",
+        "edit_task": "Edit task",
         "hide_completed_tasks": "Hide completed tasks",
         "next_week": "Next week",
         "previous_week": "Previous week",
@@ -43,7 +44,12 @@
     "task": {
         "title": "Title",
         "description": "Description",
-        "category": "Category"
+        "category": "Category",
+        "placeholder": {
+            "title": "Buy food",
+            "description": "Carrots, Onions, Potatoes, ...",
+            "category": "None"
+        }
     },
     "misc": {
         "of": "of",

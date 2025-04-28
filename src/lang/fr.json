@@ -24,6 +24,7 @@
         "add_task": "Ajouter la tâche",
         "category_filter": "Filtrer les catégories",
         "complete_task": "Marquer comme terminée",
+        "edit_task": "Modifier la tâche",
         "hide_completed_tasks": "Masquer les tâches complétées",
         "next_week": "Semaine suivante",
         "previous_week": "Semaine précédente",
@@ -43,7 +44,12 @@
     "task": {
         "title": "Titre",
         "description": "Description",
-        "category": "Catégorie"
+        "category": "Catégorie",
+        "placeholder": {
+            "title": "Faire les courses",
+            "description": "Carottes, Oignons, Pommes de terre, ...",
+            "category": "Aucune"
+        }
     },
     "misc": {
         "of": "de",

@@ -17,6 +17,9 @@ export const COLORS = {
     "rose": { bg: "bg-rose-500", text: "text-rose-700", border: "border-rose-500" },
 }
 
+export const ICON_BUTTON_CLASS = "text-sky-950 dark:text-white group-hover:text-white group-hover:dark:text-sky-950";
+export const ICON_BUTTON_WRAPPER_CLASS = "border-slate-300 dark:border-sky-900 hover:bg-sky-950 hover:dark:bg-white group";
+
 export const TOOLTIP_COLORS = "bg-sky-950 dark:bg-white text-white dark:text-sky-950";
 export const TOOLTIP_ARROW_COLORS = "before:bg-sky-950 dark:before:bg-white";
 export const TOOLTIP_CLASSES = {

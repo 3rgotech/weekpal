@@ -56,7 +56,25 @@ class Task extends Base {
         return this.completedAt !== null;
     }
 
+    get date(): Dayjs | null {
+        const dayjs = getDayJs();
+
+        if (!this.weekCode || !this.dayOfWeek) {
+            return null;
+        }
+
+        return dayjs(this.weekCode, "GGGG[w]WW").startOf("isoWeek").add(parseInt(`${this.dayOfWeek}`, 10) - 1, "day");
+    }
+
+    set date(date: Dayjs) {
+        const dayjs = getDayJs();
+
+        this.weekCode = dayjs(date).format("GGGG[w]WW");
+        this.dayOfWeek = `${dayjs(date).isoWeekday()}` as DayOfWeek;
+    }
+
     serialize(): Record<string, any> {
+
         return {
             id: this.id,
             title: this.title,
@@ -64,6 +82,7 @@ class Task extends Base {
             categoryId: this.categoryId,
             weekCode: this.weekCode,
             dayOfWeek: this.dayOfWeek,
+            date: this.date,
             order: this.order,
             createdAt: this.createdAt?.toISOString() ?? null,
             updatedAt: this.updatedAt?.toISOString() ?? null,
