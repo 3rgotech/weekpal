@@ -1,6 +1,6 @@
 import Category from "../data/category";
 import Event from "../data/event";
-import Task from "../data/task";
+import Task, { SomedayTask, WeeklyTask } from "../data/task";
 
 export type Theme = "light" | "dark" | "system";
 export type Language = "en" | "fr";
@@ -71,8 +71,11 @@ export interface ICategoryStore {
 /**
  * ADAPTERS (backend storage)
  */
+
+export interface APIWeekTasklistResponse { weeklyTasks: WeeklyTask[], somedayTasks: SomedayTask[] }
+
 export interface ITaskAdapter {
-  getWeek(weekCode: string): Promise<Task[]>;
+  getWeek(weekCode: string): Promise<APIWeekTasklistResponse>;
   create(task: Task): Promise<number>;
   update(task: Task): Promise<void>;
   delete(task: Task): Promise<void>;

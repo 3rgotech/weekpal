@@ -1,9 +1,9 @@
-import Dexie, { Transaction } from "dexie";
+import Dexie from "dexie";
+import { Transaction } from "dexie";
 import Category from "../data/category";
-import Task from "../data/task";
+import { WeeklyTask, SomedayTask } from "../data/task";
 import { getDayJs } from "../utils/dayjs";
 import Event from "../data/event";
-import { set } from "lodash";
 
 const testCategories = [
     { name: 'Travail', color: 'red' },
@@ -64,18 +64,24 @@ const testEvents = [
 ];
 
 export class WeekpalDB extends Dexie {
-    tasks!: Dexie.Table<Task, number>;
+    weeklyTasks!: Dexie.Table<WeeklyTask, number>;
+    somedayTasks!: Dexie.Table<SomedayTask, number>;
     categories!: Dexie.Table<Category, number>;
     events!: Dexie.Table<Event, number>;
+
     constructor() {
         super("WeekpalDB");
+
         this.version(1).stores({
             categories: '++id, &serverId, name',
-            tasks: '++id, &serverId, title, categoryId, weekCode, order',
+            weeklyTasks: '++id, &serverId, title, categoryId, weekCode, dayOfWeek, order',
+            somedayTasks: '++id, &serverId, title, categoryId, order',
             events: '++id, title, weekCode, categoryId'
         });
-        // Custom hook to convert the objects to class instances (because default Dexia behaviour is to use prototype)
-        this.tasks.hook('reading', (task) => new Task(task));
+
+        // Custom hooks to convert the objects to class instances
+        this.weeklyTasks.hook('reading', (task) => new WeeklyTask(task));
+        this.somedayTasks.hook('reading', (task) => new SomedayTask(task));
         this.categories.hook('reading', (category) => new Category(category));
         this.events.hook('reading', (event) => new Event(event));
 

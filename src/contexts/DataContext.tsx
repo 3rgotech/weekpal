@@ -1,6 +1,6 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext } from "react";
 import { DayOfWeek } from "../types";
-import Task from "../data/task";
+import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import CategoryStore from "../store/CategoryStore";
 import Category from "../data/category";
@@ -12,7 +12,7 @@ import EventStore from "../store/EventStore";
 interface DataContextProps {
   tasks: Array<Task>;
   findTask: (taskId: number) => Task | null;
-  addTask: (task: Task) => void;
+  addTask: (task: WeeklyTask | SomedayTask) => void;
   updateTask: (task: Task) => void;
   completeTask: (task: Task) => void;
   uncompleteTask: (task: Task) => void;
@@ -37,6 +37,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const taskStore = useMemo(() => new TaskStore(), []);
   const categoryStore = useMemo(() => new CategoryStore(), []);
   const eventStore = useMemo(() => new EventStore(), []);
+
   useEffect(() => {
     if (taskStore) {
       taskStore.list(currentWeek).then((dbTasks) => {
@@ -59,14 +60,26 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return tasks.find((task) => task.id === taskId) ?? null;
   };
 
-  const addTask = (task: Task) => {
+  const addTask = (task: WeeklyTask | SomedayTask) => {
     if (!taskStore) {
       return;
     }
 
-    // Default properties
-    task.weekCode = task.weekCode ?? currentWeek;
-    task.order = task.order ?? tasks.filter((t) => t.dayOfWeek === task.dayOfWeek).length;
+    // Set default properties
+    if (task instanceof WeeklyTask) {
+      task.weekCode = task.weekCode ?? currentWeek;
+      // Count tasks in the same day for default order
+      const sameDayTasks = tasks.filter((t) =>
+        t instanceof WeeklyTask &&
+        (t.dayOfWeek ?? null) === task.dayOfWeek
+      );
+      task.order = task.order ?? sameDayTasks.length;
+    } else if (task instanceof SomedayTask) {
+      // Count someday tasks for default order
+      // TODO : only count visible tasks
+      const somedayTasks = tasks.filter((t) => t instanceof SomedayTask);
+      task.order = task.order ?? somedayTasks.length;
+    }
 
     taskStore.create(task).then((t) => {
       setTasks((prevTasks) => [...prevTasks, t]);
@@ -81,7 +94,6 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       setTasks((prevTasks) => prevTasks.map((prevTask) => prevTask.id === updatedTask.id ? updatedTask : prevTask));
     });
   };
-
 
   const completeTask = (task: Task) => {
     task.completedAt = dayjs();
@@ -109,70 +121,200 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   ) => {
     // If the task is completed, we don't allow reordering
     if (task.completedAt !== null) {
-      if (task.dayOfWeek !== toDay) {
+      if (task instanceof WeeklyTask && task.dayOfWeek !== toDay) {
         // Only allow moving to different day, keeping it at the end
-        task.dayOfWeek = toDay;
-        updateTask(task);
+        // Create a new WeeklyTask with the updated day
+        const updatedTask = new WeeklyTask({
+          ...task,
+          dayOfWeek: toDay
+        });
+        updateTask(updatedTask);
       }
       return;
     }
 
-    const tasksSourceDay = tasks.filter((t) =>
-      t.weekCode === task.weekCode &&
-      t.dayOfWeek === task.dayOfWeek &&
-      t.completedAt === null // Only consider incomplete tasks for reordering
-    );
-    const tasksDestinationDay = tasks.filter((t) =>
-      t.weekCode === task.weekCode &&
-      t.dayOfWeek === toDay &&
-      t.completedAt === null // Only consider incomplete tasks for reordering
-    );
-    const updatedTasks = [];
+    // Handle task movement based on task type and destination
+    if (task instanceof WeeklyTask) {
+      // Moving a WeeklyTask between days
+      const isChangingToSomeday = toDay === 'someday';
 
-    if (task.dayOfWeek !== toDay) {
-      const sourceTasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
-      sourceTasksWithoutMoved.forEach((t, index) => {
-        if (t.order !== index) {
-          t.order = index;
-          updatedTasks.push(t);
-        }
-      });
+      if (isChangingToSomeday) {
+        // Convert to a SomedayTask
+        const convertedTask = new SomedayTask({
+          ...task,
+          weekCode: currentWeek
+        });
 
-      const destinationTasksWithoutMoved = tasksDestinationDay.filter((t) => t.id !== task.id);
-      const targetOrder = toOrder ?? destinationTasksWithoutMoved.length;
+        // Update orders of source day tasks
+        const sourceTasksWithoutMoved = tasks.filter((t) =>
+          t.taskType === 'weekly' &&
+          t instanceof WeeklyTask &&
+          t.weekCode === task.weekCode &&
+          t.dayOfWeek === task.dayOfWeek &&
+          t.id !== task.id &&
+          t.completedAt === null
+        );
 
-      destinationTasksWithoutMoved.forEach((t) => {
-        if ((t.order ?? 0) >= targetOrder) {
-          t.order = (t.order ?? 0) + 1;
-          updatedTasks.push(t);
-        }
-      });
+        // Reorder source tasks after removal
+        sourceTasksWithoutMoved.forEach((t, index) => {
+          if (t.order !== index) {
+            t.order = index;
+            updateTask(t);
+          }
+        });
 
-      task.dayOfWeek = toDay;
-      task.order = targetOrder;
-      updatedTasks.push(task);
-    } else {
-      const tasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
-      const targetOrder = toOrder ?? tasksWithoutMoved.length;
-      const currentOrder = task.order ?? 0;
+        // Count someday tasks for default order
+        const somedayTasks = tasks.filter((t) =>
+          t.taskType === 'someday' &&
+          t.completedAt === null
+        );
+        convertedTask.order = toOrder ?? somedayTasks.length;
 
-      if (currentOrder !== targetOrder) {
-        const allTasks = [...tasksWithoutMoved];
-        allTasks.splice(targetOrder, 0, task);
-        allTasks.forEach((t, index) => {
+        // Replace the weekly task with the someday task
+        taskStore.delete(task).then(() => {
+          taskStore.create(convertedTask).then((t) => {
+            setTasks((prevTasks) => [
+              ...prevTasks.filter(pt => pt.id !== task.id),
+              t
+            ]);
+          });
+        });
+        return;
+      }
+
+      // Moving between week days
+      const tasksSourceDay = tasks.filter((t) =>
+        t.taskType === 'weekly' &&
+        t instanceof WeeklyTask &&
+        t.weekCode === task.weekCode &&
+        t.dayOfWeek === task.dayOfWeek &&
+        t.completedAt === null
+      );
+
+      const tasksDestinationDay = tasks.filter((t) =>
+        t.taskType === 'weekly' &&
+        t instanceof WeeklyTask &&
+        t.weekCode === task.weekCode &&
+        t.dayOfWeek === toDay &&
+        t.completedAt === null
+      );
+
+      const updatedTasks = [];
+
+      if (task.dayOfWeek !== toDay) {
+        // Moving to a different day
+        const sourceTasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
+        sourceTasksWithoutMoved.forEach((t, index) => {
           if (t.order !== index) {
             t.order = index;
             updatedTasks.push(t);
           }
         });
+
+        const destinationTasksWithoutMoved = tasksDestinationDay.filter((t) => t.id !== task.id);
+        const targetOrder = toOrder ?? destinationTasksWithoutMoved.length;
+
+        destinationTasksWithoutMoved.forEach((t) => {
+          if ((t.order ?? 0) >= targetOrder) {
+            t.order = (t.order ?? 0) + 1;
+            updatedTasks.push(t);
+          }
+        });
+
+        // Create an updated copy of the task
+        const updatedTask = new WeeklyTask({
+          ...task,
+          dayOfWeek: toDay,
+          order: targetOrder
+        });
+        updatedTasks.push(updatedTask);
+      } else {
+        // Reordering within the same day
+        const tasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
+        const targetOrder = toOrder ?? tasksWithoutMoved.length;
+        const currentOrder = task.order ?? 0;
+
+        if (currentOrder !== targetOrder) {
+          const allTasks = [...tasksWithoutMoved];
+          allTasks.splice(targetOrder, 0, task);
+          allTasks.forEach((t, index) => {
+            if (t.order !== index) {
+              t.order = index;
+              updatedTasks.push(t);
+            }
+          });
+        }
+      }
+
+      const uniqueUpdatedTasks = updatedTasks.filter((t, i, self) =>
+        self.findIndex(t2 => t2.id === t.id) === i
+      );
+
+      uniqueUpdatedTasks.forEach((t) => updateTask(t));
+    } else if (task instanceof SomedayTask && toDay !== 'someday') {
+      // Convert from SomedayTask to WeeklyTask
+      const convertedTask = new WeeklyTask({
+        ...task,
+        weekCode: currentWeek,
+        dayOfWeek: toDay
+      });
+
+      // Update orders of someday tasks
+      const somedayTasks = tasks.filter((t) =>
+        t.taskType === 'someday' &&
+        t.id !== task.id &&
+        t.completedAt === null
+      );
+
+      // Reorder someday tasks after removal
+      somedayTasks.forEach((t, index) => {
+        if (t.order !== index) {
+          t.order = index;
+          updateTask(t);
+        }
+      });
+
+      // Count week day tasks for default order
+      const weekDayTasks = tasks.filter((t) =>
+        t.taskType === 'weekly' &&
+        t instanceof WeeklyTask &&
+        t.dayOfWeek === toDay &&
+        t.completedAt === null
+      );
+      convertedTask.order = toOrder ?? weekDayTasks.length;
+
+      // Replace the someday task with the weekly task
+      taskStore.delete(task).then(() => {
+        taskStore.create(convertedTask).then((t) => {
+          setTasks((prevTasks) => [
+            ...prevTasks.filter(pt => pt.id !== task.id),
+            t
+          ]);
+        });
+      });
+    } else if (task instanceof SomedayTask) {
+      // Reordering someday tasks
+      const somedayTasks = tasks.filter((t) =>
+        t.taskType === 'someday' &&
+        t.completedAt === null
+      );
+
+      const targetOrder = toOrder ?? somedayTasks.length - 1;
+      const currentOrder = task.order ?? 0;
+
+      if (currentOrder !== targetOrder) {
+        const tasksWithoutMoved = somedayTasks.filter((t) => t.id !== task.id);
+        const allTasks = [...tasksWithoutMoved];
+        allTasks.splice(targetOrder, 0, task);
+
+        allTasks.forEach((t, index) => {
+          if (t.order !== index) {
+            t.order = index;
+            updateTask(t);
+          }
+        });
       }
     }
-
-    const uniqueUpdatedTasks = updatedTasks.filter((t, i, self) =>
-      self.findIndex(t2 => t2.id === t.id) === i
-    );
-
-    uniqueUpdatedTasks.forEach((t) => updateTask(t));
   };
 
   const memoizedTasks = useMemo(() => {
@@ -197,7 +339,7 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     return events
       .filter(e => selectedCategories.length === 0 || selectedCategories.includes(e.categoryId ?? -1))
       .sort((a, b) => {
-        return dayjs(a.startDate).isBefore(dayjs(b.startDate)) ? -1 : 1;
+        return dayjs(a.startHour).isBefore(dayjs(b.startHour)) ? -1 : 1;
       });
   }, [events, selectedCategories]);
 

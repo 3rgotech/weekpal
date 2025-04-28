@@ -1,7 +1,7 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
-import Task from "../data/task";
+import Task, { SomedayTask, WeeklyTask } from "../data/task";
 import { useData } from "./DataContext";
 import { DayOfWeek } from "../types";
 import clsx from "clsx";
@@ -36,11 +36,13 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   const openNewTask = (weekCode: string, dayOfWeek: DayOfWeek) => {
-    const newTask = new Task({ title: "", weekCode, dayOfWeek });
-    setTask(newTask);
-    setData(newTask.serialize());
-    setMode("CREATE");
-    onOpen();
+    const newTask = Task.create(dayOfWeek === "someday" ? "someday" : "weekly", { title: "", weekCode, dayOfWeek });
+    if (newTask) {
+      setTask(newTask);
+      setData(newTask.serialize());
+      setMode("CREATE");
+      onOpen();
+    }
   };
 
   const reset = () => {
@@ -84,7 +86,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     }
     task.update(data);
     if (mode === "CREATE") {
-      addTask(task);
+      addTask(task as WeeklyTask | SomedayTask);
     }
     if (mode === "EDIT") {
       updateTask(task);
@@ -97,7 +99,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     <div className="flex flex-row gap-1">
       <Dropdown placement="bottom-end">
         <DropdownTrigger>
-          <button className="p-0.5">
+          <button className="p-0.5 dark:text-white">
             <EllipsisVertical size={16} />
           </button>
         </DropdownTrigger>
@@ -167,7 +169,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         <ModalContent>
           {task && (
             <>
-              <ModalHeader className="flex flex-row justify-between items-center gap-1">
+              <ModalHeader className="flex flex-row justify-between items-center gap-1 dark:text-white">
                 <span className="text-lg font-bold">{t('actions.edit_task')}</span>
                 {taskToolbar}
               </ModalHeader>

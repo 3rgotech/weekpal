@@ -1,4 +1,3 @@
-import { Plus } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { useData } from "../contexts/DataContext";
 import Task from "../data/task";
@@ -27,14 +26,24 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
   };
 
   const handleSubmit = () => {
+    console.log("handleSubmit", inputValue);
     if (inputValue.trim()) {
-      const task = new Task({
-        title: inputValue,
-        weekCode: currentWeek,
-        dayOfWeek,
-      });
-      addTask(task);
-      handleCancel();
+      const task = Task.create(
+        dayOfWeek === "someday" ? "someday" : "weekly",
+        {
+          title: inputValue,
+          weekCode: currentWeek,
+          dayOfWeek,
+        }
+      );
+      console.log(task)
+      if (task) {
+        addTask(task);
+        handleCancel();
+        setTimeout(() => {
+          setCreatingNewTask(true);
+        }, 100);
+      }
       setTimeout(() => {
         setCreatingNewTask(true);
       }, 100);

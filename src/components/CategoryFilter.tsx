@@ -14,18 +14,18 @@ const CategoryFilter: React.FC = () => {
     label: string;
     startContent?: React.JSX.Element;
   }> = [
-    { key: "-2", label: t("category.show_all"), startContent: <RotateCcw /> },
-    ...categories.map((category) => ({
-      key: (category.id ?? 0).toString(),
-      label: category.name,
-      startContent: (
-        <div
-          className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}
-        ></div>
-      ),
-    })),
-    { key: "-1", label: t("category.none"), startContent: <CircleSlash2 /> },
-  ];
+      { key: "-2", label: t("category.show_all"), startContent: <RotateCcw /> },
+      ...categories.map((category) => ({
+        key: (category.id ?? 0).toString(),
+        label: category.name,
+        startContent: (
+          <div
+            className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}
+          ></div>
+        ),
+      })),
+      { key: "-1", label: t("category.none"), startContent: <CircleSlash2 /> },
+    ];
 
   return (
     <Select
@@ -34,10 +34,9 @@ const CategoryFilter: React.FC = () => {
       className="max-w-lg w-56 flex-1"
       classNames={{
         mainWrapper: "h-full flex flex-grow justify-center",
-        trigger:
-          "h-full bg-transparent shadow-none data-[hover=true]:bg-transparent",
+        trigger: "h-full bg-transparent shadow-none data-[hover=true]:bg-transparent",
+        selectorIcon: "hidden",
       }}
-      selectorIcon={<React.Fragment />}
       size="lg"
       selectionMode="multiple"
       maxListboxHeight={512}
