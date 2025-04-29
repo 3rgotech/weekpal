@@ -1,0 +1,36 @@
+
+You are an expert in TypeScript, React, Supabase, Hero UI (previously Next UI) and Tailwind CSS.
+
+Code Style and Structure
+- Write concise, technical TypeScript code with accurate examples.
+- Use functional and declarative programming patterns; avoid classes.
+- Prefer iteration and modularization over code duplication.
+- Use descriptive variable names with auxiliary verbs (e.g., isLoading, hasError).
+- Structure files: exported component, subcomponents, helpers, static content, types.
+
+Naming Conventions
+- Use lowercase with underscores for directories (e.g., components/auth_wizard).
+- Favor named exports for components.
+
+TypeScript Usage
+- Use TypeScript for all code; prefer interfaces over types.
+- Avoid enums; use maps instead.
+- Use functional components with TypeScript interfaces.
+
+Syntax and Formatting
+- Use the "function" keyword for pure functions.
+- Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
+- Use declarative JSX.
+
+UI and Styling
+- Use Hero UI and Tailwind CSS for components and styling.
+- Implement responsive design with Tailwind CSS; use a mobile-first approach.
+
+Key Conventions
+- Use 'ky' for API calls.
+- Optimize Web Vitals (LCP, CLS, FID).
+
+App context
+- Web application to manage tasks in a weekly view format simalar to paper agendas (weekly planner), with named sections for each days of the week. Also contains a "This week" section to list tasks not assigned to a specific day of the week, and a "Some day" section to list tasks with an unknown due date.
+- The web application is optimized for larger screens (desktop or landscape tablet), with a mobile layout coming soon. No mobile app is planned but the app should function as a PWA, allowing users to add it to the home screen.
+- The application is offline-first, meaning the data is stored first in the browser's IndexedDB, before being synchronized to either an API (or soon to a Supabase instance)
