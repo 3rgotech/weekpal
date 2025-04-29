@@ -22,6 +22,8 @@ interface DataContextProps {
   categories: Array<Category>;
   selectedCategories: number[];
   setSelectedCategories: (categories: number[]) => void;
+  taskStore: TaskStore | null;
+  categoryStore: CategoryStore | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -358,6 +360,8 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         categories,
         selectedCategories,
         setSelectedCategories,
+        taskStore,
+        categoryStore,
       }}
     >
       {children}

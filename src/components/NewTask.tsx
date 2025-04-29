@@ -26,7 +26,6 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
   };
 
   const handleSubmit = () => {
-    console.log("handleSubmit", inputValue);
     if (inputValue.trim()) {
       const task = Task.create(
         dayOfWeek === "someday" ? "someday" : "weekly",
@@ -36,7 +35,6 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
           dayOfWeek,
         }
       );
-      console.log(task)
       if (task) {
         addTask(task);
         handleCancel();

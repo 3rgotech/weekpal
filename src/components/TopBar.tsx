@@ -8,6 +8,7 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import { Tooltip } from "@heroui/react";
 import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS, TOOLTIP_CLASSES } from "../utils/color";
+import SyncStatusIndicator from "./SyncStatusIndicator";
 
 interface TopBarProps { }
 
@@ -20,6 +21,9 @@ const TopBar: React.FC<TopBarProps> = () => {
       <div className="flex items-stretch">
         <Logo />
         <WeekSelector />
+        <div className="flex items-center ml-4">
+          <SyncStatusIndicator />
+        </div>
       </div>
       <div className="flex items-stretch">
         <Tooltip content={t("actions.category_filter")} placement="left" showArrow classNames={TOOLTIP_CLASSES}>

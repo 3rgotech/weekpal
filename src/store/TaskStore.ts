@@ -8,11 +8,9 @@ import { WeekpalDB } from "./db";
 class TaskStore extends BaseStore implements ITaskStore {
 
     declare protected adapter: ITaskAdapter | null;
-    private db: WeekpalDB;
 
     constructor(adapter?: ITaskAdapter) {
         super(adapter);
-        this.db = new WeekpalDB();
     }
 
     async list(weekCode: string): Promise<Task[]> {
@@ -80,7 +78,6 @@ class TaskStore extends BaseStore implements ITaskStore {
     }
 
     async create(task: WeeklyTask | SomedayTask): Promise<Task> {
-        console.log(task);
         // Store in the appropriate table based on task type
         if (task instanceof WeeklyTask) {
             await this.db.weeklyTasks.add(task);
@@ -88,23 +85,41 @@ class TaskStore extends BaseStore implements ITaskStore {
             await this.db.somedayTasks.add(task);
         }
 
+        // Make sure the task has an ID (assigned by IndexedDB)
+        const savedTask = await this.reload(task);
+        if (!savedTask || !savedTask.id) {
+            return task; // Return original if reload fails
+        }
+
+        // Track this as a pending change
+        if (this.syncService) {
+            this.syncService.addPendingChange({
+                id: savedTask.id,
+                type: 'create',
+                entityType: 'task'
+            });
+        }
+
+        // Try to sync immediately if we can
         if (this.canSync()) {
             try {
-                const serverId = await this.adapter?.create(task);
+                const serverId = await this.adapter?.create(savedTask);
                 if (serverId) {
-                    task.serverId = serverId;
+                    savedTask.serverId = serverId;
                     // Update the task with the server ID
-                    if (task instanceof WeeklyTask) {
-                        await this.db.weeklyTasks.put(task);
-                    } else if (task instanceof SomedayTask) {
-                        await this.db.somedayTasks.put(task);
+                    if (savedTask instanceof WeeklyTask) {
+                        await this.db.weeklyTasks.put(savedTask);
+                    } else if (savedTask instanceof SomedayTask) {
+                        await this.db.somedayTasks.put(savedTask);
                     }
                 }
             } catch (error) {
                 console.error("Error creating task : ", error);
+                // Error is already tracked in pendingChanges, will retry later
             }
         }
-        return task;
+
+        return savedTask;
     }
 
     async update(task: Task): Promise<Task> {
@@ -115,11 +130,22 @@ class TaskStore extends BaseStore implements ITaskStore {
             await this.db.somedayTasks.put(task);
         }
 
-        if (this.canSync()) {
+        // Track this as a pending change if it has a local ID
+        if (task.id && this.syncService) {
+            this.syncService.addPendingChange({
+                id: task.id,
+                type: 'update',
+                entityType: 'task'
+            });
+        }
+
+        // Try to sync immediately if possible
+        if (this.canSync() && task.serverId) {
             try {
                 await this.adapter?.update(task);
             } catch (error) {
                 console.error("Error updating task : ", error);
+                // Error is already tracked in pendingChanges, will retry later
             }
         }
 
@@ -132,6 +158,22 @@ class TaskStore extends BaseStore implements ITaskStore {
             return;
         }
 
+        // Store the server ID before deletion for sync purposes
+        const taskData = {
+            serverId: task.serverId,
+            taskType: task.taskType
+        };
+
+        // Track this as a pending change if it has a server ID
+        if (task.serverId && this.syncService) {
+            this.syncService.addPendingChange({
+                id: task.id,
+                type: 'delete',
+                entityType: 'task',
+                data: taskData
+            });
+        }
+
         // Delete from the appropriate table based on task type
         if (task instanceof WeeklyTask) {
             await this.db.weeklyTasks.delete(task.id);
@@ -139,15 +181,16 @@ class TaskStore extends BaseStore implements ITaskStore {
             await this.db.somedayTasks.delete(task.id);
         }
 
-        if (this.canSync()) {
+        // Try to sync immediately if possible
+        if (this.canSync() && task.serverId) {
             try {
                 await this.adapter?.delete(task);
             } catch (error) {
                 console.error("Error deleting task : ", error);
+                // Error is already tracked in pendingChanges, will retry later
             }
         }
     }
-
 }
 
 export default TaskStore;
