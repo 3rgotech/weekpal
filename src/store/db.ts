@@ -4,6 +4,7 @@ import Category from "../data/category";
 import { WeeklyTask, SomedayTask } from "../data/task";
 import { getDayJs } from "../utils/dayjs";
 import Event from "../data/event";
+import { getEnvConfig } from "../utils/env";
 
 const testCategories = [
     { name: 'Work', color: 'red' },
@@ -127,7 +128,14 @@ export class WeekpalDB extends Dexie {
     events!: Dexie.Table<Event, number>;
 
     constructor() {
-        super("WeekpalDB");
+        const dataSource = getEnvConfig().dataSource;
+        if (dataSource === 'test') {
+            super("WeekpalDB_test");
+        } else if (dataSource === 'demo') {
+            super("WeekpalDB_demo");
+        } else {
+            super("WeekpalDB");
+        }
 
         this.version(1).stores({
             categories: '++id, &serverId, name',
@@ -143,18 +151,20 @@ export class WeekpalDB extends Dexie {
         this.events.hook('reading', (event) => new Event(event));
 
         this.on("populate", function (transaction: Transaction) {
-            (transaction.db as WeekpalDB).categories.bulkAdd(
-                testCategories.map((c) => (new Category(c)))
-            );
-            (transaction.db as WeekpalDB).events.bulkAdd(
-                testEvents.map((e) => (new Event(e)))
-            );
-            (transaction.db as WeekpalDB).weeklyTasks.bulkAdd(
-                testWeeklyTasks.map((t) => (new WeeklyTask(t)))
-            );
-            (transaction.db as WeekpalDB).somedayTasks.bulkAdd(
-                testSomedayTasks.map((t) => (new SomedayTask(t)))
-            );
+            if (dataSource === 'test' || dataSource === 'demo') {
+                (transaction.db as WeekpalDB).categories.bulkAdd(
+                    testCategories.map((c) => (new Category(c)))
+                );
+                (transaction.db as WeekpalDB).events.bulkAdd(
+                    testEvents.map((e) => (new Event(e)))
+                );
+                (transaction.db as WeekpalDB).weeklyTasks.bulkAdd(
+                    testWeeklyTasks.map((t) => (new WeeklyTask(t)))
+                );
+                (transaction.db as WeekpalDB).somedayTasks.bulkAdd(
+                    testSomedayTasks.map((t) => (new SomedayTask(t)))
+                );
+            }
         });
     }
 }
