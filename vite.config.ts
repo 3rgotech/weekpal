@@ -4,6 +4,7 @@ import { defineConfig, loadEnv, Plugin, createFilter, transformWithEsbuild } fro
 import react from "@vitejs/plugin-react";
 import path from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
+import envCompatible from 'vite-plugin-env-compatible';
 
 
 // https://vitejs.dev/config/
@@ -13,6 +14,7 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			react(),
 			tsconfigPaths(),
+			envCompatible(),
 			envPlugin(),
 			devServerPlugin(),
 			sourcemapPlugin(),
@@ -37,7 +39,7 @@ export default defineConfig(({ mode }) => {
 function setEnv(mode: string) {
 	Object.assign(
 		process.env,
-		loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]),
+		loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL", "VITE_API_URL", "VITE_DATA_SOURCE"]),
 	);
 	process.env.NODE_ENV ||= mode;
 	const { homepage } = JSON.parse(readFileSync("package.json", "utf-8"));
@@ -56,7 +58,7 @@ function envPlugin(): Plugin {
 	return {
 		name: "env-plugin",
 		config(_, { mode }) {
-			const env = loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL"]);
+			const env = loadEnv(mode, ".", ["REACT_APP_", "NODE_ENV", "PUBLIC_URL", "VITE_API_URL", "VITE_DATA_SOURCE"]);
 			return {
 				define: Object.fromEntries(
 					Object.entries(env).map(([key, value]) => [

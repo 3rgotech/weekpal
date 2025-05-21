@@ -93,7 +93,7 @@ export class SyncService {
                     );
                     this.savePendingChanges();
                 } catch (error) {
-                    console.error(`Error processing change: ${change.id}, ${change.type}, ${change.entityType}`, error);
+                    console.error(`Error processing change: ${change.id ?? "?"}, ${change.type}, ${change.entityType}`, error);
                     // If a change fails, we'll try again later
                     break;
                 }

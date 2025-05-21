@@ -10,6 +10,15 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 // import Example from "./components/MainContent/test/Exemple";
+import AdapterFactory from "./adapter";
+import { ITaskAdapter, ICategoryAdapter } from "./types";
+
+// Extend Window interface to include API_URL
+declare global {
+  interface Window {
+    API_URL?: string;
+  }
+}
 
 function App() {
   const [indexedDBAvailable, setIndexedDBAvailable] = useState(true);
@@ -17,13 +26,19 @@ function App() {
   // TODO : enable splash screen in production
   const [splashScreen, setSplashScreen] = useState(false);
   const [minSplashTimeElapsed, setMinSplashTimeElapsed] = useState(false);
+  const [taskAdapter, setTaskAdapter] = useState<ITaskAdapter | null>(null);
+  const [categoryAdapter, setCategoryAdapter] = useState<ICategoryAdapter | null>(null);
 
   useEffect(() => {
     if (!window.indexedDB) {
       setIndexedDBAvailable(false);
     }
 
-    // TODO : add API call
+    // Create adapters from environment configuration
+    const { taskAdapter, categoryAdapter } = AdapterFactory.createAdapters();
+    setTaskAdapter(taskAdapter);
+    setCategoryAdapter(categoryAdapter);
+
     // Set loading to false
     setLoading(false);
 
@@ -51,7 +66,7 @@ function App() {
       ) : (
         <SettingsProvider>
           <CalendarProvider>
-            <DataProvider>
+            <DataProvider taskAdapter={taskAdapter} categoryAdapter={categoryAdapter}>
               <TaskModalProvider>
                 {splashScreen ? (
                   <SplashScreen />

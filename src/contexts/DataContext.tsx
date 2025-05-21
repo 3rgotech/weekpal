@@ -1,5 +1,5 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext } from "react";
-import { DayOfWeek } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import CategoryStore from "../store/CategoryStore";
@@ -28,7 +28,17 @@ interface DataContextProps {
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
 
-const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+interface DataProviderProps {
+  children: ReactNode;
+  taskAdapter?: ITaskAdapter | null;
+  categoryAdapter?: ICategoryAdapter | null;
+}
+
+const DataProvider: React.FC<DataProviderProps> = ({
+  children,
+  taskAdapter = null,
+  categoryAdapter = null
+}) => {
   const { currentWeek } = useCalendar();
   const dayjs = useDayJs();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -36,8 +46,8 @@ const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
-  const taskStore = useMemo(() => new TaskStore(), []);
-  const categoryStore = useMemo(() => new CategoryStore(), []);
+  const taskStore = useMemo(() => new TaskStore(taskAdapter || undefined), [taskAdapter]);
+  const categoryStore = useMemo(() => new CategoryStore(categoryAdapter || undefined), [categoryAdapter]);
   const eventStore = useMemo(() => new EventStore(), []);
 
   useEffect(() => {

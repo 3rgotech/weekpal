@@ -6,13 +6,12 @@ import { getDayJs } from "../utils/dayjs";
 import Event from "../data/event";
 
 const testCategories = [
-    { name: 'Travail', color: 'red' },
+    { name: 'Work', color: 'red' },
     { name: 'Sport', color: 'blue' },
-    { name: 'Loisirs', color: 'green' },
-    { name: 'Cuisine', color: 'yellow' },
+    { name: 'Hobbies', color: 'green' },
     { name: 'Shopping', color: 'purple' },
-    { name: 'Calendrier personnel', color: 'orange' },
-    { name: 'Calendrier professionnel', color: 'pink' },
+    { name: 'Matt\'s calendar', color: 'orange' },
+    { name: 'Work calendar', color: 'pink' },
 ]
 
 const dayjs = getDayJs();
@@ -20,46 +19,104 @@ const currentWeek = dayjs().format('GGGG[w]WW');
 
 const testEvents = [
     {
-        title: 'Test event 1',
+        title: 'Doctor\'s appointment',
         weekCode: currentWeek,
         dayOfWeek: '1',
         calendarId: 1,
-        categoryId: 6,
+        categoryId: 5,
         startHour: '10:00',
         endHour: '11:00'
     },
     {
-        title: 'Test event 2',
+        title: 'Prepare customer meeting with Jack',
         weekCode: currentWeek,
         dayOfWeek: '1',
         calendarId: 2,
-        categoryId: 7,
+        categoryId: 6,
         startHour: '14:00',
         endHour: '15:00'
     },
     {
-        title: 'Test event without category',
+        title: 'Teacher meeting',
         weekCode: currentWeek,
         dayOfWeek: '2',
         calendarId: 3,
-        startHour: '10:00',
-        endHour: '12:00'
+        startHour: '18:00',
+        endHour: '20:00'
     },
     {
-        title: 'Test event without hours',
+        title: 'Family Day',
         weekCode: currentWeek,
-        dayOfWeek: '3',
-        calendarId: 2,
-        categoryId: 7
+        dayOfWeek: '6',
+        calendarId: 1,
+        categoryId: 5
     },
     {
-        title: 'Test event with a very very very very very very long title',
+        title: 'Meeting with customer about the new product features to launch in Q3 2025',
         weekCode: currentWeek,
         dayOfWeek: '4',
         calendarId: 2,
-        categoryId: 7,
+        categoryId: 6,
         startHour: '10:00',
         endHour: '12:00'
+    },
+];
+
+const testWeeklyTasks = [
+    {
+        title: 'Generate app mockups',
+        weekCode: currentWeek,
+        dayOfWeek: '1',
+        categoryId: 1,
+        order: 1
+    },
+    {
+        title: 'Buy new sneakers',
+        weekCode: currentWeek,
+        dayOfWeek: '1',
+        categoryId: 4,
+        order: 2
+    },
+    {
+        title: '5k run',
+        weekCode: currentWeek,
+        dayOfWeek: '3',
+        categoryId: 2,
+        order: 1
+    },
+    {
+        title: 'Buy groceries',
+        weekCode: currentWeek,
+        dayOfWeek: '4',
+        categoryId: 4,
+        order: 1
+    },
+    {
+        title: 'Buy meat for family day',
+        weekCode: currentWeek,
+        dayOfWeek: '5',
+        categoryId: 4,
+        order: 1
+    },
+    {
+        title: 'Mow lawn',
+        weekCode: currentWeek,
+        dayOfWeek: '0',
+        categoryId: 3,
+        order: 1
+    }
+];
+
+const testSomedayTasks = [
+    {
+        title: 'Book eye doctor appointment',
+        categoryId: null,
+        order: 1
+    },
+    {
+        title: 'Flip mattress',
+        categoryId: null,
+        order: 2
     },
 ];
 
@@ -91,6 +148,12 @@ export class WeekpalDB extends Dexie {
             );
             (transaction.db as WeekpalDB).events.bulkAdd(
                 testEvents.map((e) => (new Event(e)))
+            );
+            (transaction.db as WeekpalDB).weeklyTasks.bulkAdd(
+                testWeeklyTasks.map((t) => (new WeeklyTask(t)))
+            );
+            (transaction.db as WeekpalDB).somedayTasks.bulkAdd(
+                testSomedayTasks.map((t) => (new SomedayTask(t)))
             );
         });
     }
