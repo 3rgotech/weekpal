@@ -45,7 +45,7 @@ class AdapterFactory {
         }
 
         // Use API adapter if URL is provided
-        if (this.config.apiUrl) {
+        if (this.config.dataSource === 'api' && this.config.apiUrl) {
             return new APITaskAdapter(this.config.apiUrl, this.config.apiKey);
         }
 
@@ -59,7 +59,7 @@ class AdapterFactory {
         }
 
         // Use API adapter if URL is provided
-        if (this.config.apiUrl) {
+        if (this.config.dataSource === 'api' && this.config.apiUrl) {
             return new APICategoryAdapter(this.config.apiUrl, this.config.apiKey);
         }
 

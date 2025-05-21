@@ -9,9 +9,10 @@ import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
-// import Example from "./components/MainContent/test/Exemple";
+import DemoModal from "./components/DemoModal";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter } from "./types";
+import { getEnvConfig } from "./utils/env";
 
 // Extend Window interface to include API_URL
 declare global {
@@ -27,7 +28,9 @@ function App() {
   const [splashScreen, setSplashScreen] = useState(false);
   const [minSplashTimeElapsed, setMinSplashTimeElapsed] = useState(false);
   const [taskAdapter, setTaskAdapter] = useState<ITaskAdapter | null>(null);
-  const [categoryAdapter, setCategoryAdapter] = useState<ICategoryAdapter | null>(null);
+  const [categoryAdapter, setCategoryAdapter] =
+    useState<ICategoryAdapter | null>(null);
+  const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
     if (!window.indexedDB) {
@@ -38,6 +41,12 @@ function App() {
     const { taskAdapter, categoryAdapter } = AdapterFactory.createAdapters();
     setTaskAdapter(taskAdapter);
     setCategoryAdapter(categoryAdapter);
+
+    // Check if we're in demo mode
+    const { dataSource } = getEnvConfig();
+    if (dataSource === "demo") {
+      setShowDemoModal(true);
+    }
 
     // Set loading to false
     setLoading(false);
@@ -66,7 +75,10 @@ function App() {
       ) : (
         <SettingsProvider>
           <CalendarProvider>
-            <DataProvider taskAdapter={taskAdapter} categoryAdapter={categoryAdapter}>
+            <DataProvider
+              taskAdapter={taskAdapter}
+              categoryAdapter={categoryAdapter}
+            >
               <TaskModalProvider>
                 {splashScreen ? (
                   <SplashScreen />
@@ -78,6 +90,10 @@ function App() {
                     <div className="flex-grow overflow-hidden">
                       <MainContent />
                     </div>
+                    <DemoModal
+                      isOpen={showDemoModal}
+                      onClose={() => setShowDemoModal(false)}
+                    />
                   </div>
                 )}
               </TaskModalProvider>
