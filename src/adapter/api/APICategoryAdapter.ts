@@ -1,17 +1,11 @@
-import ky from 'ky';
 import Category from '../../data/category';
 import { ICategoryAdapter } from '../../types';
+import { APIBaseAdapter } from './APIBaseAdapter';
 
-class APICategoryAdapter implements ICategoryAdapter {
-    private apiUrl: string;
-
-    constructor(apiUrl: string = '/api') {
-        this.apiUrl = apiUrl;
-    }
-
+class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
     async list(): Promise<Category[]> {
         try {
-            const response = await ky.get(`${this.apiUrl}/categories`).json<{ data: any }>();
+            const response = await this.getClient().get('categories').json<{ data: any }>();
             const data = response.data;
 
             if (!Array.isArray(data)) {
@@ -39,7 +33,7 @@ class APICategoryAdapter implements ICategoryAdapter {
                 color: category.color,
             };
 
-            const response = await ky.post(`${this.apiUrl}/categories/create`, {
+            const response = await this.getClient().post('categories/create', {
                 json: payload
             }).json<{ id?: number }>();
 
@@ -62,7 +56,7 @@ class APICategoryAdapter implements ICategoryAdapter {
                 color: category.color,
             };
 
-            await ky.put(`${this.apiUrl}/categories/${category.serverId}`, {
+            await this.getClient().put(`categories/${category.serverId}`, {
                 json: payload
             });
         } catch (error) {
@@ -78,7 +72,7 @@ class APICategoryAdapter implements ICategoryAdapter {
                 return;
             }
 
-            await ky.delete(`${this.apiUrl}/categories/${category.serverId}`);
+            await this.getClient().delete(`categories/${category.serverId}`);
         } catch (error) {
             console.error('Error deleting category from API:', error);
             throw error;

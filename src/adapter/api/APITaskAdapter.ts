@@ -1,17 +1,11 @@
-import ky from 'ky';
 import Task, { WeeklyTask, SomedayTask } from '../../data/task';
 import { APIWeekTasklistResponse, ITaskAdapter } from '../../types';
+import { APIBaseAdapter } from './APIBaseAdapter';
 
-class APITaskAdapter implements ITaskAdapter {
-    private apiUrl: string;
-
-    constructor(apiUrl: string = '/api') {
-        this.apiUrl = apiUrl;
-    }
-
+class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
     async getWeek(weekCode: string): Promise<APIWeekTasklistResponse> {
         try {
-            const response = await ky.get(`${this.apiUrl}/data/${weekCode}`).json<{ data: any }>();
+            const response = await this.getClient().get(`data/${weekCode}`).json<{ data: any }>();
             const data = response.data;
             const weeklyTasks: Array<WeeklyTask> = [];
             const somedayTasks: Array<SomedayTask> = [];
@@ -70,7 +64,7 @@ class APITaskAdapter implements ITaskAdapter {
                 payload.subtasks = JSON.stringify(task.subtasks);
             }
 
-            const response = await ky.post(`${this.apiUrl}/task/${taskType}`, {
+            const response = await this.getClient().post(`task/${taskType}`, {
                 json: payload
             }).json<{ id?: number }>();
 
@@ -111,7 +105,7 @@ class APITaskAdapter implements ITaskAdapter {
                 payload.subtasks = JSON.stringify(task.subtasks);
             }
 
-            await ky.put(`${this.apiUrl}/task/${taskType}/${task.serverId}`, {
+            await this.getClient().put(`task/${taskType}/${task.serverId}`, {
                 json: payload
             });
         } catch (error) {
@@ -130,7 +124,7 @@ class APITaskAdapter implements ITaskAdapter {
             // Get task type from the task instance
             const taskType = task.taskType;
 
-            await ky.delete(`${this.apiUrl}/task/${taskType}/${task.serverId}`);
+            await this.getClient().delete(`task/${taskType}/${task.serverId}`);
         } catch (error) {
             console.error('Error deleting task from API:', error);
             throw error;
