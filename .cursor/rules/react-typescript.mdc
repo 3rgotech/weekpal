@@ -1,4 +1,13 @@
-
+---
+description:
+globs: *.ts,*.tsx
+alwaysApply: false
+---
+---
+description: React & Typescript
+globs:
+alwaysApply: true
+---
 You are an expert in TypeScript, React, Supabase, Hero UI (previously Next UI) and Tailwind CSS.
 
 Code Style and Structure
@@ -29,8 +38,3 @@ UI and Styling
 Key Conventions
 - Use 'ky' for API calls.
 - Optimize Web Vitals (LCP, CLS, FID).
-
-App context
-- Web application to manage tasks in a weekly view format simalar to paper agendas (weekly planner), with named sections for each days of the week. Also contains a "This week" section to list tasks not assigned to a specific day of the week, and a "Some day" section to list tasks with an unknown due date.
-- The web application is optimized for larger screens (desktop or landscape tablet), with a mobile layout coming soon. No mobile app is planned but the app should function as a PWA, allowing users to add it to the home screen.
-- The application is offline-first, meaning the data is stored first in the browser's IndexedDB, before being synchronized to either an API (or soon to a Supabase instance)
