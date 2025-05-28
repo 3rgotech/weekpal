@@ -9,11 +9,12 @@ import { useTranslation } from "react-i18next";
 import { Tooltip } from "@heroui/react";
 import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS, TOOLTIP_CLASSES } from "../utils/color";
 import SyncStatusIndicator from "./SyncStatusIndicator";
+import VisibilityFilter from "./VisibilityFilter";
 
 interface TopBarProps { }
 
 const TopBar: React.FC<TopBarProps> = () => {
-  const { settings, updateSettings, openSettingsModal } = useSettings();
+  const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
 
   return (
@@ -44,20 +45,11 @@ const TopBar: React.FC<TopBarProps> = () => {
             size="md"
           />
         </div>
-        <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
-          <IconButton
-            icon={settings.showCompletedTasks ? "eyeOff" : "eye"}
-            iconClass={ICON_BUTTON_CLASS}
-            wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-            tooltip={settings.showCompletedTasks ? t("actions.hide_completed_tasks") : t("actions.show_completed_tasks")}
-            onClick={() => {
-              updateSettings({
-                showCompletedTasks: !settings.showCompletedTasks,
-              });
-            }}
-            size="md"
-          />
-        </div>
+        <Tooltip content={t("actions.visibility_filter")} placement="bottom" showArrow classNames={TOOLTIP_CLASSES}>
+          <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+            <VisibilityFilter />
+          </div>
+        </Tooltip>
         <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton
             icon="settings"

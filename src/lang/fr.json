@@ -33,7 +33,8 @@
         "show_completed_tasks": "Afficher les tâches complétées",
         "this_week": "Cette semaine",
         "uncomplete_task": "Marquer comme non terminée",
-        "user_menu": "Menu utilisateur"
+        "user_menu": "Menu utilisateur",
+        "visibility_filter": "Changer la visibilité"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",

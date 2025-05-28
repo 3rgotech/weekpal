@@ -11,6 +11,8 @@ export interface Settings {
   dayHeaderFormat: string;
   weekHeaderFormat: string;
   showCompletedTasks: boolean;
+  showEvents: boolean;
+  showWeekend: boolean;
 }
 
 export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";

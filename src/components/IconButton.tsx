@@ -10,7 +10,7 @@ type ButtonColor = "green";
 
 interface IconButtonProps {
   icon: keyof typeof icons;
-  onClick: () => void;
+  onClick?: () => void;
   size?: "xs" | "sm" | "md";
   iconClass?: string;
   wrapperClass?: string;
@@ -34,7 +34,7 @@ const btnClasses = {
 
 const IconButton: React.FC<IconButtonProps> = ({
   icon,
-  onClick,
+  onClick = () => { },
   size = "md",
   iconClass = "",
   wrapperClass = "",
@@ -42,10 +42,12 @@ const IconButton: React.FC<IconButtonProps> = ({
   tooltipPosition = undefined,
   tooltipClass = undefined,
   tooltipArrowClass = undefined,
+  ...otherProps
 }) => {
   const Icon = icons[icon] ?? defaultIcon;
   const button = (
     <button
+      {...otherProps}
       className={clsx(
         "rounded-full transition-colors border",
         btnClasses[size],
