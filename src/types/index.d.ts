@@ -6,6 +6,8 @@ import Task, { SomedayTask, WeeklyTask } from "../data/task";
 export type Theme = "light" | "dark" | "system";
 export type Language = "en" | "fr";
 
+export type SubtaskDisplay = "percentage" | "number" | "none";
+
 export interface Settings {
   theme: Theme;
   language: Language;
@@ -14,6 +16,8 @@ export interface Settings {
   showCompletedTasks: boolean;
   showEvents: boolean;
   showWeekend: boolean;
+  /** Reconciled with the API in contract §5; no UI reads it yet. */
+  subtaskDisplay: SubtaskDisplay;
 }
 
 export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";
@@ -131,6 +135,12 @@ export interface ICategoryAdapter {
   list(): Promise<Category[]>;
   upsert(category: Category): Promise<Category>;
   delete(id: string): Promise<void>;
+}
+
+export interface ISettingsAdapter {
+  get(): Promise<Settings>;
+  /** Partial patch in, complete object out. */
+  update(patch: Partial<Settings>): Promise<Settings>;
 }
 
 export interface IProjectAdapter {

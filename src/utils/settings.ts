@@ -1,11 +1,21 @@
 import { Language, Settings } from "../types";
 
+/**
+ * Must stay in step with `App\Support\BoardSettings::defaults()` on the server.
+ *
+ * `showEvents` and `showWeekend` were missing here while being declared on the
+ * `Settings` type, so a fresh browser started with them undefined — which reads
+ * as false at every call site that tests them.
+ */
 export const DEFAULT_SETTINGS: Settings = {
     theme: "system",
     language: "en",
     dayHeaderFormat: "dddd | D MMMM YYYY",
     weekHeaderFormat: "[[WEEK]] W - MMMM YYYY",
     showCompletedTasks: true,
+    showEvents: true,
+    showWeekend: true,
+    subtaskDisplay: "percentage",
 }
 
 export const LANGUAGES: Array<Language> = [

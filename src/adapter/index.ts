@@ -1,9 +1,10 @@
 import APITaskAdapter from './api/APITaskAdapter';
 import APICategoryAdapter from './api/APICategoryAdapter';
 import APIProjectAdapter from './api/APIProjectAdapter';
+import APISettingsAdapter from './api/APISettingsAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { ICategoryAdapter, IProjectAdapter, ITaskAdapter } from '../types';
+import { ICategoryAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -16,6 +17,7 @@ interface AdapterFactoryResult {
     taskAdapter: ITaskAdapter | null;
     categoryAdapter: ICategoryAdapter | null;
     projectAdapter: IProjectAdapter | null;
+    settingsAdapter: ISettingsAdapter | null;
 }
 
 class AdapterFactory {
@@ -38,6 +40,7 @@ class AdapterFactory {
             taskAdapter: factory.createTaskAdapter(),
             categoryAdapter: factory.createCategoryAdapter(),
             projectAdapter: factory.createProjectAdapter(),
+            settingsAdapter: factory.createSettingsAdapter(),
         };
     }
 
@@ -60,6 +63,15 @@ class AdapterFactory {
         }
 
         return this.usesApi ? new APICategoryAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * Settings are read straight from the API rather than through a store: they are
+     * a single small object, and the SettingsProvider already keeps a local copy in
+     * localStorage for offline reads.
+     */
+    createSettingsAdapter(): ISettingsAdapter | null {
+        return this.usesApi ? new APISettingsAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     createProjectAdapter(): IProjectAdapter | null {

@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
+// Globals (describe/it/expect/jest) come from @types/jest, which is what
+// @testing-library/jest-dom augments with toBeInTheDocument and friends.
 import { render, screen, act } from "@testing-library/react";
 import React from "react";
 import SyncStatusIndicator from "../SyncStatusIndicator";
