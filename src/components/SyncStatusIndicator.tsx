@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useData } from '../contexts/DataContext';
-import { CloudOff, Clock } from 'lucide-react';
+import { CloudOff, Clock, LockKeyhole, TriangleAlert } from 'lucide-react';
+import { SyncHealth, subscribeToSyncHealth } from '../utils/syncStatus';
 
 interface SyncStatusIndicatorProps {
     className?: string;
@@ -10,6 +11,9 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
     const { taskStore, categoryStore } = useData();
     const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
     const [pendingChanges, setPendingChanges] = useState<number>(0);
+    const [health, setHealth] = useState<SyncHealth>('ok');
+
+    useEffect(() => subscribeToSyncHealth(setHealth), []);
 
     // Track online status
     useEffect(() => {
@@ -52,12 +56,36 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
     }, [taskStore, categoryStore]);
 
     // If everything is synced and online, don't show anything
-    if (isOnline && pendingChanges === 0) {
+    if (isOnline && pendingChanges === 0 && health === 'ok') {
         return null;
     }
 
     return (
         <div className={`flex items-center gap-2 text-xs p-1 px-2 bg-black/5 rounded ${className}`}>
+            {/*
+              * An expired token is the common case now that board tokens are short-lived, and
+              * reloading is the actual fix: /app mints a fresh one server-side on every render.
+              * Nothing queued is lost — the writes wait for a session that can send them.
+              */}
+            {health === 'unauthorized' && (
+                <div className="flex items-center gap-1.5">
+                    <LockKeyhole size={14} className="text-red-500" />
+                    <span className="text-gray-600">
+                        Session expired — reload the page to keep saving
+                    </span>
+                </div>
+            )}
+
+            {/* The retention gate: this week is further back than the plan allows. */}
+            {health === 'forbidden' && (
+                <div className="flex items-center gap-1.5">
+                    <TriangleAlert size={14} className="text-amber-500" />
+                    <span className="text-gray-600">
+                        This week is outside your plan&rsquo;s history
+                    </span>
+                </div>
+            )}
+
             {!isOnline && (
                 <div className="flex items-center gap-1.5">
                     <CloudOff size={14} className="text-red-500" />

@@ -18,7 +18,9 @@ module.exports = {
       },
     ],
   },
-  transformIgnorePatterns: ["/node_modules/(?!.*\\.mjs$)"],
+  // lucide-react ships ESM only, so it has to be transformed rather than skipped like the rest
+  // of node_modules — without it any component test that renders an icon fails to parse.
+  transformIgnorePatterns: ["/node_modules/(?!(lucide-react)/)(?!.*\\.mjs$)"],
   moduleNameMapper: {
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/__mocks__/fileMock.js",

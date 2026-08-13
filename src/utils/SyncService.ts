@@ -8,6 +8,7 @@ import {
     SyncFailureKind,
 } from "../types";
 import { newId } from "./id";
+import { reportSyncFailure, reportSyncHealth } from "./syncStatus";
 
 interface SyncAdapters {
     task?: ITaskAdapter | null;
@@ -123,8 +124,12 @@ export class SyncService {
                 try {
                     await this.processChange(change);
                     await this.db.pendingChanges.delete(change.id);
+
+                    // A write got through, so whatever was refusing us has stopped.
+                    reportSyncHealth('ok');
                 } catch (error) {
                     const kind = classifyFailure(error);
+                    reportSyncFailure(kind);
 
                     if (kind === 'permanent' || kind === 'conflict') {
                         // Nothing about retrying this will change the outcome. Set it aside so

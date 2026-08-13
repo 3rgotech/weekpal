@@ -1,6 +1,8 @@
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import { ITaskAdapter, ITaskStore } from "../types";
 import { getDayJs } from "../utils/dayjs";
+import { classifyFailure } from "../utils/SyncService";
+import { reportSyncFailure, reportSyncHealth } from "../utils/syncStatus";
 import BaseStore from "./BaseStore";
 
 class TaskStore extends BaseStore implements ITaskStore {
@@ -71,7 +73,11 @@ class TaskStore extends BaseStore implements ITaskStore {
             });
 
             this.setLastSync('tasks');
+            reportSyncHealth('ok');
         } catch (error) {
+            // A failed pull is survivable — the local copy is still there — but it must not be
+            // silent. A 403 here is the retention gate saying this week is outside the plan.
+            reportSyncFailure(classifyFailure(error));
             console.error(`Could not pull week ${weekCode}:`, error);
         }
     }

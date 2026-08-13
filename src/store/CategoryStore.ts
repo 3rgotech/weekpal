@@ -1,6 +1,8 @@
 import Category from "../data/category";
 import { ICategoryAdapter, ICategoryStore } from "../types";
 import BaseStore from "./BaseStore";
+import { classifyFailure } from "../utils/SyncService";
+import { reportSyncFailure, reportSyncHealth } from "../utils/syncStatus";
 
 class CategoryStore extends BaseStore implements ICategoryStore {
 
@@ -47,7 +49,9 @@ class CategoryStore extends BaseStore implements ICategoryStore {
             });
 
             this.setLastSync('categories');
+            reportSyncHealth('ok');
         } catch (error) {
+            reportSyncFailure(classifyFailure(error));
             console.error("Could not pull categories:", error);
         }
     }

@@ -108,6 +108,30 @@ const DataProvider: React.FC<DataProviderProps> = ({
     });
   };
 
+  /**
+   * Persist a set of tasks that changed together.
+   *
+   * A move re-indexes every sibling it displaced, and those writes only make sense as a unit:
+   * sent one at a time, a dropped connection halfway through leaves the board holding an order
+   * the server never saw in full. `putMany` queues them as a single batch upsert.
+   */
+  const updateTasks = (updated: Task[]) => {
+    if (!taskStore || updated.length === 0) {
+      return;
+    }
+
+    const byId = new Map(updated.map((task) => [task.id, task]));
+
+    taskStore.putMany(updated).then(() => {
+      setTasks((prevTasks) => {
+        const merged = prevTasks.map((prevTask) => byId.get(prevTask.id) ?? prevTask);
+        const added = updated.filter((task) => !prevTasks.some((prev) => prev.id === task.id));
+
+        return [...merged, ...added];
+      });
+    });
+  };
+
   const completeTask = (task: Task) => {
     task.completedAt = dayjs();
     updateTask(task);
@@ -152,13 +176,11 @@ const DataProvider: React.FC<DataProviderProps> = ({
       const isChangingToSomeday = toDay === 'someday';
 
       if (isChangingToSomeday) {
-        // Convert to a SomedayTask
-        const convertedTask = new SomedayTask({
-          ...task,
-          weekCode: currentWeek
-        });
+        // Same id, different bucket. This used to be a delete followed by a create, which gave
+        // the task a new identity and dropped its history with it — the defect the merged
+        // `tasks` table exists to remove. A move is now just an upsert with no week.
+        const convertedTask = new SomedayTask({ ...task });
 
-        // Update orders of source day tasks
         const sourceTasksWithoutMoved = tasks.filter((t) =>
           t.taskType === 'weekly' &&
           t instanceof WeeklyTask &&
@@ -168,30 +190,23 @@ const DataProvider: React.FC<DataProviderProps> = ({
           t.completedAt === null
         );
 
-        // Reorder source tasks after removal
+        const updatedTasks: Task[] = [];
+
         sourceTasksWithoutMoved.forEach((t, index) => {
           if (t.order !== index) {
             t.order = index;
-            updateTask(t);
+            updatedTasks.push(t);
           }
         });
 
-        // Count someday tasks for default order
         const somedayTasks = tasks.filter((t) =>
           t.taskType === 'someday' &&
           t.completedAt === null
         );
         convertedTask.order = toOrder ?? somedayTasks.length;
+        updatedTasks.push(convertedTask);
 
-        // Replace the weekly task with the someday task
-        taskStore.delete(task).then(() => {
-          taskStore.create(convertedTask).then((t) => {
-            setTasks((prevTasks) => [
-              ...prevTasks.filter(pt => pt.id !== task.id),
-              t
-            ]);
-          });
-        });
+        updateTasks(updatedTasks);
         return;
       }
 
@@ -263,31 +278,30 @@ const DataProvider: React.FC<DataProviderProps> = ({
         self.findIndex(t2 => t2.id === t.id) === i
       );
 
-      uniqueUpdatedTasks.forEach((t) => updateTask(t));
+      updateTasks(uniqueUpdatedTasks);
     } else if (task instanceof SomedayTask && toDay !== 'someday') {
-      // Convert from SomedayTask to WeeklyTask
+      // Someday onto a day — again an upsert that keeps the id, not a delete and a create.
       const convertedTask = new WeeklyTask({
         ...task,
         weekCode: currentWeek,
         dayOfWeek: toDay
       });
 
-      // Update orders of someday tasks
       const somedayTasks = tasks.filter((t) =>
         t.taskType === 'someday' &&
         t.id !== task.id &&
         t.completedAt === null
       );
 
-      // Reorder someday tasks after removal
+      const updatedTasks: Task[] = [];
+
       somedayTasks.forEach((t, index) => {
         if (t.order !== index) {
           t.order = index;
-          updateTask(t);
+          updatedTasks.push(t);
         }
       });
 
-      // Count week day tasks for default order
       const weekDayTasks = tasks.filter((t) =>
         t.taskType === 'weekly' &&
         t instanceof WeeklyTask &&
@@ -295,16 +309,9 @@ const DataProvider: React.FC<DataProviderProps> = ({
         t.completedAt === null
       );
       convertedTask.order = toOrder ?? weekDayTasks.length;
+      updatedTasks.push(convertedTask);
 
-      // Replace the someday task with the weekly task
-      taskStore.delete(task).then(() => {
-        taskStore.create(convertedTask).then((t) => {
-          setTasks((prevTasks) => [
-            ...prevTasks.filter(pt => pt.id !== task.id),
-            t
-          ]);
-        });
-      });
+      updateTasks(updatedTasks);
     } else if (task instanceof SomedayTask) {
       // Reordering someday tasks
       const somedayTasks = tasks.filter((t) =>
@@ -320,12 +327,16 @@ const DataProvider: React.FC<DataProviderProps> = ({
         const allTasks = [...tasksWithoutMoved];
         allTasks.splice(targetOrder, 0, task);
 
+        const updatedTasks: Task[] = [];
+
         allTasks.forEach((t, index) => {
           if (t.order !== index) {
             t.order = index;
-            updateTask(t);
+            updatedTasks.push(t);
           }
         });
+
+        updateTasks(updatedTasks);
       }
     }
   };
