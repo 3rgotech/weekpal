@@ -22,7 +22,11 @@ class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
             .map((row) => Task.createFromApiData(row))
             .filter((task): task is WeeklyTask | SomedayTask => task !== null);
 
-        const events = (response.data?.events ?? []).map((row) => new Event(row));
+        // Mapped, not constructed directly: the API sends snake_case keys, and the
+        // Event constructor reads camelCase ones.
+        const events = (response.data?.events ?? [])
+            .map((row) => Event.createFromApiData(row))
+            .filter((event): event is Event => event !== null);
 
         return { tasks, events };
     }

@@ -1,4 +1,5 @@
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
+import Event from "../data/event";
 import { ITaskAdapter, ITaskStore } from "../types";
 import { getDayJs } from "../utils/dayjs";
 import { classifyFailure } from "../utils/SyncService";
@@ -43,7 +44,7 @@ class TaskStore extends BaseStore implements ITaskStore {
         }
 
         try {
-            const { tasks } = await this.adapter.getWeek(weekCode);
+            const { tasks, events } = await this.adapter.getWeek(weekCode);
             const pending = await this.syncService.pendingEntityIds('task');
 
             const incoming = tasks.filter((task) => !pending.has(task.id));
@@ -72,6 +73,8 @@ class TaskStore extends BaseStore implements ITaskStore {
                 if (someday.length > 0) await this.db.somedayTasks.bulkPut(someday);
             });
 
+            await this.reconcileEvents(weekCode, events);
+
             this.setLastSync('tasks');
             reportSyncHealth('ok');
         } catch (error) {
@@ -80,6 +83,31 @@ class TaskStore extends BaseStore implements ITaskStore {
             reportSyncFailure(classifyFailure(error));
             console.error(`Could not pull week ${weekCode}:`, error);
         }
+    }
+
+    /**
+     * Store the week's events, replacing whatever was held for that week.
+     *
+     * Events arrive in the task payload because they are fetched together — one
+     * request describes a week — so the task pull is what writes them. `EventStore`
+     * only ever reads, and has no adapter of its own: nothing in WeekPal writes
+     * back to a calendar provider.
+     *
+     * A plain replace, with none of the pending-mutation care the task reconcile
+     * needs: events are a read-only projection of the provider's data, so there is
+     * never a local edit to protect.
+     */
+    private async reconcileEvents(weekCode: string, events: Event[]): Promise<void> {
+        const stale = (await this.db.events.where('weekCode').equals(weekCode).toArray())
+            .map((event) => event.id);
+
+        await this.db.transaction('rw', this.db.events, async () => {
+            await this.db.events.bulkDelete(stale);
+
+            if (events.length > 0) {
+                await this.db.events.bulkPut(events);
+            }
+        });
     }
 
     /**
