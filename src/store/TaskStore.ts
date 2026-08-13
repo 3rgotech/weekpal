@@ -2,194 +2,198 @@ import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import { ITaskAdapter, ITaskStore } from "../types";
 import { getDayJs } from "../utils/dayjs";
 import BaseStore from "./BaseStore";
-import { WeekpalDB } from "./db";
-
 
 class TaskStore extends BaseStore implements ITaskStore {
 
-    declare protected adapter: ITaskAdapter | null;
+    private adapter: ITaskAdapter | null;
 
-    constructor(adapter?: ITaskAdapter) {
-        super(adapter);
+    constructor(adapter?: ITaskAdapter | null) {
+        super('task', adapter);
+        this.adapter = adapter ?? null;
     }
 
     async list(weekCode: string): Promise<Task[]> {
-        if (this.shouldSync('tasks') && navigator.onLine) {
-            try {
-                const response = await this.adapter?.getWeek(weekCode) ?? { weeklyTasks: [], somedayTasks: [] };
-                if (response.weeklyTasks && response.somedayTasks) {
-                    // Separate weekly and someday tasks
-                    const { weeklyTasks, somedayTasks } = response;
-
-                    // Store tasks in their respective tables
-                    if (weeklyTasks.length > 0) {
-                        await this.db.weeklyTasks.bulkPut(weeklyTasks);
-                    }
-                    if (somedayTasks.length > 0) {
-                        await this.db.somedayTasks.bulkPut(somedayTasks);
-                    }
-
-                    this.setLastSync('tasks');
-                }
-            } catch (error) {
-                console.error("Error getting tasks for week " + weekCode + " : ", error);
-            }
+        if (this.shouldSync('tasks', 'task')) {
+            await this.pull(weekCode);
         }
 
-        // Fetch tasks from both tables
         const weeklyTasks = await this.db.weeklyTasks.where('weekCode').equals(weekCode).toArray();
+        const somedayTasks = await this.visibleSomedayTasks(weekCode);
 
-        const dayjs = getDayJs();
-        const [isoYear, isoWeek] = weekCode.split('w');
-        const startOfWeek = dayjs().set('year', parseInt(isoYear)).isoWeek(parseInt(isoWeek)).startOf("isoWeek").toDate();
-        const endOfWeek = dayjs().set('year', parseInt(isoYear)).isoWeek(parseInt(isoWeek)).endOf("isoWeek").toDate();
-
-        console.log(endOfWeek.toISOString());
-
-        const allSomedayTasks = await this.db.somedayTasks
-            .toArray();
-        const somedayTasks = allSomedayTasks.filter((task) => (
-            (!!task.createdAt && task.createdAt.isBefore(endOfWeek)) &&
-            (!task.completedAt || task.completedAt.isSameOrAfter(startOfWeek))
-        ));
-
-        // Combine and return all tasks
         return [...weeklyTasks, ...somedayTasks];
     }
 
-    async reload(task: number | Task): Promise<Task | null> {
-        const taskId = typeof task === 'number' ? task : task.id;
+    /**
+     * Replace the local copy of this week with the server's, which is authoritative.
+     *
+     * The response is the complete live set for the scope, so anything local that is missing
+     * from it has been deleted somewhere else and is removed here. Without that step a task
+     * deleted on one device stayed on the other forever, because the pull only ever wrote rows
+     * and never took any away.
+     *
+     * Rows with a queued write are left alone in both directions: the local copy is newer than
+     * whatever the server is describing, and overwriting it would silently discard an edit made
+     * offline.
+     */
+    private async pull(weekCode: string): Promise<void> {
+        if (!this.adapter) {
+            return;
+        }
+
+        try {
+            const { tasks } = await this.adapter.getWeek(weekCode);
+            const pending = await this.syncService.pendingEntityIds('task');
+
+            const incoming = tasks.filter((task) => !pending.has(task.id));
+            const returnedIds = new Set(tasks.map((task) => task.id));
+
+            const weekly = incoming.filter((task): task is WeeklyTask => task.taskType === 'weekly');
+            const someday = incoming.filter((task): task is SomedayTask => task.taskType === 'someday');
+
+            const staleWeekly = (await this.db.weeklyTasks.where('weekCode').equals(weekCode).toArray())
+                .filter((task) => !returnedIds.has(task.id) && !pending.has(task.id))
+                .map((task) => task.id);
+
+            const staleSomeday = (await this.db.somedayTasks.toArray())
+                .filter((task) => !returnedIds.has(task.id) && !pending.has(task.id))
+                .map((task) => task.id);
+
+            await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
+                await this.db.weeklyTasks.bulkDelete(staleWeekly);
+                await this.db.somedayTasks.bulkDelete(staleSomeday);
+
+                // A task may have moved between the two tables since the last pull.
+                await this.db.somedayTasks.bulkDelete(weekly.map((task) => task.id));
+                await this.db.weeklyTasks.bulkDelete(someday.map((task) => task.id));
+
+                if (weekly.length > 0) await this.db.weeklyTasks.bulkPut(weekly);
+                if (someday.length > 0) await this.db.somedayTasks.bulkPut(someday);
+            });
+
+            this.setLastSync('tasks');
+        } catch (error) {
+            console.error(`Could not pull week ${weekCode}:`, error);
+        }
+    }
+
+    /**
+     * Someday tasks visible from a given week: created before it ended, and not completed before
+     * it began.
+     *
+     * The rule lives here and only here. The backend used to apply the same predicate in
+     * `SomedayTask::scopeForWeek()`, and the two drifted; the API now returns every live someday
+     * task and lets the client decide what to show.
+     */
+    private async visibleSomedayTasks(weekCode: string): Promise<SomedayTask[]> {
+        const dayjs = getDayJs();
+        const [isoYear, isoWeek] = weekCode.split('w');
+        const reference = dayjs().set('year', parseInt(isoYear, 10)).isoWeek(parseInt(isoWeek, 10));
+        const startOfWeek = reference.startOf("isoWeek").toDate();
+        const endOfWeek = reference.endOf("isoWeek").toDate();
+
+        const all = await this.db.somedayTasks.toArray();
+
+        return all.filter((task) => (
+            (!!task.createdAt && task.createdAt.isBefore(endOfWeek)) &&
+            (!task.completedAt || task.completedAt.isSameOrAfter(startOfWeek))
+        ));
+    }
+
+    async reload(task: string | Task): Promise<Task | null> {
+        const taskId = typeof task === 'string' ? task : task.id;
         if (!taskId) {
             return null;
         }
 
-        // Determine which table to check based on task type
-        if (task instanceof WeeklyTask || (typeof task === 'number')) {
-            const reloadedTask = await this.db.weeklyTasks.get(taskId);
-            if (reloadedTask) return reloadedTask;
-        }
-
-        if (task instanceof SomedayTask || (typeof task === 'number')) {
-            const reloadedTask = await this.db.somedayTasks.get(taskId);
-            if (reloadedTask) return reloadedTask;
-        }
-
-        return null;
+        return (await this.db.weeklyTasks.get(taskId))
+            ?? (await this.db.somedayTasks.get(taskId))
+            ?? null;
     }
 
-    async create(task: WeeklyTask | SomedayTask): Promise<Task> {
-        // Store in the appropriate table based on task type
-        if (task instanceof WeeklyTask) {
-            await this.db.weeklyTasks.add(task);
-        } else if (task instanceof SomedayTask) {
-            await this.db.somedayTasks.add(task);
-        }
-
-        // Make sure the task has an ID (assigned by IndexedDB)
-        const savedTask = await this.reload(task);
-        if (!savedTask || !savedTask.id) {
-            return task; // Return original if reload fails
-        }
-
-        // Track this as a pending change
-        if (this.syncService) {
-            this.syncService.addPendingChange({
-                id: savedTask.id,
-                type: 'create',
-                entityType: 'task'
-            });
-        }
-
-        // Try to sync immediately if we can
-        if (this.canSync()) {
-            try {
-                const serverId = await this.adapter?.create(savedTask);
-                if (serverId) {
-                    savedTask.serverId = serverId;
-                    // Update the task with the server ID
-                    if (savedTask instanceof WeeklyTask) {
-                        await this.db.weeklyTasks.put(savedTask);
-                    } else if (savedTask instanceof SomedayTask) {
-                        await this.db.somedayTasks.put(savedTask);
-                    }
-                }
-            } catch (error) {
-                console.error("Error creating task : ", error);
-                // Error is already tracked in pendingChanges, will retry later
+    /**
+     * Create and update are the same operation.
+     *
+     * The row is written locally, then queued once. It is deliberately *not* also sent inline:
+     * doing both fired two un-awaited requests that raced each other, and before client-minted
+     * ids that produced duplicate rows on the server.
+     */
+    private async put(task: Task): Promise<Task> {
+        await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
+            // A move changes which table the task belongs in while keeping its id.
+            if (task.taskType === 'weekly') {
+                await this.db.somedayTasks.delete(task.id);
+                await this.db.weeklyTasks.put(task as WeeklyTask);
+            } else {
+                await this.db.weeklyTasks.delete(task.id);
+                await this.db.somedayTasks.put(task as SomedayTask);
             }
-        }
+        });
 
-        return savedTask;
+        await this.syncService.enqueue({
+            entityType: 'task',
+            entityId: task.id,
+            type: 'upsert',
+        });
+
+        return (await this.reload(task)) ?? task;
+    }
+
+    async create(task: Task): Promise<Task> {
+        return this.put(task);
     }
 
     async update(task: Task): Promise<Task> {
-        // Update in the appropriate table based on task type
-        if (task instanceof WeeklyTask) {
-            await this.db.weeklyTasks.put(task);
-        } else if (task instanceof SomedayTask) {
-            await this.db.somedayTasks.put(task);
-        }
-
-        // Track this as a pending change if it has a local ID
-        if (task.id && this.syncService) {
-            this.syncService.addPendingChange({
-                id: task.id,
-                type: 'update',
-                entityType: 'task'
-            });
-        }
-
-        // Try to sync immediately if possible
-        if (this.canSync() && task.serverId) {
-            try {
-                await this.adapter?.update(task);
-            } catch (error) {
-                console.error("Error updating task : ", error);
-                // Error is already tracked in pendingChanges, will retry later
-            }
-        }
-
-        const updatedTask = await this.reload(task);
-        return updatedTask ?? task;
+        return this.put(task);
     }
 
     async delete(task: Task): Promise<void> {
-        if (!task.id) {
+        await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
+            await this.db.weeklyTasks.delete(task.id);
+            await this.db.somedayTasks.delete(task.id);
+        });
+
+        await this.syncService.enqueue({
+            entityType: 'task',
+            entityId: task.id,
+            type: 'delete',
+        });
+    }
+
+    /**
+     * Persist a whole reordered set as one queued write.
+     *
+     * Dragging a task re-indexes its siblings. Sending them one request at a time let the board
+     * settle half-applied if the connection dropped mid-burst; queued together they reach the
+     * server in a single batch upsert, which the backend applies in one transaction.
+     */
+    async putMany(tasks: Task[]): Promise<void> {
+        if (tasks.length === 0) {
             return;
         }
 
-        // Store the server ID before deletion for sync purposes
-        const taskData = {
-            serverId: task.serverId,
-            taskType: task.taskType
-        };
-
-        // Track this as a pending change if it has a server ID
-        if (task.serverId && this.syncService) {
-            this.syncService.addPendingChange({
-                id: task.id,
-                type: 'delete',
-                entityType: 'task',
-                data: taskData
-            });
+        if (tasks.length === 1) {
+            await this.put(tasks[0]);
+            return;
         }
 
-        // Delete from the appropriate table based on task type
-        if (task instanceof WeeklyTask) {
-            await this.db.weeklyTasks.delete(task.id);
-        } else if (task instanceof SomedayTask) {
-            await this.db.somedayTasks.delete(task.id);
-        }
-
-        // Try to sync immediately if possible
-        if (this.canSync() && task.serverId) {
-            try {
-                await this.adapter?.delete(task);
-            } catch (error) {
-                console.error("Error deleting task : ", error);
-                // Error is already tracked in pendingChanges, will retry later
+        await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
+            for (const task of tasks) {
+                if (task.taskType === 'weekly') {
+                    await this.db.somedayTasks.delete(task.id);
+                    await this.db.weeklyTasks.put(task as WeeklyTask);
+                } else {
+                    await this.db.weeklyTasks.delete(task.id);
+                    await this.db.somedayTasks.put(task as SomedayTask);
+                }
             }
-        }
+        });
+
+        await this.syncService.enqueue({
+            entityType: 'task',
+            entityId: tasks[0].id,
+            entityIds: tasks.map((task) => task.id),
+            type: 'upsert',
+        });
     }
 }
 

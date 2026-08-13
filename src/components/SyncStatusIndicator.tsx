@@ -28,10 +28,16 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
 
     // Update pending changes count
     useEffect(() => {
+        // One queue, so one count. Summing the two stores used to double-count every entry —
+        // and did it inconsistently, because each store held its own stale copy of the queue.
         const updatePendingChanges = () => {
-            const taskPending = taskStore?.getPendingChangesCount() || 0;
-            const categoryPending = categoryStore?.getPendingChangesCount() || 0;
-            setPendingChanges(taskPending + categoryPending);
+            const store = taskStore ?? categoryStore;
+            if (!store) {
+                setPendingChanges(0);
+                return;
+            }
+
+            store.getPendingChangesCount().then(setPendingChanges).catch(() => setPendingChanges(0));
         };
 
         // Initial update

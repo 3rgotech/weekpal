@@ -11,7 +11,7 @@ class Event extends Base {
     public startHour: string | null;
     public endHour: string | null;
 
-    public categoryId: number | null;
+    public categoryId: string | null;
 
     constructor(data: Record<string, any>) {
         super(data);

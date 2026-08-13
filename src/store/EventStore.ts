@@ -1,45 +1,46 @@
 import Event from "../data/event";
 import { IEventAdapter, IEventStore } from "../types";
 import BaseStore from "./BaseStore";
-import { WeekpalDB } from "./db";
 
-
+/**
+ * Calendar events, which are read-only in v1.
+ *
+ * Nothing implements `IEventAdapter` yet — events come from calendar sync, which is not built —
+ * so in practice this reads the fixtures seeded into IndexedDB. It registers no adapter with the
+ * write queue because it never writes.
+ */
 class EventStore extends BaseStore implements IEventStore {
 
-    declare protected adapter: IEventAdapter | null;
-    private db: WeekpalDB;
+    private adapter: IEventAdapter | null;
 
-    constructor(adapter?: IEventAdapter) {
-        super(adapter);
-        this.db = new WeekpalDB();
+    constructor(adapter?: IEventAdapter | null) {
+        // This store previously opened its own `new WeekpalDB()` on top of the one it inherited,
+        // giving a single DataProvider four connections rather than one.
+        super(null);
+        this.adapter = adapter ?? null;
     }
 
     async list(weekCode: string): Promise<Event[]> {
-        if (this.shouldSync('events') && navigator.onLine) {
+        if (this.adapter && navigator.onLine && this.throttleElapsed('events')) {
             try {
-                const adapterEvents = await this.adapter?.getWeek(weekCode);
-                if (adapterEvents) {
-                    await this.db.events.bulkPut(adapterEvents);
-                    this.setLastSync('events');
-                }
+                const events = await this.adapter.getWeek(weekCode);
+                await this.db.events.bulkPut(events);
+                this.setLastSync('events');
             } catch (error) {
-                console.error("Error getting events for week " + weekCode + " : ", error);
+                console.error(`Could not pull events for week ${weekCode}:`, error);
             }
         }
 
-        const events = await this.db.events
-            .where('weekCode').equals(weekCode)
-            .toArray();
-        return events.map((event) => new Event(event));
+        return this.db.events.where('weekCode').equals(weekCode).toArray();
     }
 
-    async reload(event: number | Event): Promise<Event | null> {
-        const eventId = typeof event === 'number' ? event : event.id;
+    async reload(event: string | Event): Promise<Event | null> {
+        const eventId = typeof event === 'string' ? event : event.id;
         if (!eventId) {
             return null;
         }
-        const reloadedEvent = await this.db.events.get(eventId);
-        return reloadedEvent ?? null;
+
+        return (await this.db.events.get(eventId)) ?? null;
     }
 }
 

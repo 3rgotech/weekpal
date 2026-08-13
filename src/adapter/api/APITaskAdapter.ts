@@ -1,134 +1,74 @@
 import Task, { WeeklyTask, SomedayTask } from '../../data/task';
-import { APIWeekTasklistResponse, ITaskAdapter } from '../../types';
+import Event from '../../data/event';
+import { ITaskAdapter, WeekPayload } from '../../types';
 import { APIBaseAdapter } from './APIBaseAdapter';
 
+/**
+ * Talks to the Laravel backend.
+ *
+ * Every response is wrapped in `{ data: ... }` — the old API wrapped some endpoints and
+ * returned bare resources from others, and this adapter encoded that inconsistency.
+ *
+ * Paths carry no leading slash: `ky`'s `prefixUrl` treats a leading slash as absolute and would
+ * drop the `/api/v1` prefix.
+ */
 class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
-    async getWeek(weekCode: string): Promise<APIWeekTasklistResponse> {
-        try {
-            const response = await this.getClient().get(`data/${weekCode}`).json<{ data: any }>();
-            const data = response.data;
-            const weeklyTasks: Array<WeeklyTask> = [];
-            const somedayTasks: Array<SomedayTask> = [];
+    async getWeek(weekCode: string): Promise<WeekPayload> {
+        const response = await this.getClient()
+            .get(`weeks/${weekCode}`)
+            .json<{ data: { tasks: any[]; events: any[] } }>();
 
-            // Convert weekly tasks
-            (data.weekly ?? []).forEach((apiTask: any) => {
-                const weeklyTask = Task.createFromApiData('weekly', apiTask);
-                if (weeklyTask !== null && weeklyTask instanceof WeeklyTask) {
-                    weeklyTasks.push(weeklyTask);
-                }
-            });
+        const tasks = (response.data?.tasks ?? [])
+            .map((row) => Task.createFromApiData(row))
+            .filter((task): task is WeeklyTask | SomedayTask => task !== null);
 
-            // Convert someday tasks
-            (data.someday ?? []).forEach((apiTask: any) => {
-                const somedayTask = Task.createFromApiData('someday', apiTask);
-                if (somedayTask !== null && somedayTask instanceof SomedayTask) {
-                    somedayTasks.push(somedayTask);
-                }
-            });
+        const events = (response.data?.events ?? []).map((row) => new Event(row));
 
-            return { weeklyTasks, somedayTasks };
-        } catch (error) {
-            console.error('Error fetching tasks from API:', error);
-            throw error;
-        }
+        return { tasks, events };
     }
 
-    async create(task: Task): Promise<number> {
-        try {
-            // Get task type from the task instance
-            const taskType = task.taskType;
+    /**
+     * Create or update — the server decides which, keyed by the id the client minted.
+     *
+     * The stored row comes back and is written to IndexedDB by the caller, which is what makes
+     * last-writer-wins actually converge. The old `update()` returned void, so the server's
+     * version of the row was discarded and the two copies could drift apart unnoticed.
+     */
+    async upsert(task: Task): Promise<Task> {
+        const response = await this.getClient()
+            .put(`tasks/${task.id}`, { json: task.toApiPayload() })
+            .json<{ data: any }>();
 
-            const payload: Record<string, any> = {
-                title: task.title,
-                description: task.description,
-            };
-
-            // Add specific fields based on task type
-            if (taskType === 'weekly' && task instanceof WeeklyTask) {
-                payload.week_number = task.weekCode;
-                payload.day_of_week = parseInt(task.dayOfWeek, 10);
-            } else {
-                payload.week_number = 'someday';
-            }
-
-            // Add additional fields if they exist
-            if (task.categoryId) {
-                payload.category_id = task.categoryId;
-            }
-
-            if (task.completedAt) {
-                payload.completed_at = task.completedAt.toISOString();
-            }
-
-            if (task.subtasks) {
-                payload.subtasks = JSON.stringify(task.subtasks);
-            }
-
-            const response = await this.getClient().post(`task/${taskType}`, {
-                json: payload
-            }).json<{ id?: number }>();
-
-            return response.id || 0;
-        } catch (error) {
-            console.error('Error creating task on API:', error);
-            throw error;
-        }
+        return this.parseOrThrow(response.data, task.id);
     }
 
-    async update(task: Task): Promise<void> {
-        try {
-            if (!task.serverId) {
-                console.error('Cannot update task without a server ID');
-                return;
-            }
-
-            // Get task type from the task instance
-            const taskType = task.taskType;
-
-            const payload: Record<string, any> = {
-                title: task.title,
-                description: task.description,
-            };
-
-            // Add category if present
-            if (task.categoryId) {
-                payload.category_id = task.categoryId;
-            }
-
-            // Handle completed status
-            if (task.completedAt) {
-                payload.completed_at = task.completedAt.toISOString();
-            }
-
-            // Add subtasks if present
-            if (task.subtasks) {
-                payload.subtasks = JSON.stringify(task.subtasks);
-            }
-
-            await this.getClient().put(`task/${taskType}/${task.serverId}`, {
-                json: payload
-            });
-        } catch (error) {
-            console.error('Error updating task on API:', error);
-            throw error;
+    async upsertMany(tasks: Task[]): Promise<Task[]> {
+        if (tasks.length === 0) {
+            return [];
         }
+
+        const response = await this.getClient()
+            .put('tasks', { json: { tasks: tasks.map((task) => task.toApiPayload()) } })
+            .json<{ data: any[] }>();
+
+        return (response.data ?? [])
+            .map((row) => Task.createFromApiData(row))
+            .filter((task): task is WeeklyTask | SomedayTask => task !== null);
     }
 
-    async delete(task: Task): Promise<void> {
-        try {
-            if (!task.serverId) {
-                console.error('Cannot delete task without a server ID');
-                return;
-            }
+    /** Idempotent: the backend answers 204 whether or not the task was still there. */
+    async delete(id: string): Promise<void> {
+        await this.getClient().delete(`tasks/${id}`);
+    }
 
-            // Get task type from the task instance
-            const taskType = task.taskType;
+    private parseOrThrow(row: any, id: string): Task {
+        const task = Task.createFromApiData(row);
 
-            await this.getClient().delete(`task/${taskType}/${task.serverId}`);
-        } catch (error) {
-            console.error('Error deleting task from API:', error);
-            throw error;
+        if (task === null) {
+            throw new Error(`The API returned an unreadable task for ${id}.`);
         }
+
+        return task;
     }
 }
 

@@ -6,7 +6,7 @@ import Base from "./base";
 interface TaskUpdateData {
     title?: string;
     description?: string;
-    categoryId?: number;
+    categoryId?: string | null;
     subtasks?: Array<any>;
 }
 
@@ -17,7 +17,8 @@ abstract class Task extends Base {
     public completedAt: Dayjs | null;
     public createdAt: Dayjs | null;
     public updatedAt: Dayjs | null;
-    public categoryId: number | null;
+    public categoryId: string | null;
+    public projectId: string | null;
     public subtasks: Array<any>;
 
     constructor(data: Record<string, any>) {
@@ -31,6 +32,7 @@ abstract class Task extends Base {
         this.createdAt = data.createdAt ? this.parseDate(data.createdAt) : dayjs();
         this.updatedAt = this.parseDate(data.updatedAt);
         this.categoryId = data.categoryId ?? null;
+        this.projectId = data.projectId ?? null;
         this.subtasks = data.subtasks ?? [];
     }
 
@@ -61,6 +63,7 @@ abstract class Task extends Base {
             title: this.title,
             description: this.description,
             categoryId: this.categoryId,
+            projectId: this.projectId,
             order: this.order,
             subtasks: this.subtasks,
             createdAt: this.createdAt?.toISOString() ?? null,
@@ -69,54 +72,74 @@ abstract class Task extends Base {
         }
     }
 
+    /**
+     * The request body the API expects for an upsert.
+     *
+     * One shape covers create and update, and the same shape covers both task types: a someday
+     * task is simply one with no week and no day. `subtasks` goes out as a real array — the old
+     * adapter ran it through JSON.stringify into a JSON body field, so the server stored a
+     * string where it expected a list.
+     */
+    toApiPayload(): Record<string, any> {
+        const weekly = this instanceof WeeklyTask ? this : null;
+
+        return {
+            id: this.id,
+            title: this.title,
+            description: this.description,
+            category_id: this.categoryId,
+            project_id: this.projectId,
+            week_number: weekly?.weekCode ?? null,
+            day_of_week: weekly ? parseInt(`${weekly.dayOfWeek}`, 10) : null,
+            order: this.order ?? 0,
+            subtasks: this.subtasks,
+            completed_at: this.completedAt?.toISOString() ?? null,
+        };
+    }
+
     static create(type: 'weekly' | 'someday', data: Record<string, any>): WeeklyTask | SomedayTask | null {
-        if (type === 'weekly' && data.weekCode && data.dayOfWeek) {
-            return new WeeklyTask({
-                // TODO : generate front-end ID
-                ...data
-            });
+        if (type === 'weekly' && data.weekCode && data.dayOfWeek !== undefined && data.dayOfWeek !== null) {
+            return new WeeklyTask(data);
         } else if (type === 'someday') {
-            return new SomedayTask({
-                // TODO : generate front-end ID
-                ...data
-            });
+            return new SomedayTask(data);
         }
         return null;
     }
 
-    static createFromApiData(type: 'weekly' | 'someday', data: Record<string, any>): WeeklyTask | SomedayTask | null {
-        // Determine if it's a weekly or someday task based on the data
-        if (type === 'weekly' && data.week_number && data.day_of_week) {
+    /**
+     * Build a task from one API row.
+     *
+     * The server no longer splits weekly from someday, so the row itself says which it is: a
+     * null `week_number` means unscheduled. The caller does not pass a type any more.
+     */
+    static createFromApiData(data: Record<string, any>): WeeklyTask | SomedayTask | null {
+        if (!data || !data.id) {
+            return null;
+        }
+
+        const common = {
+            id: data.id,
+            title: data.title,
+            description: data.description ?? null,
+            categoryId: data.category_id ?? null,
+            projectId: data.project_id ?? null,
+            order: data.order ?? null,
+            completedAt: data.completed_at ?? null,
+            subtasks: data.subtasks ?? [],
+            createdAt: data.created_at ?? null,
+            updatedAt: data.updated_at ?? null,
+        };
+
+        if (data.week_number) {
             return new WeeklyTask({
-                id: data.id,
-                title: data.title,
-                description: data.description || null,
+                ...common,
                 weekCode: data.week_number,
-                dayOfWeek: data.day_of_week.toString(),
-                categoryId: data.category_id || null,
-                order: data.order || null,
-                completedAt: data.completed_at,
-                subtasks: data.subtasks || [],
-                serverId: data.id,
-                createdAt: data.created_at,
-                updatedAt: data.updated_at,
-            });
-        } else if (type === 'someday') {
-            // For someday tasks, we need the context weekCode to display it
-            return new SomedayTask({
-                id: data.id,
-                title: data.title,
-                description: data.description || null,
-                categoryId: data.category_id || null,
-                order: data.order || null,
-                completedAt: data.completed_at,
-                subtasks: data.subtasks || [],
-                serverId: data.id,
-                createdAt: data.created_at,
-                updatedAt: data.updated_at,
+                // The board keys its columns by string, including "0" for the this-week bucket.
+                dayOfWeek: `${data.day_of_week ?? 0}`,
             });
         }
-        return null;
+
+        return new SomedayTask(common);
     }
 }
 
@@ -156,11 +179,6 @@ export class WeeklyTask extends Task {
 }
 
 export class SomedayTask extends Task {
-    constructor(data: Record<string, any>) {
-        super(data);
-        // this.weekCode = data.weekCode ?? null;
-    }
-
     get taskType(): 'weekly' | 'someday' {
         return 'someday';
     }
@@ -171,14 +189,6 @@ export class SomedayTask extends Task {
 
     get date(): null {
         return null;
-    }
-
-    override serialize(): Record<string, any> {
-        return {
-            ...super.serialize(),
-            // weekCode: this.weekCode,
-            // dayOfWeek: this.dayOfWeek,
-        }
     }
 }
 

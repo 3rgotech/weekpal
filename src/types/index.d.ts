@@ -1,5 +1,6 @@
 import Category from "../data/category";
 import Event from "../data/event";
+import Project from "../data/project";
 import Task, { SomedayTask, WeeklyTask } from "../data/task";
 
 export type Theme = "light" | "dark" | "system";
@@ -41,17 +42,51 @@ export interface DataContextProps {
   completeTask: (day: DayOfWeek, taskId: string) => void;
   uncompleteTask: (day: DayOfWeek, taskId: string) => void;
   deleteTask: (day: DayOfWeek, taskId: string) => void;
-  currentWeekNumber: number; // Ajout de la propriété manquante
+  currentWeekNumber: number;
 }
 
 export type CategoryColor = "red" | "orange" | "yellow" | "lime" | "green" | "emerald" | "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple" | "fuchsia" | "pink" | "rose";
+
+/**
+ * SYNC
+ */
+
+/**
+ * One queued write, waiting to reach the backend.
+ *
+ * `entityId` is the record's UUID, so a queue entry can be matched to the row it describes
+ * without a second lookup key. `attempts` and `lastError` exist so a permanently-failing entry
+ * can be set aside rather than blocking everything behind it forever.
+ */
+export interface PendingChange {
+  id: string;
+  entityType: 'task' | 'category' | 'project';
+  entityId: string;
+  /**
+   * Set when one entry covers several records — a reorder, where the whole affected set has to
+   * reach the server together or not at all. `entityId` is the first of them, so an entry can
+   * still be matched to a record without special-casing.
+   */
+  entityIds?: string[];
+  type: 'upsert' | 'delete';
+  /** Snapshot needed to replay a delete after the local row is gone. */
+  data?: Record<string, any>;
+  timestamp: number;
+  attempts: number;
+  lastError?: string;
+  /** Set when the failure is permanent; the entry stops being retried. */
+  deadLettered?: boolean;
+}
+
+/** How the client should react to a failed request (API-CONTRACT.md §6). */
+export type SyncFailureKind = 'transient' | 'permanent' | 'conflict' | 'unauthorized' | 'forbidden';
 
 /**
  * STORES (local storage)
  */
 export interface ITaskStore {
   list(weekCode: string): Promise<Task[]>;
-  reload(task: Task | number): Promise<Task | null>;
+  reload(task: Task | string): Promise<Task | null>;
   create(task: Task): Promise<Task>;
   update(task: Task): Promise<Task>;
   delete(task: Task): Promise<void>;
@@ -59,12 +94,12 @@ export interface ITaskStore {
 
 export interface IEventStore {
   list(weekCode: string): Promise<Event[]>;
-  reload(event: Event | number): Promise<Event | null>;
+  reload(event: Event | string): Promise<Event | null>;
 }
 
 export interface ICategoryStore {
   list(): Promise<Category[]>;
-  reload(category: Category | number): Promise<Category | null>;
+  reload(category: Category | string): Promise<Category | null>;
   create(category: Category): Promise<Category>;
   update(category: Category): Promise<Category>;
   delete(category: Category): Promise<void>;
@@ -72,15 +107,20 @@ export interface ICategoryStore {
 
 /**
  * ADAPTERS (backend storage)
+ *
+ * `create` and `update` collapse into `upsert`, because the client owns identity and every
+ * write carries a full representation — the backend decides whether that means insert or
+ * update. `delete` takes an id rather than an entity, so a queued delete needs no live record.
  */
 
-export interface APIWeekTasklistResponse { weeklyTasks: WeeklyTask[], somedayTasks: SomedayTask[] }
+export interface WeekPayload { tasks: Task[]; events: Event[] }
 
 export interface ITaskAdapter {
-  getWeek(weekCode: string): Promise<APIWeekTasklistResponse>;
-  create(task: Task): Promise<number>;
-  update(task: Task): Promise<void>;
-  delete(task: Task): Promise<void>;
+  getWeek(weekCode: string): Promise<WeekPayload>;
+  upsert(task: Task): Promise<Task>;
+  /** Moves and reorders: the whole affected set in one request. */
+  upsertMany(tasks: Task[]): Promise<Task[]>;
+  delete(id: string): Promise<void>;
 }
 
 export interface IEventAdapter {
@@ -89,7 +129,14 @@ export interface IEventAdapter {
 
 export interface ICategoryAdapter {
   list(): Promise<Category[]>;
-  create(category: Category): Promise<number>;
-  update(category: Category): Promise<void>;
-  delete(category: Category): Promise<void>;
+  upsert(category: Category): Promise<Category>;
+  delete(id: string): Promise<void>;
+}
+
+export interface IProjectAdapter {
+  list(): Promise<Project[]>;
+  upsert(project: Project): Promise<Project>;
+  delete(id: string): Promise<void>;
+  /** A project's unscheduled tasks, which the week payload deliberately excludes. */
+  backlog(projectId: string): Promise<Task[]>;
 }

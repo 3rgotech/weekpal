@@ -1,8 +1,9 @@
 import APITaskAdapter from './api/APITaskAdapter';
 import APICategoryAdapter from './api/APICategoryAdapter';
+import APIProjectAdapter from './api/APIProjectAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { ICategoryAdapter, ITaskAdapter } from '../types';
+import { ICategoryAdapter, IProjectAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -14,6 +15,7 @@ interface AdapterFactoryConfig {
 interface AdapterFactoryResult {
     taskAdapter: ITaskAdapter | null;
     categoryAdapter: ICategoryAdapter | null;
+    projectAdapter: IProjectAdapter | null;
 }
 
 class AdapterFactory {
@@ -34,36 +36,36 @@ class AdapterFactory {
 
         return {
             taskAdapter: factory.createTaskAdapter(),
-            categoryAdapter: factory.createCategoryAdapter()
+            categoryAdapter: factory.createCategoryAdapter(),
+            projectAdapter: factory.createProjectAdapter(),
         };
     }
 
+    /** Null adapters mean local-only: no backend is configured, and every write stays queued. */
+    private get usesApi(): boolean {
+        return this.config.dataSource === 'api' && !!this.config.apiUrl;
+    }
+
     createTaskAdapter(): ITaskAdapter | null {
-        // Check if we're in test mode
         if (this.config.dataSource === 'test') {
             return new TestTaskAdapter();
         }
 
-        // Use API adapter if URL is provided
-        if (this.config.dataSource === 'api' && this.config.apiUrl) {
-            return new APITaskAdapter(this.config.apiUrl, this.config.apiKey);
-        }
-
-        return null;
+        return this.usesApi ? new APITaskAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     createCategoryAdapter(): ICategoryAdapter | null {
-        // Check if we're in test mode
         if (this.config.dataSource === 'test') {
             return new TestCategoryAdapter();
         }
 
-        // Use API adapter if URL is provided
-        if (this.config.dataSource === 'api' && this.config.apiUrl) {
-            return new APICategoryAdapter(this.config.apiUrl, this.config.apiKey);
-        }
+        return this.usesApi ? new APICategoryAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
 
-        return null;
+    createProjectAdapter(): IProjectAdapter | null {
+        // No test double: nothing reads projects yet, so a fixture backend would only be
+        // guessing at what the UI will need.
+        return this.usesApi ? new APIProjectAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 }
 

@@ -1,13 +1,18 @@
 import { Dayjs } from "dayjs";
 import { getDayJs } from "../utils/dayjs";
+import { newId } from "../utils/id";
 
 class Base {
-    public id: number | undefined;
-    public serverId: number | undefined;
+    /**
+     * The one and only identifier, minted here rather than assigned by a backend.
+     *
+     * There is deliberately no `serverId` beside it: the id in IndexedDB, in Laravel and in
+     * Postgres are the same string, which is what lets a write be retried safely.
+     */
+    public id: string;
 
     constructor(data: Record<string, any>) {
-        this.id = data.id ?? undefined;
-        this.serverId = data.serverId ?? undefined;
+        this.id = data.id ?? newId();
     }
 
     parseDate(date: string | Dayjs | null): Dayjs | null {

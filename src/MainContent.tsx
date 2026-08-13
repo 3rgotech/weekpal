@@ -156,7 +156,7 @@ const MainContent: React.FC<MainContentProps> = () => {
       return id.toString();
     }
     const taskId = id.toString().replace("task-", "");
-    const task = findTask(parseInt(taskId, 10));
+    const task = findTask(taskId);
     return task ? `${task.dayOfWeek}-droppable` : null;
   };
 
@@ -182,7 +182,7 @@ const MainContent: React.FC<MainContentProps> = () => {
 
     // Find the task being dragged
     const taskId = activeId.replace("task-", "");
-    const task = findTask(parseInt(taskId, 10));
+    const task = findTask(taskId);
     if (!task) return;
 
     // Get the new day from the container ID
@@ -194,9 +194,7 @@ const MainContent: React.FC<MainContentProps> = () => {
 
     if (over.data.current?.type === "task") {
       // If dropping on another task, use its order
-      const overTask = findTask(
-        parseInt(over.id.toString().replace("task-", ""), 10)
-      );
+      const overTask = findTask(over.id.toString().replace("task-", ""));
       if (!overTask) return;
 
       const isBelowOverItem =

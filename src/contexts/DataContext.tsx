@@ -8,10 +8,11 @@ import { useCalendar } from "./CalendarContext";
 import useDayJs from "../utils/dayjs";
 import Event from "../data/event";
 import EventStore from "../store/EventStore";
+import { NO_CATEGORY_KEY } from "../utils/categories";
 
 interface DataContextProps {
   tasks: Array<Task>;
-  findTask: (taskId: number) => Task | null;
+  findTask: (taskId: string) => Task | null;
   addTask: (task: WeeklyTask | SomedayTask) => void;
   updateTask: (task: Task) => void;
   completeTask: (task: Task) => void;
@@ -20,8 +21,8 @@ interface DataContextProps {
   deleteTask: (task: Task) => void;
   events: Array<Event>;
   categories: Array<Category>;
-  selectedCategories: number[];
-  setSelectedCategories: (categories: number[]) => void;
+  selectedCategories: string[];
+  setSelectedCategories: (categories: string[]) => void;
   taskStore: TaskStore | null;
   categoryStore: CategoryStore | null;
 }
@@ -44,7 +45,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const taskStore = useMemo(() => new TaskStore(taskAdapter || undefined), [taskAdapter]);
   const categoryStore = useMemo(() => new CategoryStore(categoryAdapter || undefined), [categoryAdapter]);
@@ -68,7 +69,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
     }
   }, [taskStore, categoryStore, eventStore, currentWeek, selectedCategories]);
 
-  const findTask = (taskId: number) => {
+  const findTask = (taskId: string) => {
     return tasks.find((task) => task.id === taskId) ?? null;
   };
 
@@ -331,7 +332,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
   const memoizedTasks = useMemo(() => {
     return tasks
-      .filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.categoryId ?? -1))
+      .filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.categoryId ?? NO_CATEGORY_KEY))
       .sort((a, b) => {
         // First sort by completion status
         if (a.completedAt === null && b.completedAt !== null) return -1;
@@ -349,7 +350,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
   const memoizedEvents = useMemo(() => {
     return events
-      .filter(e => selectedCategories.length === 0 || selectedCategories.includes(e.categoryId ?? -1))
+      .filter(e => selectedCategories.length === 0 || selectedCategories.includes(e.categoryId ?? NO_CATEGORY_KEY))
       .sort((a, b) => {
         return dayjs(a.startHour).isBefore(dayjs(b.startHour)) ? -1 : 1;
       });

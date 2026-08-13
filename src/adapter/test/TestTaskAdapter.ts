@@ -1,47 +1,27 @@
-import Task, { WeeklyTask, SomedayTask } from '../../data/task';
-import { APIWeekTasklistResponse, ITaskAdapter } from '../../types';
+import Task from '../../data/task';
+import { ITaskAdapter, WeekPayload } from '../../types';
 
+/**
+ * A no-op backend for `VITE_DATA_SOURCE=test`.
+ *
+ * Writes echo the task straight back, which is what a real upsert does: the client already
+ * knows the id, so there is nothing for the server to assign.
+ */
 class TestTaskAdapter implements ITaskAdapter {
-    constructor() {
-        console.log('[TestTaskAdapter] Initialized');
+    async getWeek(_weekCode: string): Promise<WeekPayload> {
+        return { tasks: [], events: [] };
     }
 
-    async getWeek(weekCode: string): Promise<APIWeekTasklistResponse> {
-        console.log(`[TestTaskAdapter] Getting tasks for week: ${weekCode}`);
-
-        // Return empty arrays for testing
-        return {
-            weeklyTasks: [],
-            somedayTasks: []
-        };
+    async upsert(task: Task): Promise<Task> {
+        return task;
     }
 
-    async create(task: Task): Promise<number> {
-        console.log('[TestTaskAdapter] Creating task:', {
-            title: task.title,
-            description: task.description,
-            type: task.taskType
-        });
-
-        // Return a mock server ID
-        return Math.floor(Math.random() * 10000);
+    async upsertMany(tasks: Task[]): Promise<Task[]> {
+        return tasks;
     }
 
-    async update(task: Task): Promise<void> {
-        console.log('[TestTaskAdapter] Updating task:', {
-            id: task.serverId,
-            title: task.title,
-            description: task.description,
-            type: task.taskType
-        });
-    }
-
-    async delete(task: Task): Promise<void> {
-        console.log('[TestTaskAdapter] Deleting task:', {
-            id: task.serverId,
-            title: task.title,
-            type: task.taskType
-        });
+    async delete(_id: string): Promise<void> {
+        // Nothing to do — the fixtures live in IndexedDB.
     }
 }
 

@@ -4,6 +4,7 @@ import { Select, SelectItem, SelectSection } from "@heroui/react";
 import clsx from "clsx";
 import { CircleSlash2, RotateCcw, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { CLEAR_SELECTION_KEY, NO_CATEGORY_KEY } from "../utils/categories";
 const CategoryFilter: React.FC = () => {
   const { t } = useTranslation();
   const { categories, selectedCategories, setSelectedCategories } = useData();
@@ -14,9 +15,9 @@ const CategoryFilter: React.FC = () => {
     label: string;
     startContent?: React.JSX.Element;
   }> = [
-      { key: "-2", label: t("category.show_all"), startContent: <RotateCcw /> },
+      { key: CLEAR_SELECTION_KEY, label: t("category.show_all"), startContent: <RotateCcw /> },
       ...categories.map((category) => ({
-        key: (category.id ?? 0).toString(),
+        key: category.id,
         label: category.name,
         startContent: (
           <div
@@ -24,7 +25,7 @@ const CategoryFilter: React.FC = () => {
           ></div>
         ),
       })),
-      { key: "-1", label: t("category.none"), startContent: <CircleSlash2 /> },
+      { key: NO_CATEGORY_KEY, label: t("category.none"), startContent: <CircleSlash2 /> },
     ];
 
   return (
@@ -43,14 +44,15 @@ const CategoryFilter: React.FC = () => {
       placeholder={t("category.all")}
       selectedKeys={selectedCategories.map(String)}
       onSelectionChange={(keys) => {
-        let selectedKeys = Array.from(keys).map(Number);
-        if (selectedKeys.includes(-2)) {
+        // Category ids are UUID strings, so the selection is kept as strings. Coercing with
+        // Number() turned every id into NaN and the filter matched nothing.
+        let selectedKeys = Array.from(keys).map(String);
+        if (selectedKeys.includes(CLEAR_SELECTION_KEY)) {
           selectedKeys = [];
           setTimeout(() => {
             setIsOpen(false);
           }, 100);
         }
-        console.log("selectedKeys", selectedKeys);
         setSelectedCategories(selectedKeys);
       }}
       disallowEmptySelection={false}
