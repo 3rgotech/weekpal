@@ -7,6 +7,14 @@ declare global {
         API_URL?: string;
         API_KEY?: string;
         DATA_SOURCE?: DataSource;
+        /**
+         * Where the host application keeps the user's account pages.
+         *
+         * Set by the Blade view that embeds the board. Absent when the board runs standalone
+         * or in demo mode, where there is no account to open — the user button hides itself
+         * rather than leading somewhere that does not exist.
+         */
+        ACCOUNT_URL?: string;
     }
 }
 
@@ -14,12 +22,14 @@ export interface EnvConfig {
     baseApiUrl: Url;
     dataSource: DataSource;
     apiKey: ApiKey;
+    accountUrl: Url;
 }
 
 export function getEnvConfig(): EnvConfig {
     let baseApiUrl: Url;
     let dataSource: DataSource;
     let apiKey: ApiKey;
+    let accountUrl: Url;
 
     // Try to get values from window context first (takes precedence)
     try {
@@ -28,6 +38,10 @@ export function getEnvConfig(): EnvConfig {
             baseApiUrl = window.API_URL;
             apiKey = window.API_KEY;
             console.debug("Using API URL from window context:", baseApiUrl);
+        }
+
+        if (window.ACCOUNT_URL) {
+            accountUrl = window.ACCOUNT_URL;
         }
 
         // Check for DATA_SOURCE independently
@@ -60,5 +74,13 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey };
+    if (!accountUrl) {
+        // @ts-ignore - Using import.meta.env which may not be typed properly
+        const envAccountUrl = import.meta.env.VITE_ACCOUNT_URL || (typeof process !== 'undefined' ? process?.env?.ACCOUNT_URL : undefined);
+        if (envAccountUrl) {
+            accountUrl = envAccountUrl as Url;
+        }
+    }
+
+    return { baseApiUrl, dataSource, apiKey, accountUrl };
 }

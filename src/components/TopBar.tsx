@@ -10,12 +10,21 @@ import { Tooltip } from "@heroui/react";
 import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS, TOOLTIP_CLASSES } from "../utils/color";
 import SyncStatusIndicator from "./SyncStatusIndicator";
 import VisibilityFilter from "./VisibilityFilter";
+import { getEnvConfig } from "../utils/env";
 
 interface TopBarProps { }
 
 const TopBar: React.FC<TopBarProps> = () => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
+
+  // The board is embedded in the host application, which owns everything about the
+  // account — profile, password, subscription, API tokens. Rather than rebuild any of
+  // that here, the user button leaves for it.
+  //
+  // Absent when the board runs standalone or in demo mode; the button hides rather than
+  // pointing at a page that does not exist there.
+  const { accountUrl } = getEnvConfig();
 
   return (
     <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
@@ -60,18 +69,22 @@ const TopBar: React.FC<TopBarProps> = () => {
             size="md"
           />
         </div>
-        <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
-          <IconButton
-            icon="user"
-            iconClass={ICON_BUTTON_CLASS}
-            wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-            tooltip={t("actions.user_menu")}
-            onClick={() => {
-              console.log("user");
-            }}
-            size="md"
-          />
-        </div>
+        {accountUrl && (
+          <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+            <IconButton
+              icon="user"
+              iconClass={ICON_BUTTON_CLASS}
+              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+              tooltip={t("actions.user_menu")}
+              onClick={() => {
+                // A full navigation, not a new tab: the account pages are part of the same
+                // application, and the board restores its state from IndexedDB on return.
+                window.location.href = accountUrl;
+              }}
+              size="md"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
