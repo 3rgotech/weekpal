@@ -8,6 +8,7 @@ import clsx from "clsx";
 import IconButton from "../components/IconButton";
 import { Copy, EllipsisVertical, SquareArrowDownLeft, SquareArrowDownRight, SquareArrowRight, SquareArrowUpRight, Trash } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import TaskActivity from "../components/TaskActivity";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -72,8 +73,13 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const updateField = (field: keyof Task) => (value: string | SharedSelection) => {
     let transformedValue;
     if (field === 'categoryId') {
+      // The selection is a Set of keys; take the single one, or null when cleared.
+      //
+      // This used to `parseInt` the result, from when category ids were autoincrement integers.
+      // They have been UUIDs since contract v1, and `parseInt('01930000-...')` does not fail —
+      // it returns 1930, so picking a category silently wrote a garbage id that matched nothing.
       transformedValue = [...value][0] ?? null;
-      transformedValue = transformedValue !== null ? parseInt(`${transformedValue}`, 10) : null;
+      transformedValue = transformedValue !== null ? `${transformedValue}` : null;
     } else {
       transformedValue = value;
     }
@@ -203,6 +209,14 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     </SelectItem>
                   ))}
                 </Select>
+
+                {/* Only once the task exists. In CREATE mode there is nothing to attach a note
+                    to and no history to show — the record reaches the backend on save. */}
+                {mode === "EDIT" && (
+                  <div className="mt-2 border-t border-slate-200 dark:border-slate-600 pt-2">
+                    <TaskActivity task={task} />
+                  </div>
+                )}
               </ModalBody>
               <ModalFooter>
                 {/* TODO : save on change */}
@@ -211,7 +225,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   variant="solid"
                   onPress={saveTask}
                 >
-                  Save
+                  {t('actions.save')}
                 </Button>
               </ModalFooter>
             </>

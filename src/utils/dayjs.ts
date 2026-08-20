@@ -4,6 +4,7 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import isoWeek from "dayjs/plugin/isoWeek";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import relativeTime from "dayjs/plugin/relativeTime";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import fr from "../dayjs/fr";
 import en from "dayjs/locale/en";
@@ -20,6 +21,8 @@ export const getDayJs = (locale: "fr" | "en" = "en") => {
     dayjs.extend(customParseFormat); // use plugin
     dayjs.extend(isSameOrAfter); // use plugin
     dayjs.extend(isSameOrBefore); // use plugin
+    // "3 hours ago" — a changelog and a note thread are read by recency, not by date.
+    dayjs.extend(relativeTime); // use plugin
     dayjs.locale(locales[locale]); // use locale
     // dayjs.tz.setDefault('Europe/Paris');
 

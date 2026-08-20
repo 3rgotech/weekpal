@@ -34,7 +34,9 @@
         "this_week": "This week",
         "uncomplete_task": "Uncomplete task",
         "user_menu": "User menu",
-        "visibility_filter": "Change visibility"
+        "visibility_filter": "Change visibility",
+        "cancel": "Cancel",
+        "save": "Save"
     },
     "category": {
         "help": "Select one or more categories to only display them",
@@ -60,6 +62,41 @@
             "title": "Buy food",
             "description": "Carrots, Onions, Potatoes, ...",
             "category": "None"
+        },
+        "activity": "Notes and history",
+        "notes": {
+            "title": "Notes",
+            "empty": "No notes on this task yet.",
+            "placeholder": "Write a note…",
+            "add": "Add note",
+            "edit": "Edit note",
+            "delete": "Delete note",
+            "edited": "edited"
+        },
+        "history": {
+            "title": "History",
+            "empty": "Nothing has changed on this task yet.",
+            "unavailable": "History is kept on the server, so it needs a connection.",
+            "nothing": "nothing",
+            "event": {
+                "created": "Created",
+                "updated": "Updated",
+                "moved": "Moved",
+                "completed": "Completed",
+                "uncompleted": "Marked as not done",
+                "deleted": "Deleted",
+                "restored": "Restored"
+            },
+            "field": {
+                "title": "Title",
+                "description": "Description",
+                "category_id": "Category",
+                "project_id": "Project",
+                "week_number": "Week",
+                "day_of_week": "Day",
+                "subtasks": "Subtasks",
+                "completed_at": "Completed"
+            }
         }
     },
     "misc": {

@@ -2,6 +2,8 @@ import Category from "../data/category";
 import Event from "../data/event";
 import Project from "../data/project";
 import Task, { SomedayTask, WeeklyTask } from "../data/task";
+import Note from "../data/note";
+import HistoryEntry from "../data/history";
 
 export type Theme = "light" | "dark" | "system";
 export type Language = "en" | "fr";
@@ -64,7 +66,7 @@ export type CategoryColor = "red" | "orange" | "yellow" | "lime" | "green" | "em
  */
 export interface PendingChange {
   id: string;
-  entityType: 'task' | 'category' | 'project';
+  entityType: 'task' | 'category' | 'project' | 'note';
   entityId: string;
   /**
    * Set when one entry covers several records — a reorder, where the whole affected set has to
@@ -99,6 +101,18 @@ export interface ITaskStore {
 export interface IEventStore {
   list(weekCode: string): Promise<Event[]>;
   reload(event: Event | string): Promise<Event | null>;
+}
+
+/**
+ * Notes are always read for one task at a time, so every method is task-scoped — there is no
+ * "all notes" view in the product and nothing needs one.
+ */
+export interface INoteStore {
+  list(taskId: string): Promise<Note[]>;
+  reload(note: Note | string): Promise<Note | null>;
+  create(note: Note): Promise<Note>;
+  update(note: Note): Promise<Note>;
+  delete(note: Note): Promise<void>;
 }
 
 export interface ICategoryStore {
@@ -149,4 +163,19 @@ export interface IProjectAdapter {
   delete(id: string): Promise<void>;
   /** A project's unscheduled tasks, which the week payload deliberately excludes. */
   backlog(projectId: string): Promise<Task[]>;
+}
+
+export interface INoteAdapter {
+  list(taskId: string): Promise<Note[]>;
+  upsert(note: Note): Promise<Note>;
+  /** Task-scoped, because the route is: a note id alone does not address a note. */
+  delete(taskId: string, id: string): Promise<void>;
+}
+
+/**
+ * Read-only by design: the changelog is written by the backend from the task writes it already
+ * receives, so there is nothing for a client to push.
+ */
+export interface IHistoryAdapter {
+  list(taskId: string): Promise<HistoryEntry[]>;
 }

@@ -1,11 +1,12 @@
 import SyncService from "../utils/SyncService";
-import { ICategoryAdapter, IProjectAdapter, ITaskAdapter } from "../types";
+import { ICategoryAdapter, INoteAdapter, IProjectAdapter, ITaskAdapter } from "../types";
 import { WeekpalDB } from "./db";
 
 interface AdapterRegistry {
     task?: ITaskAdapter | null;
     category?: ICategoryAdapter | null;
     project?: IProjectAdapter | null;
+    note?: INoteAdapter | null;
 }
 
 class BaseStore {
@@ -37,7 +38,7 @@ class BaseStore {
      * @param kind which adapter slot this store fills, or null for a store that never writes
      *             (events are read-only in v1, so they have nothing to queue)
      */
-    constructor(kind: keyof AdapterRegistry | null, adapter?: ITaskAdapter | ICategoryAdapter | IProjectAdapter | null) {
+    constructor(kind: keyof AdapterRegistry | null, adapter?: ITaskAdapter | ICategoryAdapter | IProjectAdapter | INoteAdapter | null) {
         BaseStore.database ??= new WeekpalDB();
         this.db = BaseStore.database;
 

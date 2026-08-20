@@ -2,9 +2,11 @@ import APITaskAdapter from './api/APITaskAdapter';
 import APICategoryAdapter from './api/APICategoryAdapter';
 import APIProjectAdapter from './api/APIProjectAdapter';
 import APISettingsAdapter from './api/APISettingsAdapter';
+import APITaskNoteAdapter from './api/APITaskNoteAdapter';
+import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { ICategoryAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
+import { ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -18,6 +20,8 @@ interface AdapterFactoryResult {
     categoryAdapter: ICategoryAdapter | null;
     projectAdapter: IProjectAdapter | null;
     settingsAdapter: ISettingsAdapter | null;
+    noteAdapter: INoteAdapter | null;
+    historyAdapter: IHistoryAdapter | null;
 }
 
 class AdapterFactory {
@@ -41,6 +45,8 @@ class AdapterFactory {
             categoryAdapter: factory.createCategoryAdapter(),
             projectAdapter: factory.createProjectAdapter(),
             settingsAdapter: factory.createSettingsAdapter(),
+            noteAdapter: factory.createNoteAdapter(),
+            historyAdapter: factory.createHistoryAdapter(),
         };
     }
 
@@ -72,6 +78,18 @@ class AdapterFactory {
      */
     createSettingsAdapter(): ISettingsAdapter | null {
         return this.usesApi ? new APISettingsAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test double for either: the demo and test data sources have no notes or changelog to
+     * show, and inventing fixtures would put words in a user's mouth on the demo board.
+     */
+    createNoteAdapter(): INoteAdapter | null {
+        return this.usesApi ? new APITaskNoteAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    createHistoryAdapter(): IHistoryAdapter | null {
+        return this.usesApi ? new APITaskHistoryAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     createProjectAdapter(): IProjectAdapter | null {
