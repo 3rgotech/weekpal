@@ -2,6 +2,7 @@ import { WeekpalDB } from "../store/db";
 import Task from "../data/task";
 import {
     ICategoryAdapter,
+    INoteAdapter,
     IProjectAdapter,
     ITaskAdapter,
     PendingChange,
@@ -14,6 +15,7 @@ interface SyncAdapters {
     task?: ITaskAdapter | null;
     category?: ICategoryAdapter | null;
     project?: IProjectAdapter | null;
+    note?: INoteAdapter | null;
 }
 
 /** A queued write that cannot succeed as-is. Thrown so the caller can classify it. */
@@ -176,6 +178,12 @@ export class SyncService {
     private async processChange(change: PendingChange): Promise<void> {
         const { entityType, entityId, type, data } = change;
 
+        // Ahead of the shared delete path: a note is addressed by task *and* id, so its adapter
+        // takes two arguments and cannot go through the one-argument `delete` below.
+        if (entityType === 'note') {
+            return this.processNoteChange(change);
+        }
+
         if (type === 'delete') {
             const adapter = this.adapterFor(entityType);
             await adapter.delete(entityId);
@@ -237,6 +245,38 @@ export class SyncService {
     }
 
     /**
+     * Notes, which hang off a task rather than standing on their own.
+     *
+     * The task id is snapshotted onto the queue entry when the change is enqueued: a queued
+     * delete outlives the local row it refers to, so by the time it is sent there is nothing
+     * left to read the task id from.
+     */
+    private async processNoteChange(change: PendingChange): Promise<void> {
+        const { entityId, type, data } = change;
+        const adapter = this.noteAdapter();
+
+        const taskId = (data?.taskId as string | undefined)
+            ?? (await this.db.taskNotes.get(entityId))?.taskId;
+
+        if (!taskId) {
+            throw new SyncError(`Note ${entityId} was queued without the task it belongs to.`, 'permanent');
+        }
+
+        if (type === 'delete') {
+            await adapter.delete(taskId, entityId);
+            return;
+        }
+
+        const note = await this.db.taskNotes.get(entityId);
+        if (!note) {
+            throw new SyncError(`Note ${entityId} is no longer in the local database.`, 'permanent');
+        }
+
+        const stored = await adapter.upsert(note);
+        await this.db.taskNotes.put(stored as any);
+    }
+
+    /**
      * The server's version of the row wins, so write it back.
      *
      * A task may also have crossed between the weekly and someday tables — a move is now an
@@ -262,6 +302,9 @@ export class SyncService {
             case 'task': return this.taskAdapter();
             case 'category': return this.categoryAdapter();
             case 'project': return this.projectAdapter();
+            // Notes never reach here — processChange routes them before the shared delete path,
+            // because their adapter is addressed by task as well as id.
+            case 'note': return this.noteAdapter() as never;
         }
     }
 
@@ -284,6 +327,13 @@ export class SyncService {
             throw new SyncError('No project adapter is configured.', 'transient');
         }
         return this.adapters.project;
+    }
+
+    private noteAdapter(): INoteAdapter {
+        if (!this.adapters.note) {
+            throw new SyncError('No note adapter is configured.', 'transient');
+        }
+        return this.adapters.note;
     }
 
     /** Ids with a queued write, which a server pull must not overwrite. */

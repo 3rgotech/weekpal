@@ -4,6 +4,7 @@ import Category from "../data/category";
 import { WeeklyTask, SomedayTask } from "../data/task";
 import { getDayJs } from "../utils/dayjs";
 import Event from "../data/event";
+import Note from "../data/note";
 import { getEnvConfig } from "../utils/env";
 import { PendingChange } from "../types";
 
@@ -145,6 +146,7 @@ export class WeekpalDB extends Dexie {
     somedayTasks!: Dexie.Table<SomedayTask, string>;
     categories!: Dexie.Table<Category, string>;
     events!: Dexie.Table<Event, string>;
+    taskNotes!: Dexie.Table<Note, string>;
     pendingChanges!: Dexie.Table<PendingChange, string>;
 
     constructor() {
@@ -183,11 +185,21 @@ export class WeekpalDB extends Dexie {
             pendingChanges: 'id, entityId, timestamp'
         });
 
+        // v3 — notes on a task.
+        //
+        // Indexed by `taskId` because that is the only way they are ever read: the modal asks
+        // for one task's notes. History deliberately gets no table — it is server-derived and
+        // read-only, so a local copy could only ever be a stale duplicate of the changelog.
+        this.version(3).stores({
+            taskNotes: 'id, taskId, createdAt',
+        });
+
         // Custom hooks to convert the objects to class instances
         this.weeklyTasks.hook('reading', (task) => new WeeklyTask(task));
         this.somedayTasks.hook('reading', (task) => new SomedayTask(task));
         this.categories.hook('reading', (category) => new Category(category));
         this.events.hook('reading', (event) => new Event(event));
+        this.taskNotes.hook('reading', (note) => new Note(note));
 
         this.on("populate", function (transaction: Transaction) {
             if (dataSource === 'test' || dataSource === 'demo') {

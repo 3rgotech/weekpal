@@ -1,8 +1,9 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext } from "react";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import CategoryStore from "../store/CategoryStore";
+import NoteStore from "../store/NoteStore";
 import Category from "../data/category";
 import { useCalendar } from "./CalendarContext";
 import useDayJs from "../utils/dayjs";
@@ -25,6 +26,12 @@ interface DataContextProps {
   setSelectedCategories: (categories: string[]) => void;
   taskStore: TaskStore | null;
   categoryStore: CategoryStore | null;
+  noteStore: NoteStore | null;
+  /**
+   * Passed through rather than wrapped in a store: history is read-only and server-derived, so
+   * there is no local table for a store to sit in front of.
+   */
+  historyAdapter: IHistoryAdapter | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -33,12 +40,16 @@ interface DataProviderProps {
   children: ReactNode;
   taskAdapter?: ITaskAdapter | null;
   categoryAdapter?: ICategoryAdapter | null;
+  noteAdapter?: INoteAdapter | null;
+  historyAdapter?: IHistoryAdapter | null;
 }
 
 const DataProvider: React.FC<DataProviderProps> = ({
   children,
   taskAdapter = null,
-  categoryAdapter = null
+  categoryAdapter = null,
+  noteAdapter = null,
+  historyAdapter = null
 }) => {
   const { currentWeek } = useCalendar();
   const dayjs = useDayJs();
@@ -50,6 +61,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const taskStore = useMemo(() => new TaskStore(taskAdapter || undefined), [taskAdapter]);
   const categoryStore = useMemo(() => new CategoryStore(categoryAdapter || undefined), [categoryAdapter]);
   const eventStore = useMemo(() => new EventStore(), []);
+  const noteStore = useMemo(() => new NoteStore(noteAdapter || undefined), [noteAdapter]);
 
   useEffect(() => {
     if (taskStore) {
@@ -384,6 +396,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
         setSelectedCategories,
         taskStore,
         categoryStore,
+        noteStore,
+        historyAdapter,
       }}
     >
       {children}
