@@ -34,7 +34,9 @@
         "this_week": "Cette semaine",
         "uncomplete_task": "Marquer comme non terminée",
         "user_menu": "Menu utilisateur",
-        "visibility_filter": "Changer la visibilité"
+        "visibility_filter": "Changer la visibilité",
+        "cancel": "Annuler",
+        "save": "Enregistrer"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",
@@ -50,6 +52,41 @@
             "title": "Faire les courses",
             "description": "Carottes, Oignons, Pommes de terre, ...",
             "category": "Aucune"
+        },
+        "activity": "Notes et historique",
+        "notes": {
+            "title": "Notes",
+            "empty": "Aucune note sur cette tâche.",
+            "placeholder": "Écrire une note…",
+            "add": "Ajouter une note",
+            "edit": "Modifier la note",
+            "delete": "Supprimer la note",
+            "edited": "modifiée"
+        },
+        "history": {
+            "title": "Historique",
+            "empty": "Rien n'a encore changé sur cette tâche.",
+            "unavailable": "L'historique est conservé sur le serveur : une connexion est nécessaire.",
+            "nothing": "rien",
+            "event": {
+                "created": "Créée",
+                "updated": "Modifiée",
+                "moved": "Déplacée",
+                "completed": "Terminée",
+                "uncompleted": "Marquée comme non terminée",
+                "deleted": "Supprimée",
+                "restored": "Restaurée"
+            },
+            "field": {
+                "title": "Titre",
+                "description": "Description",
+                "category_id": "Catégorie",
+                "project_id": "Projet",
+                "week_number": "Semaine",
+                "day_of_week": "Jour",
+                "subtasks": "Sous-tâches",
+                "completed_at": "Terminée le"
+            }
         }
     },
     "misc": {
