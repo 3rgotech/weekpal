@@ -9,6 +9,7 @@ import IconButton from "../components/IconButton";
 import { Copy, EllipsisVertical, SquareArrowDownLeft, SquareArrowDownRight, SquareArrowRight, SquareArrowUpRight, Trash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import TaskActivity from "../components/TaskActivity";
+import SubtaskEditor from "../components/SubtaskEditor";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -209,6 +210,11 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     </SelectItem>
                   ))}
                 </Select>
+
+                <SubtaskEditor
+                    subtasks={data.subtasks ?? []}
+                    onChange={(subtasks) => setData(prev => ({ ...prev, subtasks }))}
+                />
 
                 {/* Only once the task exists. In CREATE mode there is nothing to attach a note
                     to and no history to show — the record reaches the backend on save. */}

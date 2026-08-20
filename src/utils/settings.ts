@@ -1,4 +1,4 @@
-import { Language, Settings } from "../types";
+import { Language, Settings, SubtaskDisplay } from "../types";
 
 /**
  * Must stay in step with `App\Support\BoardSettings::defaults()` on the server.
@@ -44,3 +44,30 @@ export const WEEK_HEADER_FORMATS = [
     "MMMM YYYY - [[WEEK]] W",
     "YYYY - [[WEEK]] W",
 ];
+
+export const SUBTASK_DISPLAYS: Array<SubtaskDisplay> = [
+    'percentage',
+    'number',
+    'none',
+];
+
+/**
+ * How a task's subtask progress reads on the board, per the `subtaskDisplay` setting.
+ *
+ * Returns null when there is nothing worth showing — no subtasks, or the setting turned off.
+ * A task with none shows nothing whatever the setting: an empty "0/0" on every row would be
+ * noise on a board that is mostly single-line tasks.
+ */
+export function subtaskProgressLabel(
+    display: SubtaskDisplay,
+    done: number,
+    total: number,
+): string | null {
+    if (total === 0 || display === 'none') {
+        return null;
+    }
+
+    return display === 'percentage'
+        ? `${Math.round((done / total) * 100)}%`
+        : `${done}/${total}`;
+}

@@ -13,7 +13,8 @@
         "theme": "Thème",
         "language": "Langue",
         "weekHeaderFormat": "Format de la semaine",
-        "dayHeaderFormat": "Format du jour"
+        "dayHeaderFormat": "Format du jour",
+        "subtaskDisplay": "Progression des sous-tâches"
     },
     "main": {
         "this_week": "Cette semaine",
@@ -87,10 +88,23 @@
                 "subtasks": "Sous-tâches",
                 "completed_at": "Terminée le"
             }
+        },
+        "subtasks": {
+            "title": "Sous-tâches",
+            "item": "Sous-tâche",
+            "add": "Ajouter une sous-tâche",
+            "placeholder": "Ajouter une étape…",
+            "remove": "Supprimer la sous-tâche",
+            "progress": "{{done}} sur {{total}} terminées"
         }
     },
     "misc": {
         "of": "de",
         "week": "Semaine"
+    },
+    "subtaskDisplay": {
+        "percentage": "En pourcentage",
+        "number": "En nombre",
+        "none": "Ne pas afficher"
     }
 }

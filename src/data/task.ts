@@ -1,13 +1,13 @@
 import { Dayjs } from "dayjs";
 import { getDayJs } from "../utils/dayjs";
-import { DayOfWeek } from "../types";
+import { DayOfWeek, Subtask } from "../types";
 import Base from "./base";
 
 interface TaskUpdateData {
     title?: string;
     description?: string;
     categoryId?: string | null;
-    subtasks?: Array<any>;
+    subtasks?: Array<Subtask>;
 }
 
 abstract class Task extends Base {
@@ -19,7 +19,7 @@ abstract class Task extends Base {
     public updatedAt: Dayjs | null;
     public categoryId: string | null;
     public projectId: string | null;
-    public subtasks: Array<any>;
+    public subtasks: Array<Subtask>;
 
     constructor(data: Record<string, any>) {
         super(data);
@@ -49,6 +49,14 @@ abstract class Task extends Base {
         if (data.subtasks !== undefined) {
             this.subtasks = data.subtasks;
         }
+    }
+
+    /** How many subtasks are ticked, and how many there are. */
+    get subtaskProgress(): { done: number; total: number } {
+        return {
+            done: this.subtasks.filter((subtask) => subtask.completed).length,
+            total: this.subtasks.length,
+        };
     }
 
     get completed(): boolean {
