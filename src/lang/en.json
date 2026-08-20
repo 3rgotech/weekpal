@@ -13,7 +13,8 @@
         "theme": "Theme",
         "language": "Language",
         "weekHeaderFormat": "Week header format",
-        "dayHeaderFormat": "Day header format"
+        "dayHeaderFormat": "Day header format",
+        "subtaskDisplay": "Subtask progress"
     },
     "main": {
         "this_week": "This week",
@@ -97,10 +98,23 @@
                 "subtasks": "Subtasks",
                 "completed_at": "Completed"
             }
+        },
+        "subtasks": {
+            "title": "Subtasks",
+            "item": "Subtask",
+            "add": "Add subtask",
+            "placeholder": "Add a step…",
+            "remove": "Remove subtask",
+            "progress": "{{done}} of {{total}} done"
         }
     },
     "misc": {
         "of": "of",
         "week": "Week"
+    },
+    "subtaskDisplay": {
+        "percentage": "As a percentage",
+        "number": "As a count",
+        "none": "Don't show it"
     }
 }

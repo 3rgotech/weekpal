@@ -10,6 +10,18 @@ export type Language = "en" | "fr";
 
 export type SubtaskDisplay = "percentage" | "number" | "none";
 
+/**
+ * One checklist item on a task.
+ *
+ * Exactly the two fields the API validates (API-CONTRACT.md §4) and no more: subtasks are
+ * stored as a JSON array on the task rather than as rows, so they carry no id of their own and
+ * are addressed by position.
+ */
+export interface Subtask {
+  title: string;
+  completed: boolean;
+}
+
 export interface Settings {
   theme: Theme;
   language: Language;

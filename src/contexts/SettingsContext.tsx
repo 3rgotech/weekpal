@@ -14,7 +14,7 @@ import {
   useDisclosure,
 } from "@heroui/modal";
 import { Button, ButtonGroup, Select, SelectItem } from "@heroui/react";
-import { Language, Settings } from "../types";
+import { Language, Settings, SubtaskDisplay } from "../types";
 import clsx from "clsx";
 import { useLocalStorage } from "usehooks-ts";
 import {
@@ -22,6 +22,7 @@ import {
   DEFAULT_SETTINGS,
   LANGUAGES,
   LANGUAGE_FLAGS,
+  SUBTASK_DISPLAYS,
   WEEK_HEADER_FORMATS,
 } from "../utils/settings";
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
@@ -196,6 +197,25 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     className="dark:text-white"
                   >
                     {t(`language.${language}`)}
+                  </SelectItem>
+                ))}
+              </Select>
+              <h3 className="text-base dark:text-white">
+                {t("settings.subtaskDisplay")}
+              </h3>
+              <Select
+                size="sm"
+                selectedKeys={[settings.subtaskDisplay]}
+                onSelectionChange={(keys) =>
+                  updateSettings({
+                    subtaskDisplay: [...keys][0] as SubtaskDisplay,
+                  })
+                }
+                className="col-span-2"
+              >
+                {SUBTASK_DISPLAYS.map((display) => (
+                  <SelectItem key={display} className="dark:text-white">
+                    {t(`subtaskDisplay.${display}`)}
                   </SelectItem>
                 ))}
               </Select>
