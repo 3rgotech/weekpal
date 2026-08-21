@@ -1,6 +1,7 @@
 import Event from "../data/event";
 import { IEventAdapter, IEventStore } from "../types";
 import BaseStore from "./BaseStore";
+import { isReachable } from "../utils/connectivity";
 
 /**
  * Calendar events, which are read-only in v1.
@@ -21,7 +22,7 @@ class EventStore extends BaseStore implements IEventStore {
     }
 
     async list(weekCode: string): Promise<Event[]> {
-        if (this.adapter && navigator.onLine && this.throttleElapsed('events')) {
+        if (this.adapter && isReachable() && this.throttleElapsed('events')) {
             try {
                 const events = await this.adapter.getWeek(weekCode);
                 await this.db.events.bulkPut(events);
