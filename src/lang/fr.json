@@ -37,7 +37,9 @@
         "user_menu": "Menu utilisateur",
         "visibility_filter": "Changer la visibilité",
         "cancel": "Annuler",
-        "save": "Enregistrer"
+        "save": "Enregistrer",
+        "sign_up": "S'inscrire",
+        "log_in": "Se connecter"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",

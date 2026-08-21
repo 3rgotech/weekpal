@@ -15,6 +15,14 @@ declare global {
          * rather than leading somewhere that does not exist.
          */
         ACCOUNT_URL?: string;
+        /**
+         * Where a demo visitor goes to get an account of their own.
+         *
+         * Set only by the demo view. The demo has no account to open, so the board offers to
+         * make one instead of hiding the button — see `TopBar`.
+         */
+        SIGNUP_URL?: string;
+        LOGIN_URL?: string;
     }
 }
 
@@ -23,6 +31,8 @@ export interface EnvConfig {
     dataSource: DataSource;
     apiKey: ApiKey;
     accountUrl: Url;
+    signupUrl: Url;
+    loginUrl: Url;
 }
 
 export function getEnvConfig(): EnvConfig {
@@ -30,6 +40,8 @@ export function getEnvConfig(): EnvConfig {
     let dataSource: DataSource;
     let apiKey: ApiKey;
     let accountUrl: Url;
+    let signupUrl: Url;
+    let loginUrl: Url;
 
     // Try to get values from window context first (takes precedence)
     try {
@@ -42,6 +54,14 @@ export function getEnvConfig(): EnvConfig {
 
         if (window.ACCOUNT_URL) {
             accountUrl = window.ACCOUNT_URL;
+        }
+
+        if (window.SIGNUP_URL) {
+            signupUrl = window.SIGNUP_URL;
+        }
+
+        if (window.LOGIN_URL) {
+            loginUrl = window.LOGIN_URL;
         }
 
         // Check for DATA_SOURCE independently
@@ -82,5 +102,5 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey, accountUrl };
+    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl };
 }
