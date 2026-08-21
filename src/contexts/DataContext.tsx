@@ -1,9 +1,11 @@
-import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext } from "react";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter } from "../types";
+import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import CategoryStore from "../store/CategoryStore";
 import NoteStore from "../store/NoteStore";
+import ProjectStore from "../store/ProjectStore";
+import Project from "../data/project";
 import Category from "../data/category";
 import { useCalendar } from "./CalendarContext";
 import useDayJs from "../utils/dayjs";
@@ -27,6 +29,10 @@ interface DataContextProps {
   taskStore: TaskStore | null;
   categoryStore: CategoryStore | null;
   noteStore: NoteStore | null;
+  projectStore: ProjectStore | null;
+  projects: Array<Project>;
+  saveProject: (project: Project) => Promise<void>;
+  deleteProject: (project: Project) => Promise<void>;
   /**
    * Passed through rather than wrapped in a store: history is read-only and server-derived, so
    * there is no local table for a store to sit in front of.
@@ -41,6 +47,7 @@ interface DataProviderProps {
   taskAdapter?: ITaskAdapter | null;
   categoryAdapter?: ICategoryAdapter | null;
   noteAdapter?: INoteAdapter | null;
+  projectAdapter?: IProjectAdapter | null;
   historyAdapter?: IHistoryAdapter | null;
 }
 
@@ -49,6 +56,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   taskAdapter = null,
   categoryAdapter = null,
   noteAdapter = null,
+  projectAdapter = null,
   historyAdapter = null
 }) => {
   const { currentWeek } = useCalendar();
@@ -62,6 +70,28 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const categoryStore = useMemo(() => new CategoryStore(categoryAdapter || undefined), [categoryAdapter]);
   const eventStore = useMemo(() => new EventStore(), []);
   const noteStore = useMemo(() => new NoteStore(noteAdapter || undefined), [noteAdapter]);
+  const projectStore = useMemo(() => new ProjectStore(projectAdapter || undefined), [projectAdapter]);
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  const refreshProjects = useCallback(async () => {
+    if (projectStore) {
+      setProjects(await projectStore.list());
+    }
+  }, [projectStore]);
+
+  useEffect(() => {
+    refreshProjects();
+  }, [refreshProjects]);
+
+  const saveProject = async (project: Project) => {
+    await projectStore.update(project);
+    await refreshProjects();
+  };
+
+  const deleteProject = async (project: Project) => {
+    await projectStore.delete(project);
+    await refreshProjects();
+  };
 
   useEffect(() => {
     if (taskStore) {
@@ -398,6 +428,10 @@ const DataProvider: React.FC<DataProviderProps> = ({
         categoryStore,
         noteStore,
         historyAdapter,
+        projectStore,
+        projects,
+        saveProject,
+        deleteProject,
       }}
     >
       {children}

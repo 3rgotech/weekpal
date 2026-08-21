@@ -62,7 +62,8 @@
         "placeholder": {
             "title": "Buy food",
             "description": "Carrots, Onions, Potatoes, ...",
-            "category": "None"
+            "category": "None",
+            "project": "None"
         },
         "activity": "Notes and history",
         "notes": {
@@ -105,8 +106,11 @@
             "add": "Add subtask",
             "placeholder": "Add a step…",
             "remove": "Remove subtask",
-            "progress": "{{done}} of {{total}} done"
-        }
+            "progress": "{{done}} of {{total}} done",
+            "new": "New subtask"
+        },
+        "project": "Project",
+        "category_from_project": "Set by the project"
     },
     "misc": {
         "of": "of",
@@ -116,5 +120,17 @@
         "percentage": "As a percentage",
         "number": "As a count",
         "none": "Don't show it"
+    },
+    "projects": {
+        "title": "Projects",
+        "show": "Show projects",
+        "hide": "Hide projects",
+        "empty": "No projects yet. A project is a list you pull tasks from into your week.",
+        "no_tasks": "Nothing waiting in this project.",
+        "add": "Add project",
+        "placeholder": "New project…",
+        "delete": "Delete project",
+        "category": "Project category",
+        "no_category": "No category"
     }
 }

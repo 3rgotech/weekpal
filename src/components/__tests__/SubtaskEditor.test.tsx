@@ -46,7 +46,7 @@ describe("SubtaskEditor", () => {
     it("adds a subtask, unticked", () => {
         const onChange = setup();
 
-        fireEvent.change(screen.getByLabelText("task.subtasks.add"), {
+        fireEvent.change(screen.getByLabelText("task.subtasks.new"), {
             target: { value: "Buy cement" },
         });
         fireEvent.click(screen.getByRole("button"));
@@ -56,7 +56,7 @@ describe("SubtaskEditor", () => {
 
     it("adds on Enter, so a checklist can be typed straight through", () => {
         const onChange = setup();
-        const input = screen.getByLabelText("task.subtasks.add");
+        const input = screen.getByLabelText("task.subtasks.new");
 
         fireEvent.change(input, { target: { value: "Mix it" } });
         fireEvent.keyDown(input, { key: "Enter" });
@@ -66,7 +66,7 @@ describe("SubtaskEditor", () => {
 
     it("refuses an empty or blank title", () => {
         const onChange = setup();
-        const input = screen.getByLabelText("task.subtasks.add");
+        const input = screen.getByLabelText("task.subtasks.new");
 
         fireEvent.keyDown(input, { key: "Enter" });
         fireEvent.change(input, { target: { value: "   " } });

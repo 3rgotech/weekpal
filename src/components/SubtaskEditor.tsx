@@ -85,7 +85,10 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
             <div className="flex items-center gap-2">
                 <Input
                     size="sm"
-                    aria-label={t("task.subtasks.add")}
+                    // Distinct from the button beside it: the field is where a new subtask is
+                    // written, the button is what adds it, and giving both the same name leaves
+                    // a screen reader announcing two identical controls.
+                    aria-label={t("task.subtasks.new")}
                     placeholder={t("task.subtasks.placeholder")}
                     value={draft}
                     onValueChange={setDraft}

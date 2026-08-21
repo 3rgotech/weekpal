@@ -5,6 +5,7 @@ import { WeeklyTask, SomedayTask } from "../data/task";
 import { getDayJs } from "../utils/dayjs";
 import Event from "../data/event";
 import Note from "../data/note";
+import Project from "../data/project";
 import { getEnvConfig } from "../utils/env";
 import { PendingChange } from "../types";
 
@@ -147,6 +148,7 @@ export class WeekpalDB extends Dexie {
     categories!: Dexie.Table<Category, string>;
     events!: Dexie.Table<Event, string>;
     taskNotes!: Dexie.Table<Note, string>;
+    projects!: Dexie.Table<Project, string>;
     pendingChanges!: Dexie.Table<PendingChange, string>;
 
     constructor() {
@@ -194,12 +196,22 @@ export class WeekpalDB extends Dexie {
             taskNotes: 'id, taskId, createdAt',
         });
 
+        // v4 — projects, the custom lists.
+        //
+        // Their tasks need no table of their own: a project's backlog is tasks with no week, so
+        // they live in `somedayTasks` alongside true someday tasks and are told apart by
+        // `projectId`, which that table already indexes.
+        this.version(4).stores({
+            projects: 'id, name, categoryId',
+        });
+
         // Custom hooks to convert the objects to class instances
         this.weeklyTasks.hook('reading', (task) => new WeeklyTask(task));
         this.somedayTasks.hook('reading', (task) => new SomedayTask(task));
         this.categories.hook('reading', (category) => new Category(category));
         this.events.hook('reading', (event) => new Event(event));
         this.taskNotes.hook('reading', (note) => new Note(note));
+        this.projects.hook('reading', (project) => new Project(project));
 
         this.on("populate", function (transaction: Transaction) {
             if (dataSource === 'test' || dataSource === 'demo') {

@@ -52,7 +52,8 @@
         "placeholder": {
             "title": "Faire les courses",
             "description": "Carottes, Oignons, Pommes de terre, ...",
-            "category": "Aucune"
+            "category": "Aucune",
+            "project": "Aucun"
         },
         "activity": "Notes et historique",
         "notes": {
@@ -95,8 +96,11 @@
             "add": "Ajouter une sous-tâche",
             "placeholder": "Ajouter une étape…",
             "remove": "Supprimer la sous-tâche",
-            "progress": "{{done}} sur {{total}} terminées"
-        }
+            "progress": "{{done}} sur {{total}} terminées",
+            "new": "Nouvelle sous-tâche"
+        },
+        "project": "Projet",
+        "category_from_project": "Définie par le projet"
     },
     "misc": {
         "of": "de",
@@ -106,5 +110,17 @@
         "percentage": "En pourcentage",
         "number": "En nombre",
         "none": "Ne pas afficher"
+    },
+    "projects": {
+        "title": "Projets",
+        "show": "Afficher les projets",
+        "hide": "Masquer les projets",
+        "empty": "Aucun projet. Un projet est une liste dans laquelle puiser des tâches pour la semaine.",
+        "no_tasks": "Rien en attente dans ce projet.",
+        "add": "Ajouter un projet",
+        "placeholder": "Nouveau projet…",
+        "delete": "Supprimer le projet",
+        "category": "Catégorie du projet",
+        "no_category": "Aucune catégorie"
     }
 }

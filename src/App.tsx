@@ -11,7 +11,7 @@ import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
 import AdapterFactory from "./adapter";
-import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter } from "./types";
+import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
 
 // Extend Window interface to include API_URL
@@ -34,6 +34,9 @@ function App() {
   const [historyAdapter, setHistoryAdapter] = useState<IHistoryAdapter | null>(
     null
   );
+  const [projectAdapter, setProjectAdapter] = useState<IProjectAdapter | null>(
+    null
+  );
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
@@ -42,12 +45,18 @@ function App() {
     }
 
     // Create adapters from environment configuration
-    const { taskAdapter, categoryAdapter, noteAdapter, historyAdapter } =
-      AdapterFactory.createAdapters();
+    const {
+      taskAdapter,
+      categoryAdapter,
+      noteAdapter,
+      historyAdapter,
+      projectAdapter,
+    } = AdapterFactory.createAdapters();
     setTaskAdapter(taskAdapter);
     setCategoryAdapter(categoryAdapter);
     setNoteAdapter(noteAdapter);
     setHistoryAdapter(historyAdapter);
+    setProjectAdapter(projectAdapter);
 
     // Check if we're in demo mode
     const { dataSource } = getEnvConfig();
@@ -87,6 +96,7 @@ function App() {
               categoryAdapter={categoryAdapter}
               noteAdapter={noteAdapter}
               historyAdapter={historyAdapter}
+              projectAdapter={projectAdapter}
             >
               <TaskModalProvider>
                 {splashScreen ? (
