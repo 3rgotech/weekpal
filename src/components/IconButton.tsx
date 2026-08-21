@@ -10,6 +10,8 @@ type ButtonColor = "green";
 
 interface IconButtonProps {
   icon: keyof typeof icons;
+  /** A tooltip is not an accessible name — buttons that are icon-only need this too. */
+  'aria-label'?: string;
   onClick?: () => void;
   size?: "xs" | "sm" | "md";
   iconClass?: string;
@@ -45,9 +47,17 @@ const IconButton: React.FC<IconButtonProps> = ({
   ...otherProps
 }) => {
   const Icon = icons[icon] ?? defaultIcon;
+
+  // These buttons are icon-only, so without this they reach a screen reader as "button" and
+  // nothing else. The tooltip already says what the control does, so it is the name — an
+  // explicit `aria-label` still wins, for the cases where the two should differ.
+  const accessibleName = otherProps['aria-label']
+    ?? (typeof tooltip === 'string' ? tooltip : undefined);
+
   const button = (
     <button
       {...otherProps}
+      aria-label={accessibleName}
       className={clsx(
         "rounded-full transition-colors border",
         btnClasses[size],

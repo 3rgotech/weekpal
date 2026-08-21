@@ -232,12 +232,17 @@ export class SyncService {
         }
 
         if (entityType === 'project') {
-            const adapter = this.projectAdapter();
-            if (!data) {
-                throw new SyncError(`Project ${entityId} was queued without a payload.`, 'permanent');
+            // Read back from the table, as categories do, rather than replaying the queued
+            // snapshot: the adapter takes a Project and calls `toApiPayload()` on it, which a
+            // plain object lifted out of the queue does not have. Nothing consumed projects when
+            // this was written, so the snapshot path had never actually run.
+            const project = await this.db.projects.get(entityId);
+            if (!project) {
+                throw new SyncError(`Project ${entityId} is no longer in the local database.`, 'permanent');
             }
 
-            await adapter.upsert(data as any);
+            const stored = await this.projectAdapter().upsert(project);
+            await this.db.projects.put(stored);
             return;
         }
 

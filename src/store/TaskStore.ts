@@ -57,8 +57,12 @@ class TaskStore extends BaseStore implements ITaskStore {
                 .filter((task) => !returnedIds.has(task.id) && !pending.has(task.id))
                 .map((task) => task.id);
 
+            // Project backlogs are exempt from the sweep. The week payload deliberately excludes
+            // them (API-CONTRACT.md §4b) so a long backlog is not refetched with every week —
+            // which means "missing from the response" does not mean "deleted" for those rows.
+            // Without this, opening any week would wipe every cached backlog task.
             const staleSomeday = (await this.db.somedayTasks.toArray())
-                .filter((task) => !returnedIds.has(task.id) && !pending.has(task.id))
+                .filter((task) => !returnedIds.has(task.id) && !pending.has(task.id) && !task.belongsToProject)
                 .map((task) => task.id);
 
             await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
@@ -125,7 +129,14 @@ class TaskStore extends BaseStore implements ITaskStore {
         const startOfWeek = reference.startOf("isoWeek").toDate();
         const endOfWeek = reference.endOf("isoWeek").toDate();
 
-        const all = await this.db.somedayTasks.toArray();
+        // `projectId === null` is what separates a true someday task from a project's backlog.
+        // Both live in this table because neither has a week; only the first belongs in the
+        // board's "Some day" list, and the other is shown in the projects drawer.
+        //
+        // Filtered in memory rather than through the `projectId` index: IndexedDB cannot index
+        // null, so rows with no project are absent from that index entirely and a `.equals(null)`
+        // query would quietly return nothing at all.
+        const all = (await this.db.somedayTasks.toArray()).filter((task) => !task.belongsToProject);
 
         return all.filter((task) => (
             (!!task.createdAt && task.createdAt.isBefore(endOfWeek)) &&

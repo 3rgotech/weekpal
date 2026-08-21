@@ -51,6 +51,23 @@ abstract class Task extends Base {
         }
     }
 
+    /**
+     * Whether this task belongs to a project.
+     *
+     * Among tasks with no week, this is exactly what separates a project's backlog from the
+     * "Some day" list — the two are otherwise identical. Named here because two places depend on
+     * that distinction and must not drift: the board's someday list excludes backlog tasks, and
+     * the week reconcile must not treat them as deleted just because the week payload, which
+     * deliberately omits them, did not mention them.
+     *
+     * A *scheduled* task can belong to a project too (that is the normal case — work pulled out
+     * of a backlog into a day), which is why this says "belongs to a project" rather than "is in
+     * the backlog": the backlog is this plus having no week.
+     */
+    get belongsToProject(): boolean {
+        return this.projectId !== null;
+    }
+
     /** How many subtasks are ticked, and how many there are. */
     get subtaskProgress(): { done: number; total: number } {
         return {

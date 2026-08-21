@@ -27,7 +27,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Record<string, any>>({});
   const [mode, setMode] = useState<"CREATE" | "EDIT" | null>(null);
   const { t } = useTranslation();
-  const { addTask, updateTask, deleteTask, categories } = useData();
+  const { addTask, updateTask, deleteTask, categories, projects } = useData();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   const open = (task: Task) => {
@@ -194,11 +194,40 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   onValueChange={updateField('description')}
                 />
                 <Select
+                  label={t('task.project')}
+                  placeholder={t('task.placeholder.project')}
+                  selectedKeys={data.projectId ? [`${data.projectId}`] : []}
+                  onSelectionChange={(keys) => {
+                    const projectId = ([...keys][0] as string) ?? null;
+                    const project = projects.find((p) => p.id === projectId);
+
+                    // A project owns the category of everything in it, so picking one replaces
+                    // the task's category rather than sitting beside it. The backend enforces
+                    // the same rule on write; mirroring it here keeps the form honest instead of
+                    // showing a category that is about to be overwritten.
+                    setData(prev => ({
+                      ...prev,
+                      projectId,
+                      categoryId: project ? project.categoryId : prev.categoryId,
+                    }));
+                  }}
+                  disallowEmptySelection={false}
+                >
+                  {projects.map(project => (
+                    <SelectItem key={project.id} className="dark:text-white">
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </Select>
+
+                <Select
                   label={t('task.category')}
                   placeholder={t('task.placeholder.category')}
-                  selectedKeys={data.categoryId !== null ? [`${data.categoryId}`] : []}
+                  selectedKeys={data.categoryId ? [`${data.categoryId}`] : []}
                   onSelectionChange={updateField('categoryId')}
                   disallowEmptySelection={false}
+                  isDisabled={!!data.projectId}
+                  description={data.projectId ? t('task.category_from_project') : undefined}
                 >
                   {categories.map(category => (
                     <SelectItem

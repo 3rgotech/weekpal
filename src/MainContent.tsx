@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useRef } from "react";
 import TaskList from "./components/TaskList";
+import ProjectDrawer from "./components/ProjectDrawer";
 import { useData } from "./contexts/DataContext";
 import { DayOfWeek } from "./types";
 import {
@@ -228,7 +229,10 @@ const MainContent: React.FC<MainContentProps> = () => {
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
     >
-      <div className="p-4 h-full flex flex-col overflow-hidden">
+      {/* The drawer sits inside the DndContext, which is the point of putting projects here at
+          all: a backlog task can be dragged straight out of its list and onto a day. */}
+      <div className="h-full flex flex-row overflow-hidden">
+      <div className="p-4 flex-1 flex flex-col overflow-hidden">
         <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4 overflow-hidden">
           {[...Array(7).keys()].map((i) => (
             <div
@@ -269,6 +273,9 @@ const MainContent: React.FC<MainContentProps> = () => {
             </div>
           ) : null}
         </DragOverlay>
+      </div>
+
+        <ProjectDrawer />
       </div>
     </DndContext>
   );

@@ -127,6 +127,16 @@ export interface INoteStore {
   delete(note: Note): Promise<void>;
 }
 
+export interface IProjectStore {
+  list(): Promise<Project[]>;
+  reload(project: Project | string): Promise<Project | null>;
+  create(project: Project): Promise<Project>;
+  update(project: Project): Promise<Project>;
+  delete(project: Project): Promise<void>;
+  /** A project's unscheduled tasks, which the week payload deliberately excludes. */
+  backlog(projectId: string): Promise<Task[]>;
+}
+
 export interface ICategoryStore {
   list(): Promise<Category[]>;
   reload(category: Category | string): Promise<Category | null>;
