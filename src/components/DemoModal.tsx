@@ -40,9 +40,12 @@ export default function DemoModal({ isOpen, onClose }: DemoModalProps) {
             You can use the demo mode to get a feel for the app and its
             features.
           </p>
+          {/* Names the control that now exists. This used to point at "the user menu", which
+              the demo hid entirely — so the one instruction for getting an account described a
+              button that was not on screen. */}
           <Alert
             color="primary"
-            title="If you want to register, click on the user menu on the top right corner and you will be redirected to the registration page."
+            title="Ready to keep your week? Sign up in the top right — it takes a moment, and the demo data stays behind."
           />
         </ModalBody>
         <ModalFooter>

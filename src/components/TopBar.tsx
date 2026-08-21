@@ -3,6 +3,7 @@ import Logo from "./Logo";
 import WeekSelector from "./WeekSelector";
 import CategoryFilter from "./CategoryFilter";
 import Menu from "./Menu";
+import SignupCallToAction from "./SignupCallToAction";
 import IconButton from "./IconButton";
 import { useSettings } from "../contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
@@ -22,9 +23,10 @@ const TopBar: React.FC<TopBarProps> = () => {
   // account — profile, password, subscription, API tokens. Rather than rebuild any of
   // that here, the user button leaves for it.
   //
-  // Absent when the board runs standalone or in demo mode; the button hides rather than
-  // pointing at a page that does not exist there.
-  const { accountUrl } = getEnvConfig();
+  // Absent when the board runs standalone or in demo mode. On the demo the button does not
+  // simply disappear — there is no account to open, but there is one to create, so the space
+  // becomes the invitation to make one.
+  const { accountUrl, signupUrl, loginUrl } = getEnvConfig();
 
   return (
     <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
@@ -69,6 +71,9 @@ const TopBar: React.FC<TopBarProps> = () => {
             size="md"
           />
         </div>
+        {!accountUrl && signupUrl && (
+          <SignupCallToAction signupUrl={signupUrl} loginUrl={loginUrl} />
+        )}
         {accountUrl && (
           <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
             <IconButton
