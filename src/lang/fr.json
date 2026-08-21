@@ -122,5 +122,15 @@
         "delete": "Supprimer le projet",
         "category": "Catégorie du projet",
         "no_category": "Aucune catégorie"
+    },
+    "visibility": {
+        "show_completed_tasks": "Afficher les tâches complétées",
+        "hide_completed_tasks": "Masquer les tâches complétées",
+        "show_events": "Afficher les événements",
+        "hide_events": "Masquer les événements",
+        "show_weekends": "Afficher le week-end",
+        "hide_weekends": "Masquer le week-end",
+        "collapse_events": "Réduire les événements",
+        "expand_events": "Développer les événements"
     }
 }
