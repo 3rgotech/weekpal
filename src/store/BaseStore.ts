@@ -1,6 +1,7 @@
 import SyncService from "../utils/SyncService";
 import { ICategoryAdapter, INoteAdapter, IProjectAdapter, ITaskAdapter } from "../types";
 import { WeekpalDB } from "./db";
+import { isReachable } from "../utils/connectivity";
 
 interface AdapterRegistry {
     task?: ITaskAdapter | null;
@@ -60,8 +61,12 @@ class BaseStore {
         return BaseStore.adapters[kind] != null;
     }
 
+    /**
+     * `isReachable()` rather than `navigator.onLine`: the machine having a network says nothing
+     * about the API being up, and a pull against a dead backend just logs an error.
+     */
     canSync(kind: keyof AdapterRegistry): boolean {
-        return this.hasAdapter(kind) && navigator.onLine;
+        return this.hasAdapter(kind) && isReachable();
     }
 
     shouldSync(table: string, kind: keyof AdapterRegistry): boolean {

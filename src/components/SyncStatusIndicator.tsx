@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { CloudOff, Clock, LockKeyhole, TriangleAlert } from 'lucide-react';
 import { SyncHealth, subscribeToSyncHealth } from '../utils/syncStatus';
+import { probe, subscribeToConnectivity } from '../utils/connectivity';
 
 interface SyncStatusIndicatorProps {
     className?: string;
@@ -9,24 +10,30 @@ interface SyncStatusIndicatorProps {
 
 const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '' }) => {
     const { taskStore, categoryStore } = useData();
-    const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+    const [isOnline, setIsOnline] = useState<boolean>(true);
     const [pendingChanges, setPendingChanges] = useState<number>(0);
     const [health, setHealth] = useState<SyncHealth>('ok');
 
     useEffect(() => subscribeToSyncHealth(setHealth), []);
 
-    // Track online status
+    // Track connectivity, which is the machine's own answer *and* whether the API responded.
+    // Watching `navigator.onLine` alone is what let this show a healthy board while every
+    // request was failing behind a captive portal.
     useEffect(() => {
-        const handleOnlineStatusChange = () => {
-            setIsOnline(navigator.onLine);
-        };
+        const unsubscribe = subscribeToConnectivity(setIsOnline);
 
-        window.addEventListener('online', handleOnlineStatusChange);
-        window.addEventListener('offline', handleOnlineStatusChange);
+        // The browser's events are the prompt to re-check, not the answer.
+        const recheck = () => { void probe(); };
+        window.addEventListener('online', recheck);
+        window.addEventListener('offline', recheck);
+
+        // One probe on mount, so the first render is not just the optimistic default.
+        recheck();
 
         return () => {
-            window.removeEventListener('online', handleOnlineStatusChange);
-            window.removeEventListener('offline', handleOnlineStatusChange);
+            unsubscribe();
+            window.removeEventListener('online', recheck);
+            window.removeEventListener('offline', recheck);
         };
     }, []);
 

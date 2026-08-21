@@ -10,6 +10,7 @@ import {
 } from "../types";
 import { newId } from "./id";
 import { reportSyncFailure, reportSyncHealth } from "./syncStatus";
+import { isReachable, probe, probeIfStale } from "./connectivity";
 
 interface SyncAdapters {
     task?: ITaskAdapter | null;
@@ -55,7 +56,9 @@ export class SyncService {
     private readonly onlineListener: () => void;
 
     private constructor(private db: WeekpalDB, private adapters: SyncAdapters) {
-        this.onlineListener = () => { void this.syncPendingChanges(); };
+        // The browser saying "online" is the prompt to check, not the answer: coming back on a
+        // captive portal fires this event too. Confirm with the API before draining the queue.
+        this.onlineListener = () => { void probe().then(() => this.syncPendingChanges()); };
         window.addEventListener('online', this.onlineListener);
     }
 
@@ -86,8 +89,12 @@ export class SyncService {
         window.removeEventListener('online', this.onlineListener);
     }
 
+    /**
+     * The cached answer from {@see connectivity}: the machine has a network *and* the API
+     * answered the last time we asked.
+     */
     private get isOnline(): boolean {
-        return navigator.onLine;
+        return isReachable();
     }
 
     async enqueue(change: Omit<PendingChange, 'id' | 'timestamp' | 'attempts'>): Promise<void> {
@@ -110,7 +117,13 @@ export class SyncService {
      * follows it — which is why only *permanent* failures are allowed to skip ahead.
      */
     async syncPendingChanges(): Promise<void> {
-        if (!this.isOnline || this.isSyncing) {
+        if (this.isSyncing) {
+            return;
+        }
+
+        // Re-check before spending requests on a queue that cannot be delivered. Only when the
+        // cached answer has aged out, so a burst of writes does not probe once per write.
+        if (!await probeIfStale()) {
             return;
         }
 
@@ -160,7 +173,11 @@ export class SyncService {
                         deadLettered: attempts >= MAX_ATTEMPTS,
                     });
 
-                    // Transient: keep the entry and stop, so ordering survives.
+                    // Transient: keep the entry and stop, so ordering survives. Re-probe too —
+                    // this is usually the first sign the API has gone away underneath us, and
+                    // without it the indicator keeps claiming everything is fine until the
+                    // cached answer expires.
+                    void probe();
                     break;
                 }
             }

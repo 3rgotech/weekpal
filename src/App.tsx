@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { HeroUIProvider } from "@heroui/react";
 import { DataProvider } from "./contexts/DataContext";
 import TopBar from "./components/TopBar";
@@ -13,6 +13,7 @@ import DemoModal from "./components/DemoModal";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
+import { configureConnectivity } from "./utils/connectivity";
 
 // Extend Window interface to include API_URL
 declare global {
@@ -22,6 +23,14 @@ declare global {
 }
 
 function App() {
+  // During render, not in an effect: child effects run before the parent's, so configuring this
+  // in `useEffect` left `SyncStatusIndicator` probing before it knew where the API was — and
+  // silently treating the board as reachable because no URL was set.
+  useMemo(() => {
+    const env = getEnvConfig();
+    configureConnectivity({ baseApiUrl: env.baseApiUrl, dataSource: env.dataSource });
+  }, []);
+
   const [indexedDBAvailable, setIndexedDBAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
   // TODO : enable splash screen in production
