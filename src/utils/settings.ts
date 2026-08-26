@@ -52,6 +52,20 @@ export const SUBTASK_DISPLAYS: Array<SubtaskDisplay> = [
 ];
 
 /**
+ * A week's heading, per the `weekHeaderFormat` setting.
+ *
+ * The stored formats carry `[[WEEK]]` and `[[OF]]` placeholders: dayjs emits them as the
+ * literals `[WEEK]` and `[OF]`, which are then swapped for the translated words. Doing that
+ * inline is how the week selector and the leftover review would drift apart.
+ */
+export function weekHeaderLabel(
+    formatted: string,
+    words: { week: string; of: string },
+): string {
+    return formatted.replace("[WEEK]", words.week).replace("[OF]", words.of);
+}
+
+/**
  * How a task's subtask progress reads on the board, per the `subtaskDisplay` setting.
  *
  * Returns null when there is nothing worth showing — no subtasks, or the setting turned off.

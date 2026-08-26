@@ -13,6 +13,14 @@ import Event from "../data/event";
 import EventStore from "../store/EventStore";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 
+/**
+ * Where a task left behind in a past week goes next.
+ *
+ * `sameDay` keeps the weekday it was planned for — a Tuesday task stays a Tuesday task, one
+ * week later — because most leftovers slipped for reasons that repeat weekly.
+ */
+export type RescueDestination = 'sameDay' | 'thisWeek' | 'someday';
+
 interface DataContextProps {
   tasks: Array<Task>;
   findTask: (taskId: string) => Task | null;
@@ -21,6 +29,8 @@ interface DataContextProps {
   completeTask: (task: Task) => void;
   uncompleteTask: (task: Task) => void;
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
+  /** Bring a task that slipped out of a past week back into the present. */
+  rescueTask: (task: Task, destination: RescueDestination) => Promise<void>;
   deleteTask: (task: Task) => void;
   events: Array<Event>;
   categories: Array<Category>;
@@ -383,6 +393,47 @@ const DataProvider: React.FC<DataProviderProps> = ({
     }
   };
 
+  /**
+   * Move a task out of the week it was left behind in.
+   *
+   * Not `moveTask`: that one re-indexes the siblings a drag displaced, and works from `tasks`,
+   * which only ever holds the week being viewed. A leftover is by definition somewhere else, so
+   * it lands at the end of its destination and nothing else has to shift.
+   *
+   * The board keeps it only if it landed in the week on screen — including the case where the
+   * week on screen is the one the task just left.
+   */
+  const rescueTask = async (task: Task, destination: RescueDestination): Promise<void> => {
+    if (!taskStore) {
+      return;
+    }
+
+    const thisWeek = dayjs().format("GGGG[w]WW");
+    const day: DayOfWeek = destination === "thisWeek"
+      ? "0"
+      : ((task as WeeklyTask).dayOfWeek ?? "0");
+
+    // Same id either way: a move is an upsert, never a delete and a create, or the task would
+    // lose the history that explains why it kept slipping.
+    const rescued = destination === "someday"
+      ? new SomedayTask({ ...task })
+      : new WeeklyTask({ ...task, weekCode: thisWeek, dayOfWeek: day });
+
+    rescued.order = destination === "someday"
+      ? await taskStore.nextOrder(null, null)
+      : await taskStore.nextOrder(thisWeek, day);
+
+    const stored = await taskStore.update(rescued);
+
+    setTasks((prevTasks) => {
+      const without = prevTasks.filter((prevTask) => prevTask.id !== stored.id);
+      const onScreen = stored.taskType === "someday"
+        || (stored as WeeklyTask).weekCode === currentWeek;
+
+      return onScreen ? [...without, stored] : without;
+    });
+  };
+
   const memoizedTasks = useMemo(() => {
     return tasks
       .filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.categoryId ?? NO_CATEGORY_KEY))
@@ -419,6 +470,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         completeTask,
         uncompleteTask,
         moveTask,
+        rescueTask,
         deleteTask,
         events: memoizedEvents,
         categories,

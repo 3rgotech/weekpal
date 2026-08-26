@@ -134,5 +134,21 @@
         "delete": "Delete project",
         "category": "Project category",
         "no_category": "No category"
+    },
+    "leftovers": {
+        "title": "Left behind",
+        "summary_one": "{{count}} task never got done",
+        "summary_other": "{{count}} tasks never got done",
+        "intro": "Tick what you actually finished, drop what stopped mattering, and move the rest into this week.",
+        "loading": "Looking for what slipped…",
+        "empty": "Nothing was left behind. Every week before this one is clear.",
+        "open": "Tasks left behind",
+        "complete": "Done after all",
+        "delete": "No longer relevant",
+        "same_day": "Same day",
+        "this_week": "This week",
+        "some_day": "Some day",
+        "later": "Later",
+        "done": "Close"
     }
 }

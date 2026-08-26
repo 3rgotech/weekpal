@@ -1,6 +1,6 @@
 import Task, { WeeklyTask, SomedayTask } from '../../data/task';
 import Event from '../../data/event';
-import { ITaskAdapter, WeekPayload } from '../../types';
+import { ITaskAdapter, LeftoverPayload, WeekPayload } from '../../types';
 import { APIBaseAdapter } from './APIBaseAdapter';
 
 /**
@@ -29,6 +29,25 @@ class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
             .filter((event): event is Event => event !== null);
 
         return { tasks, events };
+    }
+
+    /**
+     * Everything still outstanding from weeks that have ended.
+     *
+     * Not derivable from the week endpoint: the client only ever holds the weeks it has
+     * browsed, so a task abandoned in a week nobody has opened since is invisible to it. The
+     * server answers with the whole window at once, and says where the window starts.
+     */
+    async leftovers(): Promise<LeftoverPayload> {
+        const response = await this.getClient()
+            .get('tasks/leftovers')
+            .json<{ data: any[]; meta?: { since?: string } }>();
+
+        const tasks = (response.data ?? [])
+            .map((row) => Task.createFromApiData(row))
+            .filter((task): task is WeeklyTask | SomedayTask => task !== null);
+
+        return { tasks, since: response.meta?.since ?? '' };
     }
 
     /**

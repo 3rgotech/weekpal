@@ -5,6 +5,7 @@ import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
 import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS } from "../utils/color";
+import { weekHeaderLabel } from "../utils/settings";
 
 const WeekSelector: React.FC = () => {
   const { settings } = useSettings();
@@ -13,11 +14,10 @@ const WeekSelector: React.FC = () => {
     useCalendar();
   const dayjs = useDayJs(settings.language);
 
-  const [title1, title2] = dayjs(currentDate)
-    .format(settings.weekHeaderFormat)
-    .replace("[WEEK]", t("misc.week"))
-    .replace("[OF]", t("misc.of"))
-    .split(" - ");
+  const [title1, title2] = weekHeaderLabel(
+    dayjs(currentDate).format(settings.weekHeaderFormat),
+    { week: t("misc.week"), of: t("misc.of") },
+  ).split(" - ");
 
   return (
     <div className="flex items-stretch">
