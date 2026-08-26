@@ -13,9 +13,12 @@ import SyncStatusIndicator from "./SyncStatusIndicator";
 import VisibilityFilter from "./VisibilityFilter";
 import { getEnvConfig } from "../utils/env";
 
-interface TopBarProps { }
+interface TopBarProps {
+  /** Opens the weekly look back at unfinished tasks, which otherwise shows itself once a week. */
+  onReviewLeftovers?: () => void;
+}
 
-const TopBar: React.FC<TopBarProps> = () => {
+const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
 
@@ -44,6 +47,18 @@ const TopBar: React.FC<TopBarProps> = () => {
           </div>
         </Tooltip>
         {/* <Menu icon="refresh" title="Refresh" /> */}
+        {onReviewLeftovers && (
+          <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+            <IconButton
+              icon="inbox"
+              iconClass={ICON_BUTTON_CLASS}
+              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+              tooltip={t("leftovers.open")}
+              onClick={onReviewLeftovers}
+              size="md"
+            />
+          </div>
+        )}
         <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton
             icon="print"

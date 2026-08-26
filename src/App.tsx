@@ -10,6 +10,7 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
+import LeftoverReview from "./components/LeftoverReview";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
@@ -47,6 +48,9 @@ function App() {
     null
   );
   const [showDemoModal, setShowDemoModal] = useState(false);
+  // Held here rather than inside the review: the button that reopens it lives in the top bar,
+  // which is a sibling, and the review itself needs the data provider to look for leftovers.
+  const [showLeftoverReview, setShowLeftoverReview] = useState(false);
 
   useEffect(() => {
     if (!window.indexedDB) {
@@ -113,7 +117,7 @@ function App() {
                 ) : (
                   <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white">
                     <header className="flex-none">
-                      <TopBar />
+                      <TopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
                     </header>
                     <div className="flex-grow overflow-hidden">
                       <MainContent />
@@ -121,6 +125,10 @@ function App() {
                     <DemoModal
                       isOpen={showDemoModal}
                       onClose={() => setShowDemoModal(false)}
+                    />
+                    <LeftoverReview
+                      isOpen={showLeftoverReview}
+                      onOpenChange={setShowLeftoverReview}
                     />
                   </div>
                 )}

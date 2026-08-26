@@ -134,5 +134,21 @@
         "hide_weekends": "Masquer le week-end",
         "collapse_events": "Réduire les événements",
         "expand_events": "Développer les événements"
+    },
+    "leftovers": {
+        "title": "Restés en plan",
+        "summary_one": "{{count}} tâche n'a jamais été faite",
+        "summary_other": "{{count}} tâches n'ont jamais été faites",
+        "intro": "Cochez ce qui est en fait terminé, supprimez ce qui n'a plus d'intérêt, et déplacez le reste dans cette semaine.",
+        "loading": "Recherche de ce qui a été oublié…",
+        "empty": "Rien n'est resté en plan. Toutes les semaines précédentes sont à jour.",
+        "open": "Tâches restées en plan",
+        "complete": "Finalement faite",
+        "delete": "Plus d'actualité",
+        "same_day": "Même jour",
+        "this_week": "Cette semaine",
+        "some_day": "Un jour",
+        "later": "Plus tard",
+        "done": "Fermer"
     }
 }

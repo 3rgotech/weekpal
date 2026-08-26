@@ -104,6 +104,7 @@ export type SyncFailureKind = 'transient' | 'permanent' | 'conflict' | 'unauthor
  */
 export interface ITaskStore {
   list(weekCode: string): Promise<Task[]>;
+  leftovers(): Promise<WeeklyTask[]>;
   reload(task: Task | string): Promise<Task | null>;
   create(task: Task): Promise<Task>;
   update(task: Task): Promise<Task>;
@@ -155,8 +156,19 @@ export interface ICategoryStore {
 
 export interface WeekPayload { tasks: Task[]; events: Event[] }
 
+/**
+ * Unfinished tasks from weeks that have ended, and where that scope starts.
+ *
+ * `since` is the oldest week the server looked at — the plan's history window. Without it the
+ * client could not tell "you have nothing older outstanding" from "your plan hides it", and so
+ * could not safely drop the local rows the response leaves out.
+ */
+export interface LeftoverPayload { tasks: Task[]; since: string }
+
 export interface ITaskAdapter {
   getWeek(weekCode: string): Promise<WeekPayload>;
+  /** Everything still outstanding from weeks that have already ended. */
+  leftovers(): Promise<LeftoverPayload>;
   upsert(task: Task): Promise<Task>;
   /** Moves and reorders: the whole affected set in one request. */
   upsertMany(tasks: Task[]): Promise<Task[]>;

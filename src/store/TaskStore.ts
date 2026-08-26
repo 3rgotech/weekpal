@@ -1,6 +1,6 @@
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import Event from "../data/event";
-import { ITaskAdapter, ITaskStore } from "../types";
+import { DayOfWeek, ITaskAdapter, ITaskStore } from "../types";
 import { getDayJs } from "../utils/dayjs";
 import { classifyFailure } from "../utils/SyncService";
 import { reportSyncFailure, reportSyncHealth } from "../utils/syncStatus";
@@ -24,6 +24,102 @@ class TaskStore extends BaseStore implements ITaskStore {
         const somedayTasks = await this.visibleSomedayTasks(weekCode);
 
         return [...weeklyTasks, ...somedayTasks];
+    }
+
+    /**
+     * Everything still outstanding from weeks that have already ended, oldest first.
+     *
+     * Deliberately not derived from what the board has cached: the local database only holds
+     * the weeks this browser has opened, so a task abandoned in a week nobody has revisited is
+     * missing from it entirely — which is precisely the task the weekly review exists to
+     * surface. The server is asked when it can be reached, and its answer is cached so the
+     * review still works on the next load without a connection.
+     */
+    async leftovers(): Promise<WeeklyTask[]> {
+        const current = getDayJs()().format('GGGG[w]WW');
+        const local = await this.localLeftovers(current);
+
+        if (!this.canSync('task') || !this.adapter) {
+            return local;
+        }
+
+        try {
+            const { tasks, since } = await this.adapter.leftovers();
+            const pending = await this.syncService.pendingEntityIds('task');
+
+            const incoming = tasks
+                .filter((task): task is WeeklyTask => task.taskType === 'weekly')
+                .filter((task) => !pending.has(task.id));
+
+            await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
+                await this.db.somedayTasks.bulkDelete(incoming.map((task) => task.id));
+
+                if (incoming.length > 0) {
+                    await this.db.weeklyTasks.bulkPut(incoming);
+                }
+            });
+
+            reportSyncHealth('ok');
+
+            // The server's answer, plus the rows it could not have known about: anything edited
+            // offline whose write is still queued. Nothing is deleted locally on the strength of
+            // an omission here — a task missing from this list has usually been completed
+            // elsewhere, not deleted, and the week pull is what reconciles that properly.
+            const returned = new Set(incoming.map((task) => task.id));
+            const queued = local.filter((task) => pending.has(task.id) && !returned.has(task.id));
+
+            // `since` is the oldest week the server looked at. Weeks behind it are hidden by the
+            // plan's history window, and a cached copy must not be the way around it.
+            const visible = [...incoming, ...queued]
+                .filter((task) => since === '' || task.weekCode >= since);
+
+            return this.sortLeftovers(visible);
+        } catch (error) {
+            reportSyncFailure(classifyFailure(error));
+            console.error('Could not read the tasks left behind:', error);
+
+            return local;
+        }
+    }
+
+    /**
+     * Where a task dropped into a bucket should sit: after everything already waiting there.
+     *
+     * Answered from the cache alone, without a pull. The bucket being filled is always in the
+     * current week or Someday, which the board has just loaded, and an order is a hint the next
+     * drag rewrites anyway — not worth a request.
+     */
+    async nextOrder(weekCode: string | null, dayOfWeek: DayOfWeek | null): Promise<number> {
+        if (weekCode === null) {
+            const someday = await this.db.somedayTasks.toArray();
+
+            return someday.filter((task) => !task.belongsToProject && !task.completedAt).length;
+        }
+
+        const week = await this.db.weeklyTasks.where('weekCode').equals(weekCode).toArray();
+
+        return week.filter((task) => `${task.dayOfWeek}` === `${dayOfWeek}` && !task.completedAt).length;
+    }
+
+    /** What the cache alone can answer: unfinished tasks sitting in a week that has ended. */
+    private async localLeftovers(current: string): Promise<WeeklyTask[]> {
+        const rows = await this.db.weeklyTasks.toArray();
+
+        return this.sortLeftovers(rows.filter((task) => task.weekCode < current && !task.completedAt));
+    }
+
+    /**
+     * Oldest first, then down the week and through each day's order — the same reading order as
+     * the board, so a leftover sits where the eye expects it.
+     *
+     * Week codes compare as strings because the format is fixed-width and ISO-year first.
+     */
+    private sortLeftovers(tasks: WeeklyTask[]): WeeklyTask[] {
+        return [...tasks].sort((a, b) => (
+            a.weekCode.localeCompare(b.weekCode)
+            || `${a.dayOfWeek}`.localeCompare(`${b.dayOfWeek}`)
+            || (a.order ?? 0) - (b.order ?? 0)
+        ));
     }
 
     /**
