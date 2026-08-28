@@ -205,13 +205,22 @@ export class WeekpalDB extends Dexie {
             projects: 'id, name, categoryId',
         });
 
-        // Custom hooks to convert the objects to class instances
-        this.weeklyTasks.hook('reading', (task) => new WeeklyTask(task));
-        this.somedayTasks.hook('reading', (task) => new SomedayTask(task));
-        this.categories.hook('reading', (category) => new Category(category));
-        this.events.hook('reading', (event) => new Event(event));
-        this.taskNotes.hook('reading', (note) => new Note(note));
-        this.projects.hook('reading', (project) => new Project(project));
+        // Custom hooks to convert the objects to class instances.
+        //
+        // Each guards against a miss: Dexie runs the reading hook even when `get()` found
+        // nothing, handing it `undefined`. Constructing from that throws inside the hook, so the
+        // read rejected instead of resolving to nothing — and every caller of `TaskStore.reload`
+        // took it. A task moved out of the weekly table (to Someday, or to a project backlog) is
+        // exactly that case: the write landed, then reloading it blew up, so whatever was waiting
+        // on the move — the edit modal closing itself — never happened.
+        const instantiate = <T,>(build: (row: any) => T) => (row: any) => (row ? build(row) : row);
+
+        this.weeklyTasks.hook('reading', instantiate((task) => new WeeklyTask(task)));
+        this.somedayTasks.hook('reading', instantiate((task) => new SomedayTask(task)));
+        this.categories.hook('reading', instantiate((category) => new Category(category)));
+        this.events.hook('reading', instantiate((event) => new Event(event)));
+        this.taskNotes.hook('reading', instantiate((note) => new Note(note)));
+        this.projects.hook('reading', instantiate((project) => new Project(project)));
 
         this.on("populate", function (transaction: Transaction) {
             if (dataSource === 'test' || dataSource === 'demo') {

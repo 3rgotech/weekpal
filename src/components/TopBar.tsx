@@ -40,7 +40,9 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
 
   return (
     <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
-      <div className="flex items-stretch">
+      {/* `min-w-0` so the week label and sync chip give way rather than pushing the buttons off
+          the right edge, which is what a tablet-width bar did. */}
+      <div className="flex items-stretch min-w-0">
         <Logo />
         <WeekSelector />
         <div className="flex items-center ml-4">
@@ -49,13 +51,13 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
       </div>
       <div className="flex items-stretch">
         <Tooltip content={t("actions.category_filter")} placement="left" showArrow classNames={TOOLTIP_CLASSES}>
-          <div className="flex items-stretch justify-center h-16 border-l border-slate-300 dark:border-sky-900">
+          <div className="flex items-stretch justify-center h-12 xl:h-16 border-l border-slate-300 dark:border-sky-900">
             <CategoryFilter />
           </div>
         </Tooltip>
         {/* <Menu icon="refresh" title="Refresh" /> */}
         {onReviewLeftovers && (
-          <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
             <Badge
               content={badge}
               color="danger"
@@ -75,7 +77,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
             </Badge>
           </div>
         )}
-        <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton
             icon="print"
             iconClass={ICON_BUTTON_CLASS}
@@ -88,11 +90,11 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
           />
         </div>
         <Tooltip content={t("actions.visibility_filter")} placement="bottom" showArrow classNames={TOOLTIP_CLASSES}>
-          <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
             <VisibilityFilter />
           </div>
         </Tooltip>
-        <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton
             icon="settings"
             iconClass={ICON_BUTTON_CLASS}
@@ -106,7 +108,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
           <SignupCallToAction signupUrl={signupUrl} loginUrl={loginUrl} />
         )}
         {accountUrl && (
-          <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
             <IconButton
               icon="user"
               iconClass={ICON_BUTTON_CLASS}

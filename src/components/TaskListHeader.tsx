@@ -24,14 +24,16 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   return (
     <div
       className={clsx(
-        "flex items-center pb-3 border-b-2",
+        "flex items-center pb-2 xl:pb-3 border-b-2",
         isToday ? "border-sky-500 text-sky-500" : "border-slate-200"
       )}
     >
-      <h2 className="flex-1 text-center">
-        <span className="text-lg leading-[4px]">{day}</span>
-        <br />
-        <span className="text-base leading-[4px] uppercase">{date}</span>
+      {/* Both lines truncate rather than wrap. A tablet-width column turned "26 AUGUST 2026" into
+          three lines, and three-line headers pushed the day's own tasks out of a grid row whose
+          height is fixed — the list under Sunday was clipped mid-sentence. */}
+      <h2 className="flex-1 min-w-0 text-center leading-tight">
+        <span className="block truncate text-sm xl:text-lg">{day}</span>
+        <span className="block truncate text-xs xl:text-base uppercase">{date}</span>
       </h2>
       {/* TODO : Add menu */}
       <IconButton

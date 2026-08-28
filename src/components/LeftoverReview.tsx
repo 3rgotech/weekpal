@@ -18,7 +18,7 @@ import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { RescueDestination, useData } from "../contexts/DataContext";
 import { useSettings } from "../contexts/SettingsContext";
-import useDayJs from "../utils/dayjs";
+import useDayJs, { weekCodeToDate } from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
 import { WeeklyTask } from "../data/task";
 import IconButton from "./IconButton";
@@ -171,7 +171,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
             <section key={weekCode} className="flex flex-col gap-1">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 {weekHeaderLabel(
-                  dayjs(weekCode, "GGGG[w]WW").startOf("isoWeek").format(settings.weekHeaderFormat),
+                  weekCodeToDate(weekCode).format(settings.weekHeaderFormat),
                   { week: t("misc.week"), of: t("misc.of") },
                 )}
               </h3>

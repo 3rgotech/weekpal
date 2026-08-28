@@ -1,7 +1,7 @@
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import Event from "../data/event";
 import { DayOfWeek, ITaskAdapter, ITaskStore } from "../types";
-import { getDayJs } from "../utils/dayjs";
+import { getDayJs, weekCodeToDate } from "../utils/dayjs";
 import { classifyFailure } from "../utils/SyncService";
 import { reportSyncFailure, reportSyncHealth } from "../utils/syncStatus";
 import BaseStore from "./BaseStore";
@@ -219,9 +219,9 @@ class TaskStore extends BaseStore implements ITaskStore {
      * task and lets the client decide what to show.
      */
     private async visibleSomedayTasks(weekCode: string): Promise<SomedayTask[]> {
-        const dayjs = getDayJs();
-        const [isoYear, isoWeek] = weekCode.split('w');
-        const reference = dayjs().set('year', parseInt(isoYear, 10)).isoWeek(parseInt(isoWeek, 10));
+        // One week-code parser for the whole client: this used to build its own reference date
+        // from today, which drifts across a year boundary in a way the shared helper cannot.
+        const reference = weekCodeToDate(weekCode);
         const startOfWeek = reference.startOf("isoWeek").toDate();
         const endOfWeek = reference.endOf("isoWeek").toDate();
 
