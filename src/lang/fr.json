@@ -19,7 +19,9 @@
     "main": {
         "this_week": "Cette semaine",
         "some_day": "Un jour",
-        "add_new_task": "Cliquez pour ajouter une tâche"
+        "add_new_task": "Cliquez pour ajouter une tâche",
+        "this_week_short": "CS",
+        "some_day_short": "UJ"
     },
     "actions": {
         "add_task": "Ajouter la tâche",
@@ -39,7 +41,8 @@
         "cancel": "Annuler",
         "save": "Enregistrer",
         "sign_up": "S'inscrire",
-        "log_in": "Se connecter"
+        "log_in": "Se connecter",
+        "menu": "Menu"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",
@@ -102,7 +105,20 @@
             "new": "Nouvelle sous-tâche"
         },
         "project": "Projet",
-        "category_from_project": "Définie par le projet"
+        "category_from_project": "Définie par le projet",
+        "menu": {
+            "open": "Menu de la tâche",
+            "move": "Déplacer la tâche vers",
+            "actions": "Actions",
+            "today": "Aujourd'hui",
+            "tomorrow": "Demain",
+            "next_monday": "Lundi prochain",
+            "next_week": "Semaine prochaine (même jour)",
+            "this_week": "Cette semaine",
+            "some_day": "Un jour",
+            "duplicate": "Dupliquer",
+            "delete": "Supprimer"
+        }
     },
     "misc": {
         "of": "de",

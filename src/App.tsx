@@ -11,6 +11,9 @@ import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
 import LeftoverReview from "./components/LeftoverReview";
+import MobileBoard from "./components/MobileBoard";
+import MobileTopBar from "./components/MobileTopBar";
+import { useVerticalLayout } from "./utils/layout";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
@@ -24,6 +27,10 @@ declare global {
 }
 
 function App() {
+  // Which board renders, not merely how it looks: the wide one mounts a drag-and-drop context
+  // that the narrow one has no use for, and that choice cannot be made in CSS.
+  const vertical = useVerticalLayout();
+
   // During render, not in an effect: child effects run before the parent's, so configuring this
   // in `useEffect` left `SyncStatusIndicator` probing before it knew where the API was — and
   // silently treating the board as reachable because no URL was set.
@@ -117,10 +124,14 @@ function App() {
                 ) : (
                   <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white">
                     <header className="flex-none">
-                      <TopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
+                      {vertical ? (
+                        <MobileTopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
+                      ) : (
+                        <TopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
+                      )}
                     </header>
                     <div className="flex-grow overflow-hidden">
-                      <MainContent />
+                      {vertical ? <MobileBoard /> : <MainContent />}
                     </div>
                     <DemoModal
                       isOpen={showDemoModal}

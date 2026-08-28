@@ -1,5 +1,5 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import CategoryStore from "../store/CategoryStore";
@@ -12,6 +12,7 @@ import useDayJs from "../utils/dayjs";
 import Event from "../data/event";
 import EventStore from "../store/EventStore";
 import { NO_CATEGORY_KEY } from "../utils/categories";
+import { newId } from "../utils/id";
 
 /**
  * Where a task left behind in a past week goes next.
@@ -31,6 +32,10 @@ interface DataContextProps {
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
   /** Bring a task that slipped out of a past week back into the present. */
   rescueTask: (task: Task, destination: RescueDestination) => Promise<void>;
+  /** Send a task to a week and day of your choosing, keeping its identity. */
+  relocateTask: (task: Task, target: TaskLocation) => Promise<void>;
+  /** Copy a task into the same place, unfinished. */
+  duplicateTask: (task: Task) => Promise<void>;
   /**
    * Unfinished tasks from weeks that have already ended.
    *
@@ -455,27 +460,20 @@ const DataProvider: React.FC<DataProviderProps> = ({
    * The board keeps it only if it landed in the week on screen — including the case where the
    * week on screen is the one the task just left.
    */
-  const rescueTask = async (task: Task, destination: RescueDestination): Promise<void> => {
+  const relocateTask = async (task: Task, target: TaskLocation): Promise<void> => {
     if (!taskStore) {
       return;
     }
 
-    const thisWeek = dayjs().format("GGGG[w]WW");
-    const day: DayOfWeek = destination === "thisWeek"
-      ? "0"
-      : ((task as WeeklyTask).dayOfWeek ?? "0");
-
     // Same id either way: a move is an upsert, never a delete and a create, or the task would
-    // lose the history that explains why it kept slipping.
-    const rescued = destination === "someday"
+    // lose the history that explains where it has been.
+    const moved = target.weekCode === null
       ? new SomedayTask({ ...task })
-      : new WeeklyTask({ ...task, weekCode: thisWeek, dayOfWeek: day });
+      : new WeeklyTask({ ...task, weekCode: target.weekCode, dayOfWeek: target.dayOfWeek ?? "0" });
 
-    rescued.order = destination === "someday"
-      ? await taskStore.nextOrder(null, null)
-      : await taskStore.nextOrder(thisWeek, day);
+    moved.order = await taskStore.nextOrder(target.weekCode, target.dayOfWeek);
 
-    const stored = await taskStore.update(rescued);
+    const stored = await taskStore.update(moved);
 
     dropLeftover(stored.id);
 
@@ -485,6 +483,57 @@ const DataProvider: React.FC<DataProviderProps> = ({
         || (stored as WeeklyTask).weekCode === currentWeek;
 
       return onScreen ? [...without, stored] : without;
+    });
+  };
+
+  const rescueTask = (task: Task, destination: RescueDestination): Promise<void> => {
+    const thisWeek = dayjs().format("GGGG[w]WW");
+
+    if (destination === "someday") {
+      return relocateTask(task, { weekCode: null, dayOfWeek: null });
+    }
+
+    return relocateTask(task, {
+      weekCode: thisWeek,
+      dayOfWeek: destination === "thisWeek" ? "0" : ((task as WeeklyTask).dayOfWeek ?? "0"),
+    });
+  };
+
+  /**
+   * Copy a task into the same place, ready to be done again.
+   *
+   * The copy is unfinished and its subtasks are unticked whatever the original's state: a task is
+   * duplicated in order to repeat the work, and a copy that arrives already crossed off would
+   * have to be undone by hand before it was any use.
+   */
+  const duplicateTask = async (task: Task): Promise<void> => {
+    if (!taskStore) {
+      return;
+    }
+
+    const weekly = task instanceof WeeklyTask ? task : null;
+    const fields = {
+      ...task,
+      id: newId(),
+      completedAt: null,
+      createdAt: null,
+      updatedAt: null,
+      subtasks: task.subtasks.map((subtask) => ({ ...subtask, completed: false })),
+    };
+
+    const copy = weekly
+      ? new WeeklyTask({ ...fields, weekCode: weekly.weekCode, dayOfWeek: weekly.dayOfWeek })
+      : new SomedayTask(fields);
+
+    copy.order = await taskStore.nextOrder(weekly ? weekly.weekCode : null, weekly ? weekly.dayOfWeek : null);
+
+    const stored = await taskStore.create(copy);
+
+    setTasks((prevTasks) => {
+      const onScreen = stored.taskType === "someday"
+        || (stored as WeeklyTask).weekCode === currentWeek;
+
+      return onScreen ? [...prevTasks, stored] : prevTasks;
     });
   };
 
@@ -525,6 +574,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
         uncompleteTask,
         moveTask,
         rescueTask,
+        relocateTask,
+        duplicateTask,
         leftovers,
         leftoversLoaded,
         refreshLeftovers,

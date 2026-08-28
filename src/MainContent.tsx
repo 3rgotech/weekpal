@@ -232,12 +232,14 @@ const MainContent: React.FC<MainContentProps> = () => {
       {/* The drawer sits inside the DndContext, which is the point of putting projects here at
           all: a backlog task can be dragged straight out of its list and onto a day. */}
       <div className="h-full flex flex-row overflow-hidden">
-      <div className="p-4 flex-1 flex flex-col overflow-hidden">
-        <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-4 mb-4 overflow-hidden">
+      <div className="p-2 xl:p-4 flex-1 flex flex-col overflow-hidden">
+        <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
           {[...Array(7).keys()].map((i) => (
             <div
               className={clsx(
-                `overflow-hidden rounded-lg`,
+                // `min-h-0` is what makes the cell scroll its own list: without it a grid item
+                // takes its content's height as a minimum and spills past the row.
+                `min-h-0 overflow-hidden rounded-lg`,
                 [5, 6].includes(i)
                   ? "col-span-1 row-span-1"
                   : "col-span-1 row-span-2"
@@ -252,12 +254,12 @@ const MainContent: React.FC<MainContentProps> = () => {
             </div>
           ))}
           <div
-            className={`col-span-3 row-span-1 overflow-hidden rounded-lg`}
+            className={`col-span-3 row-span-1 min-h-0 overflow-hidden rounded-lg`}
           >
             <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
           </div>
           <div
-            className={`col-span-3 row-span-1 overflow-hidden rounded-lg`}
+            className={`col-span-3 row-span-1 min-h-0 overflow-hidden rounded-lg`}
           >
             <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
           </div>

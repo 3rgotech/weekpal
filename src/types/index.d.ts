@@ -36,6 +36,17 @@ export interface Settings {
 
 export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";
 
+/**
+ * Where a task sits: an ISO week and a day within it, or neither.
+ *
+ * `weekCode: null` is Someday — the absence of a week, never a day value on its own. This is the
+ * client's mirror of the invariant the tasks table enforces (API-CONTRACT.md §4b).
+ */
+export interface TaskLocation {
+  weekCode: string | null;
+  dayOfWeek: DayOfWeek | null;
+}
+
 export interface WeekTaskList {
   // 0 : this week
   "0": Array<Task>,

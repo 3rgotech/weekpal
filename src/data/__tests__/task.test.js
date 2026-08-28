@@ -145,3 +145,19 @@ describe("Task.toApiPayload", () => {
     expect(restored.dayOfWeek).toBe(original.dayOfWeek);
   });
 });
+
+/**
+ * Dexie writes an object's own enumerable properties and rebuilds instances from what it read, so
+ * the shape of a task *is* its storage schema. `dayOfWeek` behind an accessor would be stored
+ * under the backing field's name and come back undefined — every task in IndexedDB losing its day.
+ */
+describe("what IndexedDB will store", () => {
+    it("keeps the location fields as own properties", () => {
+        const task = new WeeklyTask({ title: "Mow lawn", weekCode: "2026w35", dayOfWeek: "3" });
+        const stored = { ...task };
+
+        expect(Object.keys(stored)).toEqual(expect.arrayContaining(["id", "title", "weekCode", "dayOfWeek"]));
+        expect(new WeeklyTask(stored).dayOfWeek).toBe("3");
+        expect(new WeeklyTask(stored).weekCode).toBe("2026w35");
+    });
+});

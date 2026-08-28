@@ -1,15 +1,15 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
+import { Button, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
 import Task, { SomedayTask, WeeklyTask } from "../data/task";
 import { useData } from "./DataContext";
 import { DayOfWeek } from "../types";
 import clsx from "clsx";
-import IconButton from "../components/IconButton";
-import { Copy, EllipsisVertical, SquareArrowDownLeft, SquareArrowDownRight, SquareArrowRight, SquareArrowUpRight, Trash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import TaskActivity from "../components/TaskActivity";
 import SubtaskEditor from "../components/SubtaskEditor";
+import TaskMenu from "../components/TaskMenu";
+import { useVerticalLayout } from "../utils/layout";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -27,7 +27,8 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [data, setData] = useState<Record<string, any>>({});
   const [mode, setMode] = useState<"CREATE" | "EDIT" | null>(null);
   const { t } = useTranslation();
-  const { addTask, updateTask, deleteTask, categories, projects } = useData();
+  const { addTask, updateTask, categories, projects } = useData();
+  const vertical = useVerticalLayout();
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   const open = (task: Task) => {
@@ -63,14 +64,6 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // return () => clearTimeout(timeout);
   }, [data]);
 
-  const handleDeleteTask = () => {
-    if (task) {
-      deleteTask(task);
-      setTask(null);
-      onOpenChange();
-    }
-  };
-
   const updateField = (field: keyof Task) => (value: string | SharedSelection) => {
     let transformedValue;
     if (field === 'categoryId') {
@@ -102,72 +95,10 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     reset();
   }
 
-  const taskToolbar = (
-    <div className="flex flex-row gap-1">
-      <Dropdown placement="bottom-end">
-        <DropdownTrigger>
-          <button className="p-0.5 dark:text-white">
-            <EllipsisVertical size={16} />
-          </button>
-        </DropdownTrigger>
-        <DropdownMenu>
-          <DropdownSection title="Move task to">
-            {/* TODO : move task to today if task is not on today, to tomorrow if task is on today */}
-            <DropdownItem
-              key="move_to_tomorrow"
-              endContent={<SquareArrowRight size={12} />}
-            >
-              <span>Tomorrow</span>
-            </DropdownItem>
-            <DropdownItem
-              key="move_to_next_monday"
-              endContent={<SquareArrowUpRight size={12} />}
-            >
-              <span>Next Monday</span>
-            </DropdownItem>
-            <DropdownItem
-              key="move_to_next_week"
-              endContent={<SquareArrowUpRight size={12} />}
-            >
-              <span>Next Week (same day)</span>
-            </DropdownItem>
-            <DropdownItem
-              key="move_to_this_week"
-              endContent={<SquareArrowDownLeft size={12} />}
-            >
-              <span>This week</span>
-            </DropdownItem>
-            <DropdownItem
-              key="move_to_someday"
-              endContent={<SquareArrowDownRight size={12} />}
-            >
-              <span>Some day</span>
-            </DropdownItem>
-          </DropdownSection>
-          <DropdownSection title="Actions">
-            <DropdownItem key="duplicate" endContent={<Copy size={12} />}>
-              <span>Duplicate</span>
-            </DropdownItem>
-            <DropdownItem
-              key="Delete"
-              color="danger"
-              classNames={{
-                base: "text-red-700",
-                description: "text-red-700",
-              }}
-              endContent={<Trash size={12} />}
-              onPress={() => {
-                handleDeleteTask();
-                onOpenChange();
-              }}
-            >
-              Delete
-            </DropdownItem>
-          </DropdownSection>
-        </DropdownMenu>
-      </Dropdown>
-    </div>
-  );
+  const closeTask = () => {
+    onClose();
+    reset();
+  };
 
   return (
     <TaskModalContext.Provider value={{ task, isOpen, open, openNewTask }}>
@@ -178,7 +109,12 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             <>
               <ModalHeader className="flex flex-row justify-between items-center gap-1 dark:text-white">
                 <span className="text-lg font-bold">{t('actions.edit_task')}</span>
-                {taskToolbar}
+                {/* Not in CREATE mode: there is nothing yet to move, copy or delete. Not on the
+                    vertical layout either, where the row this modal was opened from carries the
+                    same menu — two ⋮ for one task is a question about which one differs. */}
+                {mode === "EDIT" && !vertical && (
+                  <TaskMenu task={task} onAction={closeTask} />
+                )}
               </ModalHeader>
               <ModalBody>
                 <Input

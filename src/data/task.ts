@@ -1,5 +1,5 @@
 import { Dayjs } from "dayjs";
-import { getDayJs } from "../utils/dayjs";
+import { getDayJs, weekCodeToDate } from "../utils/dayjs";
 import { DayOfWeek, Subtask } from "../types";
 import Base from "./base";
 
@@ -81,6 +81,20 @@ abstract class Task extends Base {
     }
 
     abstract get taskType(): 'weekly' | 'someday';
+
+    /**
+     * Which bucket the task sits in — a weekday, the undated "0", or "someday".
+     *
+     * Declared here because every list in the application groups by it, and without it on the
+     * base class each of those reads was an error TypeScript reported and nobody could act on.
+     *
+     * A property rather than a getter, deliberately: `WeeklyTask` must keep it as a real field.
+     * Dexie stores an object's own enumerable properties, so moving it behind an accessor pair
+     * would write the backing field's name into IndexedDB and read `dayOfWeek` back undefined —
+     * every stored task would lose its day. Someday answers it with a getter, which is fine: it
+     * has no day to store.
+     */
+    abstract dayOfWeek: DayOfWeek;
 
     serialize(): Record<string, any> {
         return {
@@ -183,8 +197,7 @@ export class WeeklyTask extends Task {
     }
 
     get date(): Dayjs | null {
-        const dayjs = getDayJs();
-        return dayjs(this.weekCode, "GGGG[w]WW").startOf("isoWeek").add(parseInt(`${this.dayOfWeek}`, 10) - 1, "day");
+        return weekCodeToDate(this.weekCode).add(parseInt(`${this.dayOfWeek}`, 10) - 1, "day");
     }
 
     set date(date: Dayjs) {

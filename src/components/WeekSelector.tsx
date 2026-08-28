@@ -22,12 +22,12 @@ const WeekSelector: React.FC = () => {
   return (
     <div className="flex items-stretch">
       <div className="flex items-center justify-center border-r border-slate-300 dark:border-sky-900">
-        <div className="px-8">
+        <div className="px-3 xl:px-8 min-w-0 truncate">
           <span className="font-bold">{title1}</span>
           <span className=""> - {title2}</span>
         </div>
       </div>
-      <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
+      <div className="flex items-center justify-center size-12 xl:size-16 border-r border-slate-300 dark:border-sky-900">
         <IconButton
           icon="chevronLeft"
           onClick={goToPreviousWeek}
@@ -36,7 +36,7 @@ const WeekSelector: React.FC = () => {
           tooltip={t("actions.previous_week")}
         />
       </div>
-      <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
+      <div className="flex items-center justify-center size-12 xl:size-16 border-r border-slate-300 dark:border-sky-900">
         <IconButton
           icon="dot"
           onClick={goToToday}
@@ -45,7 +45,7 @@ const WeekSelector: React.FC = () => {
           tooltip={t("actions.this_week")}
         />
       </div>
-      <div className="flex items-center justify-center size-16 border-r border-slate-300 dark:border-sky-900">
+      <div className="flex items-center justify-center size-12 xl:size-16 border-r border-slate-300 dark:border-sky-900">
         <IconButton
           icon="chevronRight"
           onClick={goToNextWeek}

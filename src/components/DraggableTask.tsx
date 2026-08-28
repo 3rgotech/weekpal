@@ -3,22 +3,19 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useData } from "../contexts/DataContext";
 import { DayOfWeek, WeekTaskList } from "../types";
-import { Chip } from "@heroui/react";
 import IconButton from "./IconButton";
 import Task from "../data/task";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
-import { useSettings } from "../contexts/SettingsContext";
-import { subtaskProgressLabel } from "../utils/settings";
+import TaskContent from "./TaskContent";
 interface DraggableTaskProps {
   task: Task;
   dayOfWeek?: DayOfWeek;
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
-  const { completeTask, uncompleteTask, categories } = useData();
+  const { completeTask, uncompleteTask } = useData();
   const { t } = useTranslation();
-  const { settings } = useSettings();
   const {
     attributes,
     listeners,
@@ -35,13 +32,6 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
       dayOfWeek,
     },
   });
-
-  const category = categories.find((c) => c.id === task.categoryId);
-
-  // The `subtaskDisplay` setting has existed on both sides of the API since contract v1 with
-  // nothing reading it until now.
-  const { done, total } = task.subtaskProgress;
-  const subtaskLabel = subtaskProgressLabel(settings.subtaskDisplay, done, total);
 
   const cursor = isDragging ? "grabbing" : "grab";
 
@@ -68,40 +58,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
             className="flex flex-1 items-center gap-x-1"
             style={{ cursor }}
           >
-            {category && (
-              <Chip
-                size="sm"
-                className={clsx(
-                  "text-xs rounded-md text-white",
-                  category.getColorClass("bg"),
-                  task.completed && "bg-opacity-60"
-                )}
-              >
-                {category.name}
-              </Chip>
-            )}
-            <h3
-              className={clsx(
-                "text-sm font-medium truncate",
-                task.completed &&
-                "text-slate-400 line-through dark:text-slate-400",
-                !task.completed && category && category.getColorClass("text")
-              )}
-            >
-              {task.title}
-            </h3>
-
-            {subtaskLabel && (
-              <span
-                className={clsx(
-                  "shrink-0 text-xs tabular-nums",
-                  done === total ? "text-green-600" : "text-slate-400"
-                )}
-                title={t("task.subtasks.progress", { done, total })}
-              >
-                {subtaskLabel}
-              </span>
-            )}
+            <TaskContent task={task} />
           </div>
           <div className="group-hover:flex hidden items-center">
             <IconButton
