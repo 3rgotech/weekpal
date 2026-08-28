@@ -14,6 +14,7 @@ import VisibilityFilter from "./VisibilityFilter";
 import { getEnvConfig } from "../utils/env";
 import { useData } from "../contexts/DataContext";
 import { leftoverBadge } from "../utils/settings";
+import { useInstallPrompt } from "../utils/install";
 
 interface TopBarProps {
   /** Opens the weekly look back at unfinished tasks, which otherwise shows itself once a week. */
@@ -24,6 +25,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
   const { leftovers } = useData();
+  const { canInstall, needsManualSteps, install } = useInstallPrompt();
 
   // Closing the review hides it until next week, so without this the board gave no sign that
   // anything was still waiting in it.
@@ -75,6 +77,22 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
                 size="md"
               />
             </Badge>
+          </div>
+        )}
+        {/* Only when there is something to install: gone inside the installed app, and gone in
+            any browser that cannot install at all. An iPad in landscape gets this bar too, and
+            iOS has no prompt to fire — so there the tooltip carries the instruction rather than
+            labelling a button that would do nothing. */}
+        {canInstall && (
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+            <IconButton
+              icon="download"
+              iconClass={ICON_BUTTON_CLASS}
+              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+              tooltip={needsManualSteps ? t("actions.install_steps") : t("actions.install")}
+              onClick={() => { void install(); }}
+              size="md"
+            />
           </div>
         )}
         <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
