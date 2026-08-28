@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Printing: one landscape A4 of the week, black on white.
+ *
+ * The sheet itself is `PrintSheet`, hidden on screen and revealed by Tailwind's `print:` variant.
+ * What is left here is everything that variant cannot reach — the page box, the colours the theme
+ * puts on `body`, and the portals HeroUI attaches outside `#root`.
+ */
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    /* The theme class sits on `body` (SettingsContext), so dark mode paints the page itself.
+       Browsers drop background colours when printing by default, but not the text colour — dark
+       mode would otherwise print near-white text onto white paper. */
+    html,
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+
+    /* HeroUI renders modals and menu popovers into portals appended to `body`, outside the React
+       tree — so a print fired with the task menu open would put the menu on the paper. They are
+       siblings of `#root`, which is what this reaches. */
+    body > *:not(#root) {
+        display: none !important;
+    }
+}
+
 .loader {
     width: 85px;
     height: 50px;

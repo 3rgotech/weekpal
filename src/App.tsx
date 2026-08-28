@@ -13,6 +13,7 @@ import DemoModal from "./components/DemoModal";
 import LeftoverReview from "./components/LeftoverReview";
 import MobileBoard from "./components/MobileBoard";
 import MobileTopBar from "./components/MobileTopBar";
+import PrintSheet from "./components/PrintSheet";
 import { useVerticalLayout } from "./utils/layout";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
@@ -122,7 +123,7 @@ function App() {
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (
-                  <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white">
+                  <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white print:hidden">
                     <header className="flex-none">
                       {vertical ? (
                         <MobileTopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
@@ -143,6 +144,10 @@ function App() {
                     />
                   </div>
                 )}
+
+                {/* Outside the shell above, which is hidden on paper. Always mounted so ⌘P works
+                    as well as the toolbar button. */}
+                <PrintSheet />
               </TaskModalProvider>
             </DataProvider>
           </CalendarProvider>

@@ -83,11 +83,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                 key="print"
                 className="dark:text-white"
                 startContent={<Printer size={16} />}
-                onPress={() => {
-                  // The same placeholder the wide bar's print button holds. Kept in step
-                  // deliberately: printing is unimplemented in both, not missing from one.
-                  console.log("print");
-                }}
+                onPress={() => window.print()}
               >
                 {t("actions.print")}
               </DropdownItem>
