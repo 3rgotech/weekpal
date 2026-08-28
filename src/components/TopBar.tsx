@@ -83,9 +83,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
             iconClass={ICON_BUTTON_CLASS}
             wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
             tooltip={t("actions.print")}
-            onClick={() => {
-              console.log("print");
-            }}
+            onClick={() => window.print()}
             size="md"
           />
         </div>
