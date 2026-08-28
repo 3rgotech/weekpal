@@ -7,7 +7,7 @@ import {
   DropdownSection,
   DropdownTrigger,
 } from "@heroui/react";
-import { ChevronDown, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
+import { ChevronDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import SyncStatusIndicator from "./SyncStatusIndicator";
@@ -15,6 +15,7 @@ import { useData } from "../contexts/DataContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { getEnvConfig } from "../utils/env";
 import { leftoverBadge } from "../utils/settings";
+import { useInstallPrompt } from "../utils/install";
 
 interface MobileTopBarProps {
   onReviewLeftovers: () => void;
@@ -31,6 +32,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
   const { t } = useTranslation();
   const { settings, updateSettings, openSettingsModal } = useSettings();
   const { leftovers } = useData();
+  const { canInstall, needsManualSteps, install } = useInstallPrompt();
   const { accountUrl, signupUrl, loginUrl } = getEnvConfig();
 
   const badge = leftoverBadge(leftovers.length);
@@ -57,7 +59,10 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
             </Button>
           </DropdownTrigger>
           <DropdownMenu aria-label={t("actions.menu")}>
+            {/* An array, so the install entry can be absent without leaving a `false` in what
+                HeroUI reads as a collection. */}
             <DropdownSection showDivider>
+              {[(
               <DropdownItem
                 key="leftovers"
                 className="dark:text-white"
@@ -69,6 +74,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
               >
                 {t("leftovers.open")}
               </DropdownItem>
+              ), (
               <DropdownItem
                 key="visibility"
                 className="dark:text-white"
@@ -79,6 +85,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                   ? t("visibility.hide_completed_tasks")
                   : t("visibility.show_completed_tasks")}
               </DropdownItem>
+              ), (
               <DropdownItem
                 key="print"
                 className="dark:text-white"
@@ -87,6 +94,7 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
               >
                 {t("actions.print")}
               </DropdownItem>
+              ), (
               <DropdownItem
                 key="settings"
                 className="dark:text-white"
@@ -95,6 +103,18 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
               >
                 {t("actions.settings")}
               </DropdownItem>
+              ), ...(canInstall ? [(
+                <DropdownItem
+                  key="install"
+                  className="dark:text-white"
+                  startContent={<Download size={16} />}
+                  // iOS has no prompt to fire, so there the entry is the instruction itself.
+                  description={needsManualSteps ? t("actions.install_steps") : undefined}
+                  onPress={() => { void install(); }}
+                >
+                  {t("actions.install")}
+                </DropdownItem>
+              )] : [])]}
             </DropdownSection>
 
             {/* An array rather than a fragment: HeroUI's menu is a react-aria collection, and a

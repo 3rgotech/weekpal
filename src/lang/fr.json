@@ -42,7 +42,9 @@
         "save": "Enregistrer",
         "sign_up": "S'inscrire",
         "log_in": "Se connecter",
-        "menu": "Menu"
+        "menu": "Menu",
+        "install": "Installer l'application",
+        "install_steps": "Appuyez sur Partager, puis « Sur l'écran d'accueil »"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",

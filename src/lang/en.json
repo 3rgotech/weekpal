@@ -42,7 +42,9 @@
         "save": "Save",
         "sign_up": "Sign up",
         "log_in": "Log in",
-        "menu": "Menu"
+        "menu": "Menu",
+        "install": "Install app",
+        "install_steps": "Tap Share, then Add to Home Screen"
     },
     "category": {
         "help": "Select one or more categories to only display them",
