@@ -14,6 +14,7 @@ import LeftoverReview from "./components/LeftoverReview";
 import MobileBoard from "./components/MobileBoard";
 import MobileTopBar from "./components/MobileTopBar";
 import PrintSheet from "./components/PrintSheet";
+import UpdateBar from "./components/UpdateBar";
 import { useVerticalLayout } from "./utils/layout";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
@@ -131,6 +132,11 @@ function App() {
                         <TopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
                       )}
                     </header>
+
+                    {/* Under the bar, above the board: it takes its own space rather than
+                        floating, so it can never sit on top of the day pills. */}
+                    <UpdateBar />
+
                     <div className="flex-grow overflow-hidden">
                       {vertical ? <MobileBoard /> : <MainContent />}
                     </div>

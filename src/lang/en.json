@@ -171,5 +171,10 @@
         "move": "Move",
         "waiting_one": "{{count}} task waiting in the review",
         "waiting_other": "{{count}} tasks waiting in the review"
+    },
+    "update": {
+        "available": "A new version of WeekPal is ready.",
+        "refresh": "Refresh",
+        "dismiss": "Not now"
     }
 }
