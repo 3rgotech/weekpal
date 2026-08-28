@@ -1,7 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Button,
   Chip,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
   Modal,
   ModalBody,
   ModalContent,
@@ -9,6 +13,7 @@ import {
   ModalHeader,
   Spinner,
 } from "@heroui/react";
+import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { RescueDestination, useData } from "../contexts/DataContext";
@@ -21,8 +26,14 @@ import IconButton from "./IconButton";
 /** The week whose review has already been seen. Per browser: nagging is a per-device concern. */
 const REVIEWED_KEY = "leftover-review-week";
 
-/** How long a loaded list is trusted before a manual reopen fetches it again. */
+/** How long the loaded list is trusted before reopening the review goes and looks again. */
 const STALE_AFTER = 5 * 60 * 1000;
+
+const MOVE_LABELS: Record<RescueDestination, string> = {
+  sameDay: "leftovers.same_day",
+  thisWeek: "leftovers.this_week",
+  someday: "leftovers.some_day",
+};
 
 interface LeftoverReviewProps {
   isOpen: boolean;
@@ -33,82 +44,64 @@ interface LeftoverReviewProps {
  * The weekly look back at what never got done.
  *
  * Opens by itself once a week, and only when there is something in it — a modal that greets an
- * empty list is a modal that teaches people to dismiss it unread. Every row offers the four
- * ways a leftover ends: it was done and never ticked, it stopped mattering, it belongs in this
- * week, or it belongs to no week at all.
+ * empty list is a modal that teaches people to dismiss it unread. Every row offers the four ways
+ * a leftover ends: it was done and never ticked, it stopped mattering, it belongs in this week,
+ * or it belongs to no week at all.
  *
- * Acting on a row removes it from the list rather than re-fetching. The write is queued through
- * the same store the board uses, so this works offline exactly as the board does, and a task
- * resolved here is resolved everywhere.
+ * The three moves sit behind one dropdown rather than three buttons. Spelled out, the row ran to
+ * five controls and wrapped onto a second line at the widths this modal actually gets, which put
+ * the same task's actions in two places depending on how long its title was.
+ *
+ * The list itself lives in `DataContext`, so acting on a row here and the top bar's badge cannot
+ * disagree. Writes queue through the same store the board uses: this works offline exactly as the
+ * board does, and a task resolved here is resolved everywhere.
  */
 const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange }) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
-  const { taskStore, categories, completeTask, deleteTask, rescueTask } = useData();
+  const {
+    leftovers,
+    leftoversLoaded,
+    refreshLeftovers,
+    categories,
+    completeTask,
+    deleteTask,
+    rescueTask,
+  } = useData();
 
-  const [tasks, setTasks] = useState<WeeklyTask[] | null>(null);
-  const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
-  const loadedAt = useRef(0);
+  const refreshedAt = useRef(Date.now());
 
   const thisWeek = dayjs().format("GGGG[w]WW");
 
-  const load = useCallback(async (): Promise<WeeklyTask[]> => {
-    if (!taskStore) {
-      return [];
-    }
-
-    setLoading(true);
-
+  const reviewed = (): string | null => {
     try {
-      const found = await taskStore.leftovers();
-      setTasks(found);
-      loadedAt.current = Date.now();
-
-      return found;
-    } finally {
-      setLoading(false);
+      return localStorage.getItem(REVIEWED_KEY);
+    } catch {
+      // A browser with storage blocked reviews every load rather than never.
+      return null;
     }
-  }, [taskStore]);
+  };
 
   // Once per week, and never on an empty list. `onOpenChange` is deliberately absent from the
-  // dependencies: it is the setter of the caller's state, and re-running this on every render
-  // of the parent would reopen a modal the user has just closed.
+  // dependencies: it is the setter of the caller's state, and re-running this on every render of
+  // the parent would reopen a modal the user has just closed.
   //
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    let cancelled = false;
+    if (!leftoversLoaded || leftovers.length === 0 || reviewed() === thisWeek) {
+      return;
+    }
 
-    (async () => {
-      let seen: string | null = null;
-
-      try {
-        seen = localStorage.getItem(REVIEWED_KEY);
-      } catch {
-        // A browser with storage blocked reviews every load rather than never.
-      }
-
-      if (seen === thisWeek) {
-        return;
-      }
-
-      const found = await load();
-
-      if (!cancelled && found.length > 0) {
-        onOpenChange(true);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [load, thisWeek]);
+    onOpenChange(true);
+  }, [leftoversLoaded, leftovers.length, thisWeek]);
 
   // A board left open for days would otherwise reopen showing the list it built on Monday.
   useEffect(() => {
-    if (isOpen && (tasks === null || Date.now() - loadedAt.current > STALE_AFTER)) {
-      load();
+    if (isOpen && Date.now() - refreshedAt.current > STALE_AFTER) {
+      refreshedAt.current = Date.now();
+      refreshLeftovers();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
@@ -123,33 +116,29 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     onOpenChange(false);
   };
 
-  /** Every action resolves the task, so it leaves the review either way. */
+  /** Every action settles the task, so the context drops it and the row goes with it. */
   const resolve = async (task: WeeklyTask, action: () => void | Promise<void>) => {
     setBusy(task.id);
 
     try {
       await action();
-      setTasks((previous) => (previous ?? []).filter((leftover) => leftover.id !== task.id));
     } finally {
       setBusy(null);
     }
   };
 
-  const rescue = (task: WeeklyTask, destination: RescueDestination) =>
-    resolve(task, () => rescueTask(task, destination));
-
   // Grouped by the week they were left in, which the sort already puts in order.
   const weeks = useMemo(() => {
     const grouped = new Map<string, WeeklyTask[]>();
 
-    (tasks ?? []).forEach((task) => {
+    leftovers.forEach((task) => {
       grouped.set(task.weekCode, [...(grouped.get(task.weekCode) ?? []), task]);
     });
 
     return [...grouped.entries()];
-  }, [tasks]);
+  }, [leftovers]);
 
-  const total = tasks?.length ?? 0;
+  const total = leftovers.length;
 
   return (
     <Modal isOpen={isOpen} onClose={close} size="2xl" scrollBehavior="inside">
@@ -157,18 +146,18 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
         <ModalHeader className="flex flex-col gap-1 dark:text-white">
           {t("leftovers.title")}
           <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
-            {loading && tasks === null ? t("leftovers.loading") : t("leftovers.summary", { count: total })}
+            {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
           </span>
         </ModalHeader>
 
         <ModalBody className="dark:text-white">
-          {loading && tasks === null && (
+          {!leftoversLoaded && (
             <div className="flex justify-center py-8">
               <Spinner size="lg" />
             </div>
           )}
 
-          {tasks !== null && total === 0 && (
+          {leftoversLoaded && total === 0 && (
             <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
               {t("leftovers.empty")}
             </p>
@@ -191,14 +180,14 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                 {weekTasks.map((task) => {
                   const category = categories.find((c) => c.id === task.categoryId);
                   // The undated bucket has no weekday to keep, so "same day" would be the very
-                  // same move as "this week" — the button is left out rather than duplicated.
+                  // same move as "this week" — it is left out rather than duplicated.
                   const undated = `${task.dayOfWeek}` === "0";
 
                   return (
                     <li
                       key={task.id}
                       className={clsx(
-                        "flex flex-wrap items-center gap-2 py-2 border-b border-slate-200 dark:border-slate-600",
+                        "flex items-center gap-2 py-2 border-b border-slate-200 dark:border-slate-600",
                         busy === task.id && "opacity-50",
                       )}
                     >
@@ -207,14 +196,16 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                       </span>
 
                       {category && (
-                        <Chip size="sm" className={clsx("text-xs rounded-md text-white", category.getColorClass("bg"))}>
+                        <Chip size="sm" className={clsx("shrink-0 text-xs rounded-md text-white", category.getColorClass("bg"))}>
                           {category.name}
                         </Chip>
                       )}
 
-                      <span className="flex-1 min-w-32 truncate">{task.title}</span>
+                      {/* `min-w-0` is what lets a long title truncate instead of pushing the
+                          actions onto a line of their own. */}
+                      <span className="flex-1 min-w-0 truncate">{task.title}</span>
 
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
                         <IconButton
                           icon="check"
                           size="sm"
@@ -228,17 +219,28 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                           onClick={() => resolve(task, () => deleteTask(task))}
                         />
 
-                        {!undated && (
-                          <Button size="sm" variant="flat" onPress={() => rescue(task, "sameDay")}>
-                            {t("leftovers.same_day")}
-                          </Button>
-                        )}
-                        <Button size="sm" variant="flat" onPress={() => rescue(task, "thisWeek")}>
-                          {t("leftovers.this_week")}
-                        </Button>
-                        <Button size="sm" variant="flat" onPress={() => rescue(task, "someday")}>
-                          {t("leftovers.some_day")}
-                        </Button>
+                        <Dropdown>
+                          <DropdownTrigger>
+                            <Button size="sm" variant="flat" endContent={<ChevronDown size={14} />}>
+                              {t("leftovers.move")}
+                            </Button>
+                          </DropdownTrigger>
+                          <DropdownMenu aria-label={t("leftovers.move")}>
+                            {([
+                              ...(undated ? [] : ["sameDay" as const]),
+                              "thisWeek" as const,
+                              "someday" as const,
+                            ]).map((destination: RescueDestination) => (
+                              <DropdownItem
+                                key={destination}
+                                className="dark:text-white"
+                                onPress={() => resolve(task, () => rescueTask(task, destination))}
+                              >
+                                {t(MOVE_LABELS[destination])}
+                              </DropdownItem>
+                            ))}
+                          </DropdownMenu>
+                        </Dropdown>
                       </div>
                     </li>
                   );

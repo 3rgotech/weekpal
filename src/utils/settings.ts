@@ -52,6 +52,20 @@ export const SUBTASK_DISPLAYS: Array<SubtaskDisplay> = [
 ];
 
 /**
+ * What the top bar's leftover badge reads, or null when there is nothing to say.
+ *
+ * Caps at "9+": the badge sits on a 16px icon, and a three-digit count there is a smudge rather
+ * than a number. The exact figure is in the review the badge points at.
+ */
+export function leftoverBadge(count: number): string | null {
+    if (count <= 0) {
+        return null;
+    }
+
+    return count > 9 ? '9+' : `${count}`;
+}
+
+/**
  * A week's heading, per the `weekHeaderFormat` setting.
  *
  * The stored formats carry `[[WEEK]]` and `[[OF]]` placeholders: dayjs emits them as the

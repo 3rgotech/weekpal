@@ -7,11 +7,13 @@ import SignupCallToAction from "./SignupCallToAction";
 import IconButton from "./IconButton";
 import { useSettings } from "../contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
-import { Tooltip } from "@heroui/react";
+import { Badge, Tooltip } from "@heroui/react";
 import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS, TOOLTIP_CLASSES } from "../utils/color";
 import SyncStatusIndicator from "./SyncStatusIndicator";
 import VisibilityFilter from "./VisibilityFilter";
 import { getEnvConfig } from "../utils/env";
+import { useData } from "../contexts/DataContext";
+import { leftoverBadge } from "../utils/settings";
 
 interface TopBarProps {
   /** Opens the weekly look back at unfinished tasks, which otherwise shows itself once a week. */
@@ -21,6 +23,11 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
+  const { leftovers } = useData();
+
+  // Closing the review hides it until next week, so without this the board gave no sign that
+  // anything was still waiting in it.
+  const badge = leftoverBadge(leftovers.length);
 
   // The board is embedded in the host application, which owns everything about the
   // account — profile, password, subscription, API tokens. Rather than rebuild any of
@@ -49,14 +56,23 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
         {/* <Menu icon="refresh" title="Refresh" /> */}
         {onReviewLeftovers && (
           <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
-            <IconButton
-              icon="inbox"
-              iconClass={ICON_BUTTON_CLASS}
-              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-              tooltip={t("leftovers.open")}
-              onClick={onReviewLeftovers}
-              size="md"
-            />
+            <Badge
+              content={badge}
+              color="danger"
+              size="sm"
+              shape="circle"
+              isInvisible={badge === null}
+              aria-label={t("leftovers.waiting", { count: leftovers.length })}
+            >
+              <IconButton
+                icon="inbox"
+                iconClass={ICON_BUTTON_CLASS}
+                wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+                tooltip={t("leftovers.open")}
+                onClick={onReviewLeftovers}
+                size="md"
+              />
+            </Badge>
           </div>
         )}
         <div className="flex items-center justify-center size-16 border-l border-slate-300 dark:border-sky-900">
