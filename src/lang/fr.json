@@ -149,6 +149,9 @@
         "this_week": "Cette semaine",
         "some_day": "Un jour",
         "later": "Plus tard",
-        "done": "Fermer"
+        "done": "Fermer",
+        "move": "Déplacer",
+        "waiting_one": "{{count}} tâche en attente dans la revue",
+        "waiting_other": "{{count}} tâches en attente dans la revue"
     }
 }

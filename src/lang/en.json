@@ -149,6 +149,9 @@
         "this_week": "This week",
         "some_day": "Some day",
         "later": "Later",
-        "done": "Close"
+        "done": "Close",
+        "move": "Move",
+        "waiting_one": "{{count}} task waiting in the review",
+        "waiting_other": "{{count}} tasks waiting in the review"
     }
 }

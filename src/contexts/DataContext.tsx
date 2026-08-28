@@ -31,6 +31,17 @@ interface DataContextProps {
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
   /** Bring a task that slipped out of a past week back into the present. */
   rescueTask: (task: Task, destination: RescueDestination) => Promise<void>;
+  /**
+   * Unfinished tasks from weeks that have already ended.
+   *
+   * Held here rather than inside the review that shows them, because the top bar needs the same
+   * number for its badge — and a badge counting something other than what the review lists is
+   * worse than no badge at all.
+   */
+  leftovers: WeeklyTask[];
+  /** False until the first look, so the badge and the review can tell empty from unknown. */
+  leftoversLoaded: boolean;
+  refreshLeftovers: () => Promise<WeeklyTask[]>;
   deleteTask: (task: Task) => void;
   events: Array<Event>;
   categories: Array<Category>;
@@ -82,6 +93,34 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const noteStore = useMemo(() => new NoteStore(noteAdapter || undefined), [noteAdapter]);
   const projectStore = useMemo(() => new ProjectStore(projectAdapter || undefined), [projectAdapter]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [leftovers, setLeftovers] = useState<WeeklyTask[]>([]);
+  const [leftoversLoaded, setLeftoversLoaded] = useState(false);
+
+  const refreshLeftovers = useCallback(async (): Promise<WeeklyTask[]> => {
+    if (!taskStore) {
+      return [];
+    }
+
+    const found = await taskStore.leftovers();
+    setLeftovers(found);
+    setLeftoversLoaded(true);
+
+    return found;
+  }, [taskStore]);
+
+  useEffect(() => {
+    refreshLeftovers();
+  }, [refreshLeftovers]);
+
+  /**
+   * A task stops being outstanding the moment it is ticked, deleted or moved.
+   *
+   * Applied to every one of those actions rather than only the ones the review triggers: ticking
+   * a past-week task off on the board settles it just as much, and the badge has to agree.
+   */
+  const dropLeftover = (id: string) => {
+    setLeftovers((previous) => previous.filter((leftover) => leftover.id !== id));
+  };
 
   const refreshProjects = useCallback(async () => {
     if (projectStore) {
@@ -187,11 +226,22 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const completeTask = (task: Task) => {
     task.completedAt = dayjs();
     updateTask(task);
+    dropLeftover(task.id);
   };
 
   const uncompleteTask = (task: Task) => {
     task.completedAt = null;
     updateTask(task);
+
+    // Unticking a task in a week that has ended makes it outstanding again — the badge would
+    // otherwise stay one short until the next reload.
+    const weekly = task instanceof WeeklyTask ? task : null;
+
+    if (weekly && weekly.weekCode < dayjs().format("GGGG[w]WW")) {
+      setLeftovers((previous) => (
+        previous.some((leftover) => leftover.id === weekly.id) ? previous : [...previous, weekly]
+      ));
+    }
   };
 
   const deleteTask = (task: Task) => {
@@ -201,6 +251,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
     taskStore.delete(task).then(() => {
       setTasks((prevTasks) => prevTasks.filter((prevTask) => prevTask.id !== task.id));
     });
+
+    dropLeftover(task.id);
   };
 
   const moveTask = (
@@ -425,6 +477,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
     const stored = await taskStore.update(rescued);
 
+    dropLeftover(stored.id);
+
     setTasks((prevTasks) => {
       const without = prevTasks.filter((prevTask) => prevTask.id !== stored.id);
       const onScreen = stored.taskType === "someday"
@@ -471,6 +525,9 @@ const DataProvider: React.FC<DataProviderProps> = ({
         uncompleteTask,
         moveTask,
         rescueTask,
+        leftovers,
+        leftoversLoaded,
+        refreshLeftovers,
         deleteTask,
         events: memoizedEvents,
         categories,
