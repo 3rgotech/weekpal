@@ -48,10 +48,10 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek }) => {
         ref={setNodeRef}
         style={style}
         className={clsx(
-          "group flex items-center justify-between h-10 rounded-md transition-colors"
+          "group flex items-center justify-between min-h-10 rounded-md transition-colors"
         )}
       >
-        <div className="flex-1 flex items-center gap-x-2 h-10 px-2 py-1.5 overflow-hidden focus:outline-none border-b border-slate-200">
+        <div className="flex-1 flex items-center gap-x-2 min-h-10 px-2 py-1.5 overflow-hidden focus:outline-none border-b border-slate-200">
           <div
             {...attributes}
             {...listeners}

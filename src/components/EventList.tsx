@@ -14,7 +14,7 @@ const EventEntry = ({ event }: { event: Event }) => {
     return (
         <li
             className={clsx(
-                "flex items-center justify-between h-6 transition-colors",
+                "flex items-center justify-between min-h-6 transition-colors",
                 category?.getColorClass('text')
             )}
         >
@@ -29,7 +29,8 @@ const EventEntry = ({ event }: { event: Event }) => {
                     </span>
                 )}
                 <h2 className={clsx(
-                    "text-xs font-medium truncate",
+                    // Same two-line treatment as a task title: these sit in the same narrow column.
+                    "text-xs font-medium line-clamp-2 break-words",
                 )}>
                     {event.title}
                 </h2>

@@ -42,9 +42,14 @@ const TaskContent: React.FC<TaskContentProps> = ({ task }) => {
         </Chip>
       )}
 
+      {/* Two lines rather than one truncated one, and three in the band where the seven columns
+          are at their narrowest — about 165px between `lg` and `xl`, where even two lines cut the
+          longer titles mid-word. A column there has vertical room to spare and none to waste
+          horizontally. `lg:max-xl:` is that band exactly: narrower than `lg` is the vertical
+          layout, where a row has the full width and never needs any of this. */}
       <h3
         className={clsx(
-          "flex-1 min-w-0 text-sm font-medium truncate",
+          "flex-1 min-w-0 text-sm lg:max-xl:text-xs font-medium line-clamp-2 lg:max-xl:line-clamp-3 break-words",
           task.completed && "text-slate-400 line-through dark:text-slate-400",
           !task.completed && category && category.getColorClass("text"),
         )}
