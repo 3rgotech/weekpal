@@ -9,8 +9,9 @@ import { APIBaseAdapter } from './APIBaseAdapter';
  * Every response is wrapped in `{ data: ... }` — the old API wrapped some endpoints and
  * returned bare resources from others, and this adapter encoded that inconsistency.
  *
- * Paths carry no leading slash: `ky`'s `prefixUrl` treats a leading slash as absolute and would
- * drop the `/api/v1` prefix.
+ * Paths carry no leading slash. `ky` 2's `prefix` tolerates one, unlike the `prefixUrl` it
+ * replaced, but the whole adapter is written without them and mixing the two styles would only
+ * invite the question of which is right.
  */
 class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
     async getWeek(weekCode: string): Promise<WeekPayload> {

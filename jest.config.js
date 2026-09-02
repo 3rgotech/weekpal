@@ -18,10 +18,10 @@ module.exports = {
       },
     ],
   },
-  // lucide-react and ky ship ESM only, so they have to be transformed rather than skipped like
+  // lucide-react, ky and uuid ship ESM only, so they have to be transformed rather than skipped like
   // the rest of node_modules — without it any component test that renders an icon, or any test
   // that reaches an API adapter, fails to parse.
-  transformIgnorePatterns: ["/node_modules/(?!(lucide-react|ky)/)(?!.*\\.mjs$)"],
+  transformIgnorePatterns: ["/node_modules/(?!(lucide-react|ky|uuid)/)(?!.*\\.mjs$)"],
   moduleNameMapper: {
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/__mocks__/fileMock.js",

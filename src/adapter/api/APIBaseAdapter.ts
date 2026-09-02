@@ -19,7 +19,8 @@ export abstract class APIBaseAdapter {
         }
 
         this.client = ky.create({
-            prefixUrl: this.apiUrl,
+            // `prefix`, not v1's `prefixUrl`, which ky 2 renamed.
+            prefix: this.apiUrl,
             headers: headers,
         });
     }
