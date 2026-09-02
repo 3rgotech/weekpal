@@ -68,7 +68,7 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
     }
 
     return (
-        <div className={`flex items-center gap-2 text-xs p-1 px-2 bg-black/5 rounded ${className}`}>
+        <div className={`flex items-center gap-2 text-xs p-1 px-2 bg-black/5 rounded-sm ${className}`}>
             {/*
               * An expired token is the common case now that board tokens are short-lived, and
               * reloading is the actual fix: /app mints a fresh one server-side on every render.

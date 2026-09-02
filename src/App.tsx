@@ -147,7 +147,7 @@ function App() {
                         floating, so it can never sit on top of the day pills. */}
                     <UpdateBar />
 
-                    <div className="flex-grow overflow-hidden">
+                    <div className="grow overflow-hidden">
                       {vertical ? <MobileBoard /> : <MainContent />}
                     </div>
                     <DemoModal

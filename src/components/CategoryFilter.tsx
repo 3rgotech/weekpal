@@ -34,7 +34,7 @@ const CategoryFilter: React.FC = () => {
       startContent={<Tag color="black" />}
       className="max-w-lg w-56 flex-1"
       classNames={{
-        mainWrapper: "h-full flex flex-grow justify-center",
+        mainWrapper: "h-full flex grow justify-center",
         trigger: "h-full bg-transparent shadow-none data-[hover=true]:bg-transparent",
         selectorIcon: "hidden",
       }}

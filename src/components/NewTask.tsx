@@ -102,7 +102,7 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
                   handleSubmit();
                 }
               }}
-              className="w-full ring-0 outline-none bg-transparent text-sm font-medium mt-[3px]"
+              className="w-full ring-0 outline-hidden bg-transparent text-sm font-medium mt-[3px]"
             />
             <IconButton
               icon="plus"

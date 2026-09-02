@@ -235,7 +235,7 @@ const MainContent: React.FC<MainContentProps> = () => {
           and of a notch down the side when a tablet is held in landscape. */}
       <div className="h-full flex flex-row overflow-hidden pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <div className="p-2 xl:p-4 flex-1 flex flex-col overflow-hidden">
-        <div className="flex-grow grid grid-cols-6 grid-rows-3 gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
+        <div className="grow grid grid-cols-6 grid-rows-3 gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
           {[...Array(7).keys()].map((i) => (
             <div
               className={clsx(

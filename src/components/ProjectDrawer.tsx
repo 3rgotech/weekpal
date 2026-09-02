@@ -98,7 +98,7 @@ const ProjectDrawer: React.FC = () => {
                         <div key={project.id} className="flex flex-col">
                             <button
                                 type="button"
-                                className="flex items-center gap-1 px-1 py-1.5 text-sm text-left rounded hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white"
+                                className="flex items-center gap-1 px-1 py-1.5 text-sm text-left rounded-sm hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white"
                                 onClick={() => setExpanded(isExpanded ? null : project.id)}
                                 aria-expanded={isExpanded}
                             >

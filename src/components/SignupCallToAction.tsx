@@ -32,7 +32,7 @@ const SignupCallToAction: React.FC<SignupCallToActionProps> = ({ signupUrl, logi
                 />
                 <a
                     href={signupUrl}
-                    className="relative inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white transition rounded-full shadow-sm bg-sky-600 hover:bg-sky-700 motion-reduce:transition-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
+                    className="relative inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white transition rounded-full shadow-xs bg-sky-600 hover:bg-sky-700 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600"
                 >
                     <UserPlus size={16} aria-hidden="true" />
                     {t("actions.sign_up")}

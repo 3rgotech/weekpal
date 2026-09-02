@@ -34,8 +34,7 @@ const TaskContent: React.FC<TaskContentProps> = ({ task }) => {
           size="sm"
           className={clsx(
             "shrink-0 text-xs rounded-md text-white",
-            category.getColorClass("bg"),
-            task.completed && "bg-opacity-60",
+            task.completed ? category.getColorClass("bgFaded") : category.getColorClass("bg"),
           )}
         >
           {category.name}

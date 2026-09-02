@@ -1,6 +1,34 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/*
+ * Ordered deliberately rather than by accident.
+ *
+ * flag-icons used to arrive as a side-effect import inside SettingsContext, which put it last in
+ * the bundle purely because of where it sat in the module graph. Under Tailwind 4 that would stop
+ * being a detail: unlayered CSS beats every layered utility whatever its specificity, so a
+ * `dark:` or `group-hover:` class on a flag would silently lose to plain `.fi`. Naming the layer
+ * puts it before the utilities, where a utility written against it wins.
+ */
+@import "flag-icons/css/flag-icons.min.css" layer(components);
+
+@plugin "../../hero.ts";
+
+/*
+ * Tailwind 4 does not look inside node_modules on its own, and HeroUI's entire visual layer is
+ * generated from the classes in its theme package. Without this the components render unstyled.
+ */
+@source "../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
+
+/*
+ * `darkMode: "class"`, restated. The `.dark, .dark *` form rather than HeroUI's documented
+ * `.dark *`: the theme class goes on `<body>` (SettingsContext), and the print rules below reach
+ * elements outside `#root` that need to match too.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: Lato, sans-serif;
+}
 
 /*
  * Printing: one landscape A4 of the week, black on white.

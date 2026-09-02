@@ -20,7 +20,7 @@ const EventEntry = ({ event }: { event: Event }) => {
         >
             <div
                 className="flex-1 flex items-center gap-x-1 overflow-hidden">
-                <Calendar className="w-4 h-4 flex-shrink-0" />
+                <Calendar className="w-4 h-4 shrink-0" />
                 {event.hours && (
                     <span
                         className="text-xs font-semibold whitespace-nowrap"

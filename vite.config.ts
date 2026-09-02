@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
 import envCompatible from 'vite-plugin-env-compatible';
+import tailwindcss from '@tailwindcss/vite';
 
 
 // https://vitejs.dev/config/
@@ -12,6 +13,7 @@ export default defineConfig(({ mode }) => {
 	setEnv(mode);
 	return {
 		plugins: [
+			tailwindcss(),
 			react(),
 			tsconfigPaths(),
 			envCompatible(),

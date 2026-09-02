@@ -16,7 +16,7 @@ class Category extends Base {
         return COLORS[this.color];
     }
 
-    getColorClass(type: "bg" | "text" | "border") {
+    getColorClass(type: "bg" | "bgFaded" | "text" | "border") {
         return this.getColorClasses()[type];
     }
 }

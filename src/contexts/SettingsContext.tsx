@@ -26,7 +26,6 @@ import {
   WEEK_HEADER_FORMATS,
 } from "../utils/settings";
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
-import "/node_modules/flag-icons/css/flag-icons.min.css";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
 import AdapterFactory from "../adapter";
