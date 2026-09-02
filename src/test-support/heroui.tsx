@@ -153,6 +153,12 @@ export const Checkbox = compound(
     { Control: () => null, Indicator: () => null, Content: box("span") },
 );
 
+/**
+ * Joins class names. The real one is tailwind-merge aware and drops the losing side of a
+ * conflicting pair; nothing here asserts on merged classes, so plain concatenation is enough.
+ */
+export const cn = (...parts: unknown[]) => parts.filter(Boolean).join(" ");
+
 /** The class list a component would have produced, which nothing here renders anyway. */
 export const buttonVariants = (options: P = {}) =>
     ["button", options.size && `button--${options.size}`, options.variant && `button--${options.variant}`]

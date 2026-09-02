@@ -1,7 +1,6 @@
-import clsx from "clsx";
 import React from "react";
 import { icons, defaultIcon } from "../utils/icon";
-import { Tooltip } from "@heroui/react";
+import { cn, Tooltip } from "@heroui/react";
 import type { Placement } from "react-aria-components";
 import { TOOLTIP_CLASSES } from "../utils/color";
 
@@ -56,8 +55,16 @@ const IconButton: React.FC<IconButtonProps> = ({
     <button
       {...otherProps}
       aria-label={accessibleName}
-      className={clsx(
-        "rounded-full transition-colors border",
+      /*
+       * An explicit border colour, and `cn` rather than `clsx` to apply it.
+       *
+       * The ring used to have no colour of its own and fell through to whatever the cascade
+       * offered — `currentColor` under Tailwind 4, then HeroUI 3's own base reset, which is dark
+       * enough on a dark background to disappear. Naming it fixes that; `cn` is tailwind-merge
+       * aware, so a caller passing its own `border-*` still wins rather than tying with this one.
+       */
+      className={cn(
+        "rounded-full transition-colors border border-slate-300 dark:border-slate-600",
         btnClasses[size],
         wrapperClass,
         iconClass
