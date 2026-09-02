@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@heroui/styles";
 
 /*
  * Ordered deliberately rather than by accident.
@@ -10,14 +11,6 @@
  * puts it before the utilities, where a utility written against it wins.
  */
 @import "flag-icons/css/flag-icons.min.css" layer(components);
-
-@plugin "../../hero.ts";
-
-/*
- * Tailwind 4 does not look inside node_modules on its own, and HeroUI's entire visual layer is
- * generated from the classes in its theme package. Without this the components render unstyled.
- */
-@source "../../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}";
 
 /*
  * `darkMode: "class"`, restated. The `.dark, .dark *` form rather than HeroUI's documented

@@ -26,15 +26,17 @@ const CannotLoadTheApp: React.FC<CannotLoadTheAppProps> = ({ reason }) => {
         <div className="h-screen w-screen flex items-center justify-center bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100">
             <div className="flex flex-col justify-center gap-y-4 w-full max-w-xl">
                 <Logo large />
-                <Alert
-                    color="danger"
-                    title={`Cannot load the application`}
-                    description={<>
-                        {messages.map((message, index) => (
-                            <p key={index}>{message}</p>
-                        ))}
-                    </>}
-                />
+                <Alert status="danger">
+                    <Alert.Indicator />
+                    <Alert.Content>
+                        <Alert.Title>Cannot load the application</Alert.Title>
+                        <Alert.Description>
+                            {messages.map((message, index) => (
+                                <p key={index}>{message}</p>
+                            ))}
+                        </Alert.Description>
+                    </Alert.Content>
+                </Alert>
             </div>
         </div>
     )

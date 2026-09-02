@@ -27,7 +27,7 @@ const UpdateBar: React.FC = () => {
 
       <p className="flex-1 min-w-0 text-sm">{t("update.available")}</p>
 
-      <Button size="sm" color="primary" onPress={refresh}>
+      <Button size="sm" variant="primary" onPress={refresh}>
         {t("update.refresh")}
       </Button>
 

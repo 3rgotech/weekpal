@@ -37,7 +37,7 @@ const TaskContent: React.FC<TaskContentProps> = ({ task }) => {
             task.completed ? category.getColorClass("bgFaded") : category.getColorClass("bg"),
           )}
         >
-          {category.name}
+          <Chip.Label>{category.name}</Chip.Label>
         </Chip>
       )}
 

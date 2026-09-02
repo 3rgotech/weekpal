@@ -1,6 +1,17 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from "@heroui/modal";
-import { Button, Input, Select, SelectItem, SharedSelection, Textarea } from "@heroui/react";
+import {
+  Button,
+  Input,
+  Label,
+  ListBox,
+  Description,
+  Modal,
+  Select,
+  TextArea,
+  TextField,
+  useOverlayState,
+} from "@heroui/react";
+import type { Key } from "react-aria-components";
 import Task, { SomedayTask, WeeklyTask } from "../data/task";
 import { useData } from "./DataContext";
 import { DayOfWeek } from "../types";
@@ -29,13 +40,14 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { t } = useTranslation();
   const { addTask, updateTask, categories, projects } = useData();
   const vertical = useVerticalLayout();
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const overlay = useOverlayState();
+  const { isOpen } = overlay;
 
   const open = (task: Task) => {
     setTask(task);
     setData(task.serialize());
     setMode("EDIT");
-    onOpen();
+    overlay.open();
   };
 
   const openNewTask = (weekCode: string, dayOfWeek: DayOfWeek) => {
@@ -44,7 +56,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       setTask(newTask);
       setData(newTask.serialize());
       setMode("CREATE");
-      onOpen();
+      overlay.open();
     }
   };
 
@@ -64,16 +76,17 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // return () => clearTimeout(timeout);
   }, [data]);
 
-  const updateField = (field: keyof Task) => (value: string | SharedSelection) => {
+  const updateField = (field: keyof Task) => (value: string | Key | null) => {
     let transformedValue;
     if (field === 'categoryId') {
-      // The selection is a Set of keys; take the single one, or null when cleared.
+      // One key, or null when cleared. v2 handed over a Set here and this had to reach inside it;
+      // v3's single-selection Select gives the key itself.
       //
-      // This used to `parseInt` the result, from when category ids were autoincrement integers.
-      // They have been UUIDs since contract v1, and `parseInt('01930000-...')` does not fail —
-      // it returns 1930, so picking a category silently wrote a garbage id that matched nothing.
-      transformedValue = [...value][0] ?? null;
-      transformedValue = transformedValue !== null ? `${transformedValue}` : null;
+      // Whatever arrives is stringified rather than parsed. This used to `parseInt` the result,
+      // from when category ids were autoincrement integers. They have been UUIDs since contract
+      // v1, and `parseInt('01930000-...')` does not fail — it returns 1930, so picking a category
+      // silently wrote a garbage id that matched nothing.
+      transformedValue = value !== null && value !== undefined ? `${value}` : null;
     } else {
       transformedValue = value;
     }
@@ -91,50 +104,48 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     if (mode === "EDIT") {
       updateTask(task);
     }
-    onClose();
+    overlay.close();
     reset();
   }
 
   const closeTask = () => {
-    onClose();
+    overlay.close();
     reset();
   };
 
   return (
     <TaskModalContext.Provider value={{ task, isOpen, open, openNewTask }}>
       {children}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size={"2xl"} hideCloseButton>
-        <ModalContent>
+      {/* No `Modal.CloseTrigger`: that is how v3 spells the old `hideCloseButton`. */}
+      <Modal state={overlay}>
+        <Modal.Backdrop>
+        <Modal.Container size="lg">
+        <Modal.Dialog>
           {task && (
             <>
-              <ModalHeader className="flex flex-row justify-between items-center gap-1 dark:text-white">
-                <span className="text-lg font-bold">{t('actions.edit_task')}</span>
+              <Modal.Header className="flex flex-row justify-between items-center gap-1">
+                <Modal.Heading className="text-lg font-bold">{t('actions.edit_task')}</Modal.Heading>
                 {/* Not in CREATE mode: there is nothing yet to move, copy or delete. Not on the
                     vertical layout either, where the row this modal was opened from carries the
                     same menu — two ⋮ for one task is a question about which one differs. */}
                 {mode === "EDIT" && !vertical && (
                   <TaskMenu task={task} onAction={closeTask} />
                 )}
-              </ModalHeader>
-              <ModalBody>
-                <Input
-                  label={t('task.title')}
-                  placeholder={t('task.placeholder.title')}
-                  value={data.title}
-                  onValueChange={updateField('title')}
-                />
-                <Textarea
-                  label={t('task.description')}
-                  placeholder={t('task.placeholder.description')}
-                  value={data.description}
-                  onValueChange={updateField('description')}
-                />
+              </Modal.Header>
+              <Modal.Body>
+                <TextField value={data.title} onChange={updateField('title')}>
+                  <Label>{t('task.title')}</Label>
+                  <Input placeholder={t('task.placeholder.title')} />
+                </TextField>
+                <TextField value={data.description} onChange={updateField('description')}>
+                  <Label>{t('task.description')}</Label>
+                  <TextArea placeholder={t('task.placeholder.description')} />
+                </TextField>
                 <Select
-                  label={t('task.project')}
                   placeholder={t('task.placeholder.project')}
-                  selectedKeys={data.projectId ? [`${data.projectId}`] : []}
-                  onSelectionChange={(keys) => {
-                    const projectId = ([...keys][0] as string) ?? null;
+                  value={data.projectId ? `${data.projectId}` : null}
+                  onChange={(key: Key | null) => {
+                    const projectId = key === null ? null : String(key);
                     const project = projects.find((p) => p.id === projectId);
 
                     // A project owns the category of everything in it, so picking one replaces
@@ -147,33 +158,47 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                       categoryId: project ? project.categoryId : prev.categoryId,
                     }));
                   }}
-                  disallowEmptySelection={false}
                 >
-                  {projects.map(project => (
-                    <SelectItem key={project.id} className="dark:text-white">
-                      {project.name}
-                    </SelectItem>
-                  ))}
+                  <Label>{t('task.project')}</Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      {projects.map(project => (
+                        <ListBox.Item key={project.id} id={project.id} textValue={project.name}>
+                          <Label>{project.name}</Label>
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
 
                 <Select
-                  label={t('task.category')}
                   placeholder={t('task.placeholder.category')}
-                  selectedKeys={data.categoryId ? [`${data.categoryId}`] : []}
-                  onSelectionChange={updateField('categoryId')}
-                  disallowEmptySelection={false}
+                  value={data.categoryId ? `${data.categoryId}` : null}
+                  onChange={updateField('categoryId')}
                   isDisabled={!!data.projectId}
-                  description={data.projectId ? t('task.category_from_project') : undefined}
                 >
-                  {categories.map(category => (
-                    <SelectItem
-                      key={category.id}
-                      startContent={<div className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}></div>}
-                      className="dark:text-white"
-                    >
-                      {category.name}
-                    </SelectItem>
-                  ))}
+                  <Label>{t('task.category')}</Label>
+                  <Select.Trigger>
+                    {/* `.select__value` is `flex-1` but not a flex container, so an item that
+                        renders a swatch beside its name stacks the two. */}
+                    <Select.Value className="flex items-center gap-2" />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  {data.projectId && <Description>{t('task.category_from_project')}</Description>}
+                  <Select.Popover>
+                    <ListBox>
+                      {categories.map(category => (
+                        <ListBox.Item key={category.id} id={category.id} textValue={category.name}>
+                          <div className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}></div>
+                          <Label>{category.name}</Label>
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
                 </Select>
 
                 <SubtaskEditor
@@ -188,20 +213,18 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     <TaskActivity task={task} />
                   </div>
                 )}
-              </ModalBody>
-              <ModalFooter>
+              </Modal.Body>
+              <Modal.Footer>
                 {/* TODO : save on change */}
-                <Button
-                  color="primary"
-                  variant="solid"
-                  onPress={saveTask}
-                >
+                <Button variant="primary" onPress={saveTask}>
                   {t('actions.save')}
                 </Button>
-              </ModalFooter>
+              </Modal.Footer>
             </>
           )}
-        </ModalContent>
+        </Modal.Dialog>
+        </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </TaskModalContext.Provider>
   );

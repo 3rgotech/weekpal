@@ -29,9 +29,12 @@ export const COLORS = {
 export const ICON_BUTTON_CLASS = "text-sky-950 dark:text-white group-hover:text-white group-hover:dark:text-sky-950";
 export const ICON_BUTTON_WRAPPER_CLASS = "border-slate-300 dark:border-sky-900 hover:bg-sky-950 hover:dark:bg-white group";
 
-export const TOOLTIP_COLORS = "bg-sky-950 dark:bg-white text-white dark:text-sky-950";
-export const TOOLTIP_ARROW_COLORS = "before:bg-sky-950 dark:before:bg-white";
-export const TOOLTIP_CLASSES = {
-    base: TOOLTIP_ARROW_COLORS,
-    content: TOOLTIP_COLORS,
-};
+/*
+ * One class list, on the tooltip's content.
+ *
+ * HeroUI 2 needed a `classNames` object keyed by slot, and the two call sites disagreed about
+ * which slot the arrow lived on — `IconButton` put its colour on `arrow`, this file put it on
+ * `base`. One of them was always doing nothing. v3 has no slots to get wrong: the arrow is a
+ * component of its own, and it inherits the content's background, so the colour is stated once.
+ */
+export const TOOLTIP_CLASSES = "bg-sky-950 dark:bg-white text-white dark:text-sky-950";

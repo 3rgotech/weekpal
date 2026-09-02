@@ -1,4 +1,4 @@
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Tooltip } from '@heroui/react'
+import { Dropdown, Label } from '@heroui/react'
 import React from 'react'
 import { ICON_BUTTON_WRAPPER_CLASS, TOOLTIP_CLASSES } from '../utils/color';
 import { ICON_BUTTON_CLASS } from '../utils/color';
@@ -17,20 +17,23 @@ const VisibilityFilter = () => {
 
     return (
         <Dropdown>
-            <DropdownTrigger>
-                <IconButton
-                    icon="eye"
-                    iconClass={ICON_BUTTON_CLASS}
-                    wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-                    size="md"
-                />
-            </DropdownTrigger>
+            {/* The trigger is the button itself in v3, so this carries `IconButton`'s classes
+                rather than nesting one button inside another. */}
+            <Dropdown.Trigger
+                aria-label={t("actions.visibility_filter")}
+                className={clsx("rounded-full transition-colors border p-2", ICON_BUTTON_WRAPPER_CLASS, ICON_BUTTON_CLASS)}
+            >
+                <Icon size={24} className={ICON_BUTTON_CLASS} />
+            </Dropdown.Trigger>
 
-            <DropdownMenu aria-label={t("actions.category_filter")}>
-                <DropdownItem key="completedTasks" startContent={<Check />} className="dark:text-white">
-                    {t("actions.show_completed_tasks")}
-                </DropdownItem>
-            </DropdownMenu>
+            <Dropdown.Popover>
+                <Dropdown.Menu aria-label={t("actions.category_filter")}>
+                    <Dropdown.Item id="completedTasks" textValue={t("actions.show_completed_tasks")}>
+                        <Check />
+                        <Label>{t("actions.show_completed_tasks")}</Label>
+                    </Dropdown.Item>
+                </Dropdown.Menu>
+            </Dropdown.Popover>
         </Dropdown>
     )
 }

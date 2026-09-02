@@ -10,30 +10,6 @@ jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-/**
- * HeroUI's components pull in framer-motion through a dynamic import, which jest's VM cannot
- * resolve. They stand in as the plain elements they wrap, so what these tests cover is this
- * component's own wiring — which item a change applies to, and what it hands back — rather than
- * HeroUI, which is not our code. The real components are exercised in the browser test.
- */
-jest.mock("@heroui/react", () => ({
-    Checkbox: ({ isSelected, onValueChange, ...props }: any) => (
-        <input
-            type="checkbox"
-            checked={isSelected}
-            onChange={(event) => onValueChange(event.target.checked)}
-            {...props}
-        />
-    ),
-    Input: ({ value, onValueChange, classNames, ...props }: any) => (
-        <input
-            value={value}
-            onChange={(event) => onValueChange(event.target.value)}
-            {...props}
-        />
-    ),
-    Tooltip: ({ children }: any) => children,
-}));
 
 const setup = (subtasks: Subtask[] = []) => {
     const onChange = jest.fn();

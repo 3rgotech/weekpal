@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownSection,
-  DropdownTrigger,
-} from "@heroui/react";
+import { Dropdown, Header, Label, Separator } from "@heroui/react";
 import {
   Copy,
   EllipsisVertical,
@@ -54,9 +48,9 @@ interface TaskMenuProps {
  * dragging on a phone, so a menu that merely listed destinations without acting on them would
  * leave a task stuck where it is.
  *
- * Every item carries `dark:text-white`, as every other menu in the app does: the theme class goes
- * on `<body>` (`SettingsContext`), so HeroUI's own dark item colour never lands and unstyled items
- * render near-black on the dark popover.
+ * The `dark:text-white` every item used to carry is gone: HeroUI 2 painted its menu items from a
+ * theme the provider never propagated to `<body>`, where this app's theme class lives, so unstyled
+ * items came out near-black on a dark popover. v3 colours from CSS variables and needs no help.
  */
 const TaskMenu: React.FC<TaskMenuProps> = ({ task, onAction, size = 16 }) => {
   const { t } = useTranslation();
@@ -71,50 +65,58 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onAction, size = 16 }) => {
   };
 
   return (
-    <Dropdown placement="bottom-end">
-      <DropdownTrigger>
-        <button className="p-0.5 dark:text-white" aria-label={t("task.menu.open")}>
-          <EllipsisVertical size={size} />
-        </button>
-      </DropdownTrigger>
-      <DropdownMenu aria-label={t("task.menu.open")}>
-        <DropdownSection title={t("task.menu.move")}>
-          {moves.map((move) => {
-            const Icon = MOVE_ICONS[move];
+    <Dropdown>
+      <Dropdown.Trigger
+        className="p-0.5"
+        aria-label={t("task.menu.open")}
+      >
+        <EllipsisVertical size={size} />
+      </Dropdown.Trigger>
+      <Dropdown.Popover placement="bottom end">
+        <Dropdown.Menu aria-label={t("task.menu.open")}>
+          <Dropdown.Section>
+            <Header>{t("task.menu.move")}</Header>
+            {moves.map((move) => {
+              const Icon = MOVE_ICONS[move];
 
-            return (
-              <DropdownItem
-                key={move}
-                className="dark:text-white"
-                endContent={<Icon size={12} />}
-                onPress={() => run(() => relocateTask(task, moveTarget(task, move, dayjs())))}
-              >
-                {t(MOVE_LABELS[move])}
-              </DropdownItem>
-            );
-          })}
-        </DropdownSection>
+              return (
+                <Dropdown.Item
+                  key={move}
+                  id={move}
+                  textValue={t(MOVE_LABELS[move])}
+                  onAction={() => run(() => relocateTask(task, moveTarget(task, move, dayjs())))}
+                >
+                  <Label>{t(MOVE_LABELS[move])}</Label>
+                  <Icon size={12} />
+                </Dropdown.Item>
+              );
+            })}
+          </Dropdown.Section>
 
-        <DropdownSection title={t("task.menu.actions")}>
-          <DropdownItem
-            key="duplicate"
-            className="dark:text-white"
-            endContent={<Copy size={12} />}
-            onPress={() => run(() => duplicateTask(task))}
-          >
-            {t("task.menu.duplicate")}
-          </DropdownItem>
-          <DropdownItem
-            key="delete"
-            color="danger"
-            classNames={{ base: "text-red-700", description: "text-red-700" }}
-            endContent={<Trash size={12} />}
-            onPress={() => run(() => deleteTask(task))}
-          >
-            {t("task.menu.delete")}
-          </DropdownItem>
-        </DropdownSection>
-      </DropdownMenu>
+          <Separator />
+
+          <Dropdown.Section>
+            <Header>{t("task.menu.actions")}</Header>
+            <Dropdown.Item
+              id="duplicate"
+              textValue={t("task.menu.duplicate")}
+              onAction={() => run(() => duplicateTask(task))}
+            >
+              <Label>{t("task.menu.duplicate")}</Label>
+              <Copy size={12} />
+            </Dropdown.Item>
+            <Dropdown.Item
+              id="delete"
+              variant="danger"
+              textValue={t("task.menu.delete")}
+              onAction={() => run(() => deleteTask(task))}
+            >
+              <Label>{t("task.menu.delete")}</Label>
+              <Trash size={12} />
+            </Dropdown.Item>
+          </Dropdown.Section>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
   );
 };

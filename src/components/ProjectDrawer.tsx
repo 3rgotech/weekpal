@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { Button, Input, Label, ListBox, Select, TextField } from "@heroui/react";
+import type { Key } from "react-aria-components";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -132,23 +133,34 @@ const ProjectDrawer: React.FC = () => {
 
                                     <div className="flex items-center gap-2 py-2">
                                         <Select
-                                            size="sm"
                                             aria-label={t("projects.category")}
                                             placeholder={t("projects.no_category")}
-                                            selectedKeys={project.categoryId ? [project.categoryId] : []}
-                                            onSelectionChange={(keys) => {
+                                            value={project.categoryId ?? null}
+                                            onChange={(key: Key | null) => {
                                                 // A project's category is the authority for every
                                                 // task in it — the backend cascades the change
                                                 // rather than letting a task disagree.
-                                                project.categoryId = ([...keys][0] as string) ?? null;
+                                                project.categoryId = key === null ? null : String(key);
                                                 saveProject(project);
                                             }}
                                         >
-                                            {categories.map((option) => (
-                                                <SelectItem key={option.id} className="dark:text-white">
-                                                    {option.name}
-                                                </SelectItem>
-                                            ))}
+                                            <Select.Trigger>
+                                                <Select.Value />
+                                                <Select.Indicator />
+                                            </Select.Trigger>
+                                            <Select.Popover>
+                                                <ListBox>
+                                                    {categories.map((option) => (
+                                                        <ListBox.Item
+                                                            key={option.id}
+                                                            id={option.id}
+                                                            textValue={option.name}
+                                                        >
+                                                            <Label>{option.name}</Label>
+                                                        </ListBox.Item>
+                                                    ))}
+                                                </ListBox>
+                                            </Select.Popover>
                                         </Select>
 
                                         <IconButton
@@ -168,20 +180,21 @@ const ProjectDrawer: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 p-2 border-t border-slate-200 dark:border-slate-600">
-                <Input
-                    size="sm"
+                <TextField
+                    className="flex-1"
                     aria-label={t("projects.add")}
-                    placeholder={t("projects.placeholder")}
                     value={draft}
-                    onValueChange={setDraft}
+                    onChange={setDraft}
                     onKeyDown={(event) => {
                         if (event.key === "Enter") {
                             event.preventDefault();
                             addProject();
                         }
                     }}
-                />
-                <Button size="sm" color="primary" isDisabled={draft.trim() === ""} onPress={addProject}>
+                >
+                    <Input placeholder={t("projects.placeholder")} />
+                </TextField>
+                <Button size="sm" variant="primary" isDisabled={draft.trim() === ""} onPress={addProject}>
                     {t("projects.add")}
                 </Button>
             </div>

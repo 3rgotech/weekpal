@@ -1,12 +1,6 @@
 import React from "react";
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownSection,
-  DropdownTrigger,
-} from "@heroui/react";
+import { buttonVariants, Description, Dropdown, Label, Separator } from "@heroui/react";
+import clsx from "clsx";
 import { ChevronDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
@@ -48,115 +42,113 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
       </div>
 
       <div className="pr-2">
-        <Dropdown placement="bottom-end">
-          <DropdownTrigger>
-            <Button
-              variant="light"
-              className="dark:text-white"
-              startContent={<MenuIcon size={18} />}
-              endContent={<ChevronDown size={14} />}
-            >
-              {t("actions.menu")}
-            </Button>
-          </DropdownTrigger>
-          <DropdownMenu aria-label={t("actions.menu")}>
-            {/* An array, so the install entry can be absent without leaving a `false` in what
-                HeroUI reads as a collection. */}
-            <DropdownSection showDivider>
-              {[(
-              <DropdownItem
-                key="leftovers"
-                className="dark:text-white"
-                startContent={<Inbox size={16} />}
-                endContent={badge && (
-                  <span className="px-1.5 rounded-full bg-danger text-white text-xs">{badge}</span>
-                )}
-                onPress={onReviewLeftovers}
-              >
-                {t("leftovers.open")}
-              </DropdownItem>
-              ), (
-              <DropdownItem
-                key="visibility"
-                className="dark:text-white"
-                startContent={settings.showCompletedTasks ? <EyeOff size={16} /> : <Eye size={16} />}
-                onPress={() => updateSettings({ showCompletedTasks: !settings.showCompletedTasks })}
-              >
-                {settings.showCompletedTasks
-                  ? t("visibility.hide_completed_tasks")
-                  : t("visibility.show_completed_tasks")}
-              </DropdownItem>
-              ), (
-              <DropdownItem
-                key="print"
-                className="dark:text-white"
-                startContent={<Printer size={16} />}
-                onPress={() => window.print()}
-              >
-                {t("actions.print")}
-              </DropdownItem>
-              ), (
-              <DropdownItem
-                key="settings"
-                className="dark:text-white"
-                startContent={<Settings size={16} />}
-                onPress={openSettingsModal}
-              >
-                {t("actions.settings")}
-              </DropdownItem>
-              ), ...(canInstall ? [(
-                <DropdownItem
-                  key="install"
-                  className="dark:text-white"
-                  startContent={<Download size={16} />}
-                  // iOS has no prompt to fire, so there the entry is the instruction itself.
-                  description={needsManualSteps ? t("actions.install_steps") : undefined}
-                  onPress={() => { void install(); }}
+        <Dropdown>
+          {/* The trigger is itself a button in v3 — and a react-aria one, not HeroUI's, so it
+              takes its look from the variants rather than a `variant` prop. */}
+          <Dropdown.Trigger className={clsx(buttonVariants({ variant: "tertiary" }), "flex items-center gap-2 whitespace-nowrap")}>
+            <MenuIcon size={18} />
+            {t("actions.menu")}
+            <ChevronDown size={14} />
+          </Dropdown.Trigger>
+          <Dropdown.Popover placement="bottom end">
+            <Dropdown.Menu aria-label={t("actions.menu")}>
+              {/* Written as ordinary conditional children. HeroUI 2 needed every one of these
+                  wrapped in an array, because a fragment was not a node its collection builder
+                  recognised and the items inside it silently disappeared. v3's menu is a
+                  react-aria-components collection, which reads conditionals directly. */}
+              <Dropdown.Section>
+                <Dropdown.Item
+                  id="leftovers"
+                  textValue={t("leftovers.open")}
+                  onAction={onReviewLeftovers}
                 >
-                  {t("actions.install")}
-                </DropdownItem>
-              )] : [])]}
-            </DropdownSection>
+                  <Inbox size={16} />
+                  <Label>{t("leftovers.open")}</Label>
+                  {badge && (
+                    <span className="px-1.5 rounded-full bg-danger text-white text-xs">{badge}</span>
+                  )}
+                </Dropdown.Item>
 
-            {/* An array rather than a fragment: HeroUI's menu is a react-aria collection, and a
-                fragment in it is not a collection node — the items inside simply vanish. */}
-            <DropdownSection>
-              {accountUrl ? [(
-                <DropdownItem
-                  key="account"
-                  className="dark:text-white"
-                  startContent={<User size={16} />}
-                  onPress={() => {
-                    window.location.href = accountUrl;
-                  }}
+                <Dropdown.Item
+                  id="visibility"
+                  textValue={settings.showCompletedTasks
+                    ? t("visibility.hide_completed_tasks")
+                    : t("visibility.show_completed_tasks")}
+                  onAction={() => updateSettings({ showCompletedTasks: !settings.showCompletedTasks })}
                 >
-                  {t("actions.user_menu")}
-                </DropdownItem>
-              )] : [(
-                <DropdownItem
-                  key="signup"
-                  className="dark:text-white"
-                  startContent={<UserPlus size={16} />}
-                  onPress={() => {
-                    if (signupUrl) window.location.href = signupUrl;
-                  }}
-                >
-                  {t("actions.sign_up")}
-                </DropdownItem>
-              ), (
-                <DropdownItem
-                  key="login"
-                  className="dark:text-white"
-                  startContent={<LogIn size={16} />}
-                  onPress={() => {
-                    if (loginUrl) window.location.href = loginUrl;
-                  }}
-                >
-                  {t("actions.log_in")}
-                </DropdownItem>
-              )]}
-            </DropdownSection>
-          </DropdownMenu>
+                  {settings.showCompletedTasks ? <EyeOff size={16} /> : <Eye size={16} />}
+                  <Label>
+                    {settings.showCompletedTasks
+                      ? t("visibility.hide_completed_tasks")
+                      : t("visibility.show_completed_tasks")}
+                  </Label>
+                </Dropdown.Item>
+
+                <Dropdown.Item id="print" textValue={t("actions.print")} onAction={() => window.print()}>
+                  <Printer size={16} />
+                  <Label>{t("actions.print")}</Label>
+                </Dropdown.Item>
+
+                <Dropdown.Item id="settings" textValue={t("actions.settings")} onAction={openSettingsModal}>
+                  <Settings size={16} />
+                  <Label>{t("actions.settings")}</Label>
+                </Dropdown.Item>
+
+                {canInstall && (
+                  <Dropdown.Item
+                    id="install"
+                    textValue={t("actions.install")}
+                    onAction={() => { void install(); }}
+                  >
+                    <Download size={16} />
+                    <Label>{t("actions.install")}</Label>
+                    {/* iOS has no prompt to fire, so there the entry is the instruction itself. */}
+                    {needsManualSteps && <Description>{t("actions.install_steps")}</Description>}
+                  </Dropdown.Item>
+                )}
+              </Dropdown.Section>
+
+              <Separator />
+
+              <Dropdown.Section>
+                {accountUrl ? (
+                  <Dropdown.Item
+                    id="account"
+                    textValue={t("actions.user_menu")}
+                    onAction={() => {
+                      window.location.href = accountUrl;
+                    }}
+                  >
+                    <User size={16} />
+                    <Label>{t("actions.user_menu")}</Label>
+                  </Dropdown.Item>
+                ) : (
+                  <>
+                    <Dropdown.Item
+                      id="signup"
+                      textValue={t("actions.sign_up")}
+                      onAction={() => {
+                        if (signupUrl) window.location.href = signupUrl;
+                      }}
+                    >
+                      <UserPlus size={16} />
+                      <Label>{t("actions.sign_up")}</Label>
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      id="login"
+                      textValue={t("actions.log_in")}
+                      onAction={() => {
+                        if (loginUrl) window.location.href = loginUrl;
+                      }}
+                    >
+                      <LogIn size={16} />
+                      <Label>{t("actions.log_in")}</Label>
+                    </Dropdown.Item>
+                  </>
+                )}
+              </Dropdown.Section>
+            </Dropdown.Menu>
+          </Dropdown.Popover>
         </Dropdown>
       </div>
     </div>

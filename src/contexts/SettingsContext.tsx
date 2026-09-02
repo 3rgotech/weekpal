@@ -7,13 +7,15 @@ import React, {
   useRef,
 } from "react";
 import {
+  Button,
+  ButtonGroup,
+  Label,
+  ListBox,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  useDisclosure,
-} from "@heroui/modal";
-import { Button, ButtonGroup, Select, SelectItem } from "@heroui/react";
+  Select,
+  useOverlayState,
+} from "@heroui/react";
+import type { Key } from "react-aria-components";
 import { Language, Settings, SubtaskDisplay } from "../types";
 import clsx from "clsx";
 import { useLocalStorage } from "usehooks-ts";
@@ -49,7 +51,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     "settings",
     DEFAULT_SETTINGS
   );
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const overlay = useOverlayState();
   const dayjs = useDayJs(settings.language);
 
   // Built here rather than passed down: SettingsProvider sits above DataProvider,
@@ -126,48 +128,48 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const providedValues = {
     settings,
     updateSettings,
-    openSettingsModal: onOpen,
-    closeSettingsModal: onClose,
+    openSettingsModal: overlay.open,
+    closeSettingsModal: overlay.close,
   };
 
   return (
     <SettingsContext.Provider value={providedValues}>
       {children}
-      <Modal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        size="2xl"
-        backdrop="blur"
-      >
-        <ModalContent>
-          <ModalHeader className="flex flex-col gap-1 dark:text-white">
-            {t("settings.settings")}
-          </ModalHeader>
-          <ModalBody>
+      <Modal state={overlay}>
+        <Modal.Backdrop variant="blur">
+          <Modal.Container size="lg">
+            <Modal.Dialog>
+              <Modal.Header className="flex flex-col gap-1">
+                <Modal.Heading>{t("settings.settings")}</Modal.Heading>
+              </Modal.Header>
+              <Modal.Body>
             <div className="grid grid-cols-3 gap-x-4 gap-y-8 items-center mb-4">
               <h3 className="text-base dark:text-white">Theme</h3>
               <ButtonGroup size="sm" className="col-span-2 justify-start">
                 <Button
-                  startContent={<SunIcon />}
-                  className={clsx({ "bg-sky-500": settings.theme === "light" })}
+                  variant="secondary"
+                  className={clsx({ "bg-sky-500 text-white": settings.theme === "light" })}
                   onPress={() => updateSettings({ theme: "light" })}
                 >
+                  <SunIcon />
                   {t("theme.light")}
                 </Button>
                 <Button
-                  startContent={<MoonIcon />}
-                  className={clsx({ "bg-sky-500": settings.theme === "dark" })}
+                  variant="secondary"
+                  className={clsx({ "bg-sky-500 text-white": settings.theme === "dark" })}
                   onPress={() => updateSettings({ theme: "dark" })}
                 >
+                  <MoonIcon />
                   {t("theme.dark")}
                 </Button>
                 <Button
-                  startContent={<MonitorIcon />}
+                  variant="secondary"
                   className={clsx({
-                    "bg-sky-500": settings.theme === "system",
+                    "bg-sky-500 text-white": settings.theme === "system",
                   })}
                   onPress={() => updateSettings({ theme: "system" })}
                 >
+                  <MonitorIcon />
                   {t("theme.system")}
                 </Button>
               </ButtonGroup>
@@ -175,91 +177,125 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 {t("settings.language")}
               </h3>
               <Select
-                size="sm"
-                selectedKeys={[settings.language]}
-                startContent={
-                  <span
-                    className={`fi fi-${LANGUAGE_FLAGS[settings.language]}`}
-                  />
-                }
-                onSelectionChange={(keys) =>
-                  updateSettings({ language: [...keys][0] as Language })
+                value={settings.language}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({ language: String(key) as Language })
                 }
                 className="col-span-2"
               >
-                {LANGUAGES.map((language) => (
-                  <SelectItem
-                    key={language}
-                    startContent={
-                      <span className={`fi fi-${LANGUAGE_FLAGS[language]}`} />
-                    }
-                    className="dark:text-white"
-                  >
-                    {t(`language.${language}`)}
-                  </SelectItem>
-                ))}
+                <Select.Trigger>
+                  {/* No separate flag here: `Select.Value` renders the chosen item's own
+                      contents, flag included, and a second one beside it would be two. */}
+                  <Select.Value className="flex items-center gap-2" />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {LANGUAGES.map((language) => (
+                      <ListBox.Item
+                        key={language}
+                        id={language}
+                        textValue={t(`language.${language}`)}
+                      >
+                        <span className={`fi fi-${LANGUAGE_FLAGS[language]}`} />
+                        <Label>{t(`language.${language}`)}</Label>
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
               </Select>
               <h3 className="text-base dark:text-white">
                 {t("settings.subtaskDisplay")}
               </h3>
               <Select
-                size="sm"
-                selectedKeys={[settings.subtaskDisplay]}
-                onSelectionChange={(keys) =>
-                  updateSettings({
-                    subtaskDisplay: [...keys][0] as SubtaskDisplay,
+                value={settings.subtaskDisplay}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({
+                    subtaskDisplay: String(key) as SubtaskDisplay,
                   })
                 }
                 className="col-span-2"
               >
-                {SUBTASK_DISPLAYS.map((display) => (
-                  <SelectItem key={display} className="dark:text-white">
-                    {t(`subtaskDisplay.${display}`)}
-                  </SelectItem>
-                ))}
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {SUBTASK_DISPLAYS.map((display) => (
+                      <ListBox.Item
+                        key={display}
+                        id={display}
+                        textValue={t(`subtaskDisplay.${display}`)}
+                      >
+                        <Label>{t(`subtaskDisplay.${display}`)}</Label>
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
               </Select>
               <h3 className="text-base dark:text-white">
                 {t("settings.weekHeaderFormat")}
               </h3>
               <Select
-                size="sm"
-                selectedKeys={[settings.weekHeaderFormat]}
-                onSelectionChange={(keys) =>
-                  updateSettings({ weekHeaderFormat: `${[...keys][0]}` })
+                value={settings.weekHeaderFormat}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({ weekHeaderFormat: `${key}` })
                 }
                 className="col-span-2"
-                required
+                isRequired
               >
-                {WEEK_HEADER_FORMATS.map((format) => (
-                  <SelectItem key={format} className="dark:text-white">
-                    {dayjs()
-                      .format(format)
-                      .replace("[WEEK]", t("misc.week"))
-                      .replace("[OF]", t("misc.of"))}
-                  </SelectItem>
-                ))}
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {WEEK_HEADER_FORMATS.map((format) => {
+                      const label = dayjs()
+                        .format(format)
+                        .replace("[WEEK]", t("misc.week"))
+                        .replace("[OF]", t("misc.of"));
+
+                      return (
+                        <ListBox.Item key={format} id={format} textValue={label}>
+                          <Label>{label}</Label>
+                        </ListBox.Item>
+                      );
+                    })}
+                  </ListBox>
+                </Select.Popover>
               </Select>
               <h3 className="text-base dark:text-white">
                 {t("settings.dayHeaderFormat")}
               </h3>
               <Select
-                size="sm"
-                selectedKeys={[settings.dayHeaderFormat]}
-                onSelectionChange={(keys) =>
-                  updateSettings({ dayHeaderFormat: `${[...keys][0]}` })
+                value={settings.dayHeaderFormat}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({ dayHeaderFormat: `${key}` })
                 }
                 className="col-span-2"
-                required
+                isRequired
               >
-                {DAY_HEADER_FORMATS.map((format) => (
-                  <SelectItem key={format} className="dark:text-white">
-                    {dayjs().format(format)}
-                  </SelectItem>
-                ))}
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {DAY_HEADER_FORMATS.map((format) => (
+                      <ListBox.Item key={format} id={format} textValue={dayjs().format(format)}>
+                        <Label>{dayjs().format(format)}</Label>
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
               </Select>
-            </div>
-          </ModalBody>
-        </ModalContent>
+              </div>
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
       </Modal>
     </SettingsContext.Provider>
   );

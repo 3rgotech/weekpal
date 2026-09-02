@@ -9,29 +9,6 @@ jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-/**
- * HeroUI pulls framer-motion in through a dynamic import jest's VM cannot resolve, so its
- * components stand in as the plain elements they wrap. What is under test is this component's own
- * wiring — which task an action applies to, and when the review shows itself at all.
- *
- * The dropdown stands in as its items laid out flat: that a move is offered and reaches the right
- * destination is this component's business, opening a menu is HeroUI's.
- */
-jest.mock("@heroui/react", () => ({
-    Button: ({ children, onPress }: any) => <button onClick={onPress}>{children}</button>,
-    Chip: ({ children }: any) => <span>{children}</span>,
-    Dropdown: ({ children }: any) => <div>{children}</div>,
-    DropdownTrigger: ({ children }: any) => <div>{children}</div>,
-    DropdownMenu: ({ children }: any) => <div>{children}</div>,
-    DropdownItem: ({ children, onPress }: any) => <button onClick={onPress}>{children}</button>,
-    Modal: ({ children, isOpen }: any) => (isOpen ? <div>{children}</div> : null),
-    ModalBody: ({ children }: any) => <div>{children}</div>,
-    ModalContent: ({ children }: any) => <div>{children}</div>,
-    ModalFooter: ({ children }: any) => <div>{children}</div>,
-    ModalHeader: ({ children }: any) => <div>{children}</div>,
-    Spinner: () => <div>spinner</div>,
-    Tooltip: ({ children }: any) => children,
-}));
 
 const PAST_WEEK = "2026w30";
 

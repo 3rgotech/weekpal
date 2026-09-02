@@ -2,7 +2,7 @@ import clsx from "clsx";
 import React from "react";
 import { icons, defaultIcon } from "../utils/icon";
 import { Tooltip } from "@heroui/react";
-import * as _heroui_aria_utils from '@heroui/aria-utils';
+import type { Placement } from "react-aria-components";
 import { TOOLTIP_CLASSES } from "../utils/color";
 
 
@@ -17,9 +17,8 @@ interface IconButtonProps {
   iconClass?: string;
   wrapperClass?: string;
   tooltip?: string | false;
-  tooltipPosition?: _heroui_aria_utils.OverlayPlacement;
+  tooltipPosition?: Placement;
   tooltipClass?: string;
-  tooltipArrowClass?: string;
 }
 
 const iconSizes = {
@@ -43,7 +42,6 @@ const IconButton: React.FC<IconButtonProps> = ({
   tooltip = false,
   tooltipPosition = undefined,
   tooltipClass = undefined,
-  tooltipArrowClass = undefined,
   ...otherProps
 }) => {
   const Icon = icons[icon] ?? defaultIcon;
@@ -73,17 +71,16 @@ const IconButton: React.FC<IconButtonProps> = ({
   if (!tooltip) return button;
 
   return (
-    <Tooltip
-      content={tooltip}
-      placement={tooltipPosition}
-      closeDelay={1000}
-      showArrow={true}
-      classNames={tooltipClass ? {
-        base: tooltipClass,
-        arrow: tooltipArrowClass,
-      } : TOOLTIP_CLASSES}
-    >
-      {button}
+    <Tooltip closeDelay={1000}>
+      <Tooltip.Trigger>{button}</Tooltip.Trigger>
+      <Tooltip.Content
+        placement={tooltipPosition}
+        showArrow
+        className={tooltipClass ?? TOOLTIP_CLASSES}
+      >
+        {tooltip}
+        <Tooltip.Arrow />
+      </Tooltip.Content>
     </Tooltip>
   );
 };

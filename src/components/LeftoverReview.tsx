@@ -1,18 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Button,
-  Chip,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Spinner,
-} from "@heroui/react";
+import { Button, buttonVariants, Chip, Dropdown, Label, Modal, Spinner } from "@heroui/react";
 import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -141,16 +128,18 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
   const total = leftovers.length;
 
   return (
-    <Modal isOpen={isOpen} onClose={close} size="2xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1 dark:text-white">
-          {t("leftovers.title")}
-          <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
-            {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
-          </span>
-        </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
+      <Modal.Backdrop>
+        <Modal.Container size="lg" scroll="inside">
+          <Modal.Dialog>
+            <Modal.Header className="flex flex-col gap-1">
+              <Modal.Heading>{t("leftovers.title")}</Modal.Heading>
+              <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
+                {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
+              </span>
+            </Modal.Header>
 
-        <ModalBody className="dark:text-white">
+            <Modal.Body>
           {!leftoversLoaded && (
             <div className="flex justify-center py-8">
               <Spinner size="lg" />
@@ -197,7 +186,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
 
                       {category && (
                         <Chip size="sm" className={clsx("shrink-0 text-xs rounded-md text-white", category.getColorClass("bg"))}>
-                          {category.name}
+                          <Chip.Label>{category.name}</Chip.Label>
                         </Chip>
                       )}
 
@@ -220,26 +209,31 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                         />
 
                         <Dropdown>
-                          <DropdownTrigger>
-                            <Button size="sm" variant="flat" endContent={<ChevronDown size={14} />}>
-                              {t("leftovers.move")}
-                            </Button>
-                          </DropdownTrigger>
-                          <DropdownMenu aria-label={t("leftovers.move")}>
-                            {([
-                              ...(undated ? [] : ["sameDay" as const]),
-                              "thisWeek" as const,
-                              "someday" as const,
-                            ]).map((destination: RescueDestination) => (
-                              <DropdownItem
-                                key={destination}
-                                className="dark:text-white"
-                                onPress={() => resolve(task, () => rescueTask(task, destination))}
-                              >
-                                {t(MOVE_LABELS[destination])}
-                              </DropdownItem>
-                            ))}
-                          </DropdownMenu>
+                          {/* The trigger *is* the button in v3 — wrapping a `Button` inside it
+                              nests one button in another. It is a react-aria button rather than
+                              HeroUI's, so the look comes from the variants directly. */}
+                          <Dropdown.Trigger className={clsx(buttonVariants({ size: "sm", variant: "secondary" }), "flex items-center gap-2 whitespace-nowrap")}>
+                            {t("leftovers.move")}
+                            <ChevronDown size={14} />
+                          </Dropdown.Trigger>
+                          <Dropdown.Popover>
+                            <Dropdown.Menu aria-label={t("leftovers.move")}>
+                              {([
+                                ...(undated ? [] : ["sameDay" as const]),
+                                "thisWeek" as const,
+                                "someday" as const,
+                              ]).map((destination: RescueDestination) => (
+                                <Dropdown.Item
+                                  key={destination}
+                                  id={destination}
+                                  textValue={t(MOVE_LABELS[destination])}
+                                  onAction={() => resolve(task, () => rescueTask(task, destination))}
+                                >
+                                  <Label>{t(MOVE_LABELS[destination])}</Label>
+                                </Dropdown.Item>
+                              ))}
+                            </Dropdown.Menu>
+                          </Dropdown.Popover>
                         </Dropdown>
                       </div>
                     </li>
@@ -248,14 +242,16 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
               </ul>
             </section>
           ))}
-        </ModalBody>
+            </Modal.Body>
 
-        <ModalFooter>
-          <Button color="primary" onPress={close}>
-            {total === 0 ? t("leftovers.done") : t("leftovers.later")}
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+            <Modal.Footer>
+              <Button variant="primary" onPress={close}>
+                {total === 0 ? t("leftovers.done") : t("leftovers.later")}
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 };

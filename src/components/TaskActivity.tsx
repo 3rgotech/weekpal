@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Button, Spinner, Tab, Tabs, Textarea } from "@heroui/react";
+import { Button, Spinner, Tabs, TextArea, TextField } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import Task from "../data/task";
 import Note from "../data/note";
@@ -104,17 +104,18 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
                 >
                     {editingId === note.id ? (
                         <div className="flex flex-col gap-2">
-                            <Textarea
+                            <TextField
                                 aria-label={t("task.notes.edit")}
                                 value={editingBody}
-                                onValueChange={setEditingBody}
-                                minRows={2}
-                            />
+                                onChange={setEditingBody}
+                            >
+                                <TextArea rows={2} />
+                            </TextField>
                             <div className="flex flex-row gap-2 justify-end">
-                                <Button size="sm" variant="light" onPress={() => setEditingId(null)}>
+                                <Button size="sm" variant="tertiary" onPress={() => setEditingId(null)}>
                                     {t("actions.cancel")}
                                 </Button>
-                                <Button size="sm" color="primary" onPress={() => saveEdit(note)}>
+                                <Button size="sm" variant="primary" onPress={() => saveEdit(note)}>
                                     {t("actions.save")}
                                 </Button>
                             </div>
@@ -158,15 +159,15 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
             ))}
 
             <div className="flex flex-col gap-2">
-                <Textarea
+                <TextField
                     aria-label={t("task.notes.add")}
-                    placeholder={t("task.notes.placeholder")}
                     value={draft}
-                    onValueChange={setDraft}
-                    minRows={2}
-                />
+                    onChange={setDraft}
+                >
+                    <TextArea rows={2} placeholder={t("task.notes.placeholder")} />
+                </TextField>
                 <div className="flex justify-end">
-                    <Button size="sm" color="primary" isDisabled={draft.trim() === ""} onPress={addNote}>
+                    <Button size="sm" variant="primary" isDisabled={draft.trim() === ""} onPress={addNote}>
                         {t("task.notes.add")}
                     </Button>
                 </div>
@@ -233,20 +234,21 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
     return (
         <Tabs
             aria-label={t("task.activity")}
-            size="sm"
-            variant="underlined"
+            variant="secondary"
             onSelectionChange={(key) => {
                 if (key === "history") {
                     loadHistory();
                 }
             }}
         >
-            <Tab key="notes" title={t("task.notes.title")}>
-                {notesTab}
-            </Tab>
-            <Tab key="history" title={t("task.history.title")}>
-                {historyTab}
-            </Tab>
+            {/* The tab strip and the panels are separate in v3: a `Tabs.Tab` carries only the
+                label, and its content lives in the `Tabs.Panel` sharing its id. */}
+            <Tabs.List aria-label={t("task.activity")}>
+                <Tabs.Tab id="notes">{t("task.notes.title")}</Tabs.Tab>
+                <Tabs.Tab id="history">{t("task.history.title")}</Tabs.Tab>
+            </Tabs.List>
+            <Tabs.Panel id="notes">{notesTab}</Tabs.Panel>
+            <Tabs.Panel id="history">{historyTab}</Tabs.Panel>
         </Tabs>
     );
 };

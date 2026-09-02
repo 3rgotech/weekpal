@@ -23,6 +23,10 @@ module.exports = {
   // that reaches an API adapter, fails to parse.
   transformIgnorePatterns: ["/node_modules/(?!(lucide-react|ky|uuid)/)(?!.*\\.mjs$)"],
   moduleNameMapper: {
+    // HeroUI 3 is ESM-only and its `exports` map offers no `require` condition, so jest cannot
+    // resolve it at all — and react-aria wants layout jsdom does not provide. One stand-in for
+    // every test, rather than a factory inlined in each file. See the stub for the reasoning.
+    "^@heroui/react$": "<rootDir>/src/test-support/heroui.tsx",
     "\\.(css|less|scss|sass)$": "identity-obj-proxy",
     "\\.(jpg|jpeg|png|gif|webp|svg)$": "<rootDir>/__mocks__/fileMock.js",
   },

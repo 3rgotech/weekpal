@@ -10,15 +10,6 @@ jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock("@heroui/react", () => ({
-    Chip: ({ children }: any) => <span>{children}</span>,
-    Dropdown: ({ children }: any) => <div>{children}</div>,
-    DropdownTrigger: ({ children }: any) => <div>{children}</div>,
-    DropdownMenu: ({ children }: any) => <div>{children}</div>,
-    DropdownSection: ({ children }: any) => <div>{children}</div>,
-    DropdownItem: ({ children, onPress }: any) => <button onClick={onPress}>{children}</button>,
-    Tooltip: ({ children }: any) => children,
-}));
 
 const now = getDayJs()();
 const thisWeek = now.format("GGGG[w]WW");
@@ -94,7 +85,9 @@ describe("the board on a phone", () => {
         // here, so all three have to be on screen from the start.
         expect(screen.getByLabelText("actions.complete_task")).toBeVisible();
         expect(screen.getByLabelText("actions.edit_task")).toBeVisible();
-        expect(screen.getByLabelText("task.menu.open")).toBeVisible();
+        // By role: the menu it opens carries the same accessible name, which is correct for a
+        // screen reader and ambiguous for a plain label lookup.
+        expect(screen.getByRole("button", { name: "task.menu.open" })).toBeVisible();
     });
 
     it("opens the task modal from the edit control", () => {

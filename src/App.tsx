@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { HeroUIProvider } from "@heroui/react";
 import { DataProvider } from "./contexts/DataContext";
 import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
@@ -117,8 +116,7 @@ function App() {
   }, [minSplashTimeElapsed, loading]);
 
   return (
-    <HeroUIProvider>
-      {!indexedDBAvailable ? (
+      !indexedDBAvailable ? (
         <CannotLoadTheApp reason="indexeddb_unavailable" />
       ) : (
         <SettingsProvider>
@@ -168,8 +166,7 @@ function App() {
             </DataProvider>
           </CalendarProvider>
         </SettingsProvider>
-      )}
-    </HeroUIProvider>
+      )
   );
 }
 

@@ -52,22 +52,23 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
         </div>
       </div>
       <div className="flex items-stretch">
-        <Tooltip content={t("actions.category_filter")} placement="left" showArrow classNames={TOOLTIP_CLASSES}>
-          <div className="flex items-stretch justify-center h-12 xl:h-16 border-l border-slate-300 dark:border-sky-900">
-            <CategoryFilter />
-          </div>
+        <Tooltip>
+          <Tooltip.Trigger>
+            <div className="flex items-stretch justify-center h-12 xl:h-16 border-l border-slate-300 dark:border-sky-900">
+              <CategoryFilter />
+            </div>
+          </Tooltip.Trigger>
+          <Tooltip.Content placement="left" showArrow className={TOOLTIP_CLASSES}>
+            {t("actions.category_filter")}
+            <Tooltip.Arrow />
+          </Tooltip.Content>
         </Tooltip>
         {/* <Menu icon="refresh" title="Refresh" /> */}
         {onReviewLeftovers && (
           <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
-            <Badge
-              content={badge}
-              color="danger"
-              size="sm"
-              shape="circle"
-              isInvisible={badge === null}
-              aria-label={t("leftovers.waiting", { count: leftovers.length })}
-            >
+            {/* `isInvisible` is gone in v3, and rendering an empty badge in its place would
+                leave a dot on the button with nothing in it — so an empty inbox has no badge. */}
+            <Badge.Anchor>
               <IconButton
                 icon="inbox"
                 iconClass={ICON_BUTTON_CLASS}
@@ -76,7 +77,16 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
                 onClick={onReviewLeftovers}
                 size="md"
               />
-            </Badge>
+              {badge !== null && (
+                <Badge
+                  color="danger"
+                  size="sm"
+                  aria-label={t("leftovers.waiting", { count: leftovers.length })}
+                >
+                  <Badge.Label>{badge}</Badge.Label>
+                </Badge>
+              )}
+            </Badge.Anchor>
           </div>
         )}
         {/* Only when there is something to install: gone inside the installed app, and gone in
@@ -105,10 +115,16 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
             size="md"
           />
         </div>
-        <Tooltip content={t("actions.visibility_filter")} placement="bottom" showArrow classNames={TOOLTIP_CLASSES}>
-          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
-            <VisibilityFilter />
-          </div>
+        <Tooltip>
+          <Tooltip.Trigger>
+            <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+              <VisibilityFilter />
+            </div>
+          </Tooltip.Trigger>
+          <Tooltip.Content placement="bottom" showArrow className={TOOLTIP_CLASSES}>
+            {t("actions.visibility_filter")}
+            <Tooltip.Arrow />
+          </Tooltip.Content>
         </Tooltip>
         <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton

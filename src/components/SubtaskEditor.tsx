@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Checkbox, Input } from "@heroui/react";
+import { Checkbox, Input, TextField } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import { Subtask } from "../types";
 import IconButton from "./IconButton";
@@ -61,18 +61,23 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
                 <div key={index} className="flex items-center gap-2">
                     <Checkbox
                         isSelected={subtask.completed}
-                        onValueChange={(completed) => replace(index, { ...subtask, completed })}
+                        onChange={(completed) => replace(index, { ...subtask, completed })}
                         aria-label={subtask.title}
-                    />
-                    <Input
-                        size="sm"
+                    >
+                        <Checkbox.Control>
+                            <Checkbox.Indicator />
+                        </Checkbox.Control>
+                    </Checkbox>
+                    {/* The strike-through used to be a `classNames={{ input: … }}` slot override.
+                        v3 has no slots — the input is a component, so the class goes on it. */}
+                    <TextField
+                        className="flex-1"
                         aria-label={t("task.subtasks.item")}
                         value={subtask.title}
-                        onValueChange={(title) => replace(index, { ...subtask, title })}
-                        classNames={{
-                            input: subtask.completed ? "line-through text-slate-400" : "",
-                        }}
-                    />
+                        onChange={(title) => replace(index, { ...subtask, title })}
+                    >
+                        <Input className={subtask.completed ? "line-through text-slate-400" : ""} />
+                    </TextField>
                     <IconButton
                         icon="trash"
                         size="xs"
@@ -83,15 +88,14 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
             ))}
 
             <div className="flex items-center gap-2">
-                <Input
-                    size="sm"
+                <TextField
+                    className="flex-1"
                     // Distinct from the button beside it: the field is where a new subtask is
                     // written, the button is what adds it, and giving both the same name leaves
                     // a screen reader announcing two identical controls.
                     aria-label={t("task.subtasks.new")}
-                    placeholder={t("task.subtasks.placeholder")}
                     value={draft}
-                    onValueChange={setDraft}
+                    onChange={setDraft}
                     // Enter adds and leaves the field focused, so a checklist can be typed
                     // straight through without reaching for the mouse.
                     onKeyDown={(event) => {
@@ -100,7 +104,9 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
                             add();
                         }
                     }}
-                />
+                >
+                    <Input placeholder={t("task.subtasks.placeholder")} />
+                </TextField>
                 <IconButton
                     icon="plus"
                     size="xs"
