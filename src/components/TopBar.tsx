@@ -41,7 +41,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
   const { accountUrl, signupUrl, loginUrl } = getEnvConfig();
 
   return (
-    <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
+    <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950 pt-[env(safe-area-inset-top)]">
       {/* `min-w-0` so the week label and sync chip give way rather than pushing the buttons off
           the right edge, which is what a tablet-width bar did. */}
       <div className="flex items-stretch min-w-0">

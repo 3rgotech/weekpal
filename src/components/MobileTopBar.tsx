@@ -38,7 +38,8 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
   const badge = leftoverBadge(leftovers.length);
 
   return (
-    <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950">
+    /* Same idea at the top: the installed app draws under the status bar. */
+    <div className="flex items-center justify-between w-full bg-slate-100 dark:bg-sky-950 pt-[env(safe-area-inset-top)]">
       <div className="flex items-center">
         <Logo />
         <div className="ml-2">

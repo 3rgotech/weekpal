@@ -51,7 +51,7 @@ const MobileBoard: React.FC = () => {
     : [visibleDay === "0" ? t("main.this_week") : t("main.some_day"), ""];
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <header
         className={clsx(
           "flex-none flex items-baseline gap-2 px-3 py-2 border-b-2",

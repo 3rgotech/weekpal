@@ -70,7 +70,9 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
   );
 
   return (
-    <nav className="flex-none border-t border-slate-200 dark:border-sky-900 bg-slate-100 dark:bg-sky-950">
+    /* The bar's background runs to the bottom edge; its contents stop above the home indicator.
+       Padding rather than a margin, so the colour still fills the strip iOS reserves. */
+    <nav className="flex-none border-t border-slate-200 dark:border-sky-900 bg-slate-100 dark:bg-sky-950 pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-center justify-between px-2 py-1">
         <IconButton
           icon="chevronLeft"
