@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { readFileSync, existsSync } from "node:fs";
-import { defineConfig, loadEnv, Plugin, createFilter, transformWithEsbuild } from "vite";
+import { defineConfig, loadEnv, Plugin, createFilter, transformWithOxc } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import tsconfigPaths from "vite-tsconfig-paths";
@@ -196,8 +196,11 @@ function svgrPlugin(): Plugin {
 					},
 				});
 
-				const res = await transformWithEsbuild(componentCode, id, {
-					loader: "jsx",
+				// `transformWithOxc`, not the `transformWithEsbuild` this used to call: Vite 8
+				// builds on rolldown/oxc and deprecated the esbuild helper, which now needs
+				// esbuild installed as a separate dependency just to keep working.
+				const res = await transformWithOxc(componentCode, id, {
+					lang: "jsx",
 				});
 
 				return {
