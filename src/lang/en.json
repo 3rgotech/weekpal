@@ -134,7 +134,8 @@
     },
     "misc": {
         "of": "of",
-        "week": "Week"
+        "week": "Week",
+        "loading": "Loading…"
     },
     "subtaskDisplay": {
         "percentage": "As a percentage",

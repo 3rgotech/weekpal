@@ -124,7 +124,8 @@
     },
     "misc": {
         "of": "de",
-        "week": "Semaine"
+        "week": "Semaine",
+        "loading": "Chargement…"
     },
     "subtaskDisplay": {
         "percentage": "En pourcentage",

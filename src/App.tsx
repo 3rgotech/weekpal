@@ -16,6 +16,7 @@ import MobileTopBar from "./components/MobileTopBar";
 import PrintSheet from "./components/PrintSheet";
 import UpdateBar from "./components/UpdateBar";
 import { useVerticalLayout } from "./utils/layout";
+import { isInstalled } from "./utils/install";
 import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
@@ -43,8 +44,16 @@ function App() {
 
   const [indexedDBAvailable, setIndexedDBAvailable] = useState(true);
   const [loading, setLoading] = useState(true);
-  // TODO : enable splash screen in production
-  const [splashScreen, setSplashScreen] = useState(false);
+
+  /*
+   * The splash is for the installed app only.
+   *
+   * Launching from a home-screen icon should look like an app starting — the platform shows its
+   * own splash from the manifest first, and this covers the gap between that disappearing and the
+   * board being ready. In a browser tab there is no gap to cover and it would just be an
+   * interstitial between the visitor and the thing they asked for.
+   */
+  const [splashScreen, setSplashScreen] = useState(() => isInstalled());
   const [minSplashTimeElapsed, setMinSplashTimeElapsed] = useState(false);
   const [taskAdapter, setTaskAdapter] = useState<ITaskAdapter | null>(null);
   const [categoryAdapter, setCategoryAdapter] =
@@ -89,10 +98,11 @@ function App() {
     // Set loading to false
     setLoading(false);
 
-    // Set minimum splash screen time
+    // The mark's own sequence is 900ms; this leaves a beat on the finished state so the last
+    // thing to appear is not also the last thing to be seen.
     const timer = setTimeout(() => {
       setMinSplashTimeElapsed(true);
-    }, 3000);
+    }, 1300);
 
     return () => clearTimeout(timer);
   }, []);

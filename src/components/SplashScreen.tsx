@@ -2,16 +2,20 @@ import React, { useEffect, useState } from "react";
 import SquareCheckAnimation from "./SquareCheckAnimation";
 import letteringDark from "../assets/lettering_dark.svg";
 import letteringWhite from "../assets/lettering_white.svg";
-import { useSettings } from "../contexts/SettingsContext";
-import { useMediaQuery } from "usehooks-ts";
+import { useTranslation } from "react-i18next";
 
-// Animation timings - total animation 1500ms
-const DURATION = 1500;
-const displayTheme = document.body.classList.contains("dark")
-  ? "dark"
-  : "light";
+/*
+ * The whole sequence, in milliseconds: bar, bar, then the check and the lettering together.
+ *
+ * Deliberately brisk. This sits between someone tapping the icon and their week, and every
+ * millisecond of it is time they did not ask for — long enough to be seen, short enough not to be
+ * waited on. The three beats below are each a third of it.
+ */
+const DURATION = 900;
+const STEP = DURATION / 3;
 
 const SplashScreen = () => {
+  const { t } = useTranslation();
   const [start, setStart] = useState(false);
 
   useEffect(() => {
@@ -26,7 +30,6 @@ const SplashScreen = () => {
       "#splash-screen path:nth-child(3)"
     )[0];
 
-    console.log(document.querySelectorAll("#splash-screen path"));
     if (!path1 || !path2 || !path3) {
       return;
     }
@@ -45,7 +48,7 @@ const SplashScreen = () => {
           { transform: "translate(0, 0)" },
         ],
         {
-          duration: DURATION / 3,
+          duration: STEP,
           fill: "forwards",
           easing: "ease-out",
         }
@@ -59,7 +62,7 @@ const SplashScreen = () => {
             { transform: "translate(0, 0)" },
           ],
           {
-            duration: DURATION / 3,
+            duration: STEP,
             fill: "forwards",
             easing: "ease-out",
           }
@@ -68,7 +71,7 @@ const SplashScreen = () => {
         // Third element animation - fade in after the second
         setTimeout(() => {
           path3.animate([{ opacity: 0 }, { opacity: 1 }], {
-            duration: DURATION / 3,
+            duration: STEP,
             easing: "ease-out",
             fill: "forwards",
           });
@@ -83,8 +86,8 @@ const SplashScreen = () => {
           document.getElementById("lettering")?.classList.remove("opacity-0");
           document.getElementById("lettering")?.classList.add("opacity-100");
           setStart(true);
-        }, 500);
-      }, 500);
+        }, STEP);
+      }, STEP);
     }, 0);
   }, []);
 
@@ -94,37 +97,42 @@ const SplashScreen = () => {
       id="splash-screen"
     >
       <div
-        className="flex items-center justify-center opacity-0 transition-opacity duration-500"
+        className="flex items-center justify-center opacity-0 transition-opacity duration-300"
         id="lettering"
       >
+        {/* Capped rather than a share of the viewport: at 80% the mark alone was taller than a
+            phone, which pushed the lettering off the top and the message off the bottom. */}
         <img
           src={letteringDark}
           alt="lettering"
-          className="w-[80%] h-full block dark:hidden"
+          className="w-[60%] max-w-[260px] block dark:hidden"
         />
         <img
           src={letteringWhite}
           alt="lettering"
-          className="w-[80%] h-full hidden dark:block"
+          className="w-[60%] max-w-[260px] hidden dark:block"
         />
       </div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         version="1.1"
         viewBox="0 0 300 300"
-        className="size-[80%] overflow-hidden"
+        className="w-[55%] max-w-[220px] aspect-square overflow-hidden"
       >
         <defs>
           <style>
             {`
               .check { fill: #00a6f4; }
-              .bar { fill: ${displayTheme === "dark" ? "#fff" : "#052f4a"}; }
+              /* Inherited from the group's text colour, so the mark follows the theme. It used
+                 to be read from the body's class at import time — before the theme had been
+                 applied — which drew the dark mark on a dark background. */
+              .bar { fill: currentColor; }
               .empty { fill: none; }
             `}
           </style>
         </defs>
         <rect className="empty" width="300" height="300" />
-        <g>
+        <g className="text-sky-950 dark:text-white">
           <path
             id="path1"
             className="bar"
@@ -145,10 +153,10 @@ const SplashScreen = () => {
       </svg>
       <div
         id="loading-message"
-        className="flex items-center justify-center space-x-4 mt-8 opacity-0 transition-opacity duration-500"
+        className="flex items-center justify-center space-x-4 mt-8 opacity-0 transition-opacity duration-300"
       >
         <SquareCheckAnimation start={start} />
-        <div className="text-lg font-bold text-white">Loading...</div>
+        <div className="text-lg font-bold text-sky-950 dark:text-white">{t("misc.loading")}</div>
       </div>
     </div>
   );

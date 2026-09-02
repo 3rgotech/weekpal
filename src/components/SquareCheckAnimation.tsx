@@ -90,7 +90,9 @@ const SquareCheckAnimation = ({ start }: { start: boolean }) => {
             className="absolute transition-opacity duration-300"
             style={{ opacity: isChecked ? 0 : opacity[idx] }}
           >
-            <Square size={32} className="text-white" strokeWidth={2} />
+            {/* The empty square follows the theme: it was white, which on the light splash was
+                three invisible boxes sitting beside "Loading…" and pushing it off centre. */}
+            <Square size={32} className="text-slate-300 dark:text-white" strokeWidth={2} />
           </div>
 
           {/* Check square */}
