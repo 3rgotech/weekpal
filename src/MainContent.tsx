@@ -31,7 +31,7 @@ const MainContent: React.FC<MainContentProps> = () => {
     settings: { dayHeaderFormat },
   } = useSettings();
   const { firstDayOfWeek } = useCalendar();
-  const { tasks, moveTask, findTask } = useData();
+  const { tasks, moveTask, findTask, moveTaskToProject } = useData();
   const { open: openTaskModal } = useTaskModal();
   const dayjs = useDayJs();
   const [activeTask, setActiveTask] = useState<{
@@ -137,6 +137,15 @@ const MainContent: React.FC<MainContentProps> = () => {
     if (delta < 10) {
       openTaskModal(task);
     } else {
+      // Dropped in the drawer — on a project's list, or on a task already in one. A backlog has
+      // no day, so this is settled before the day lookup rather than falling through it and
+      // ending the drag in silence, which is what the drawer did before it was a drop target.
+      const toProject = over.data.current?.projectId ?? null;
+      if (toProject) {
+        void moveTaskToProject(task, toProject);
+        return;
+      }
+
       const toDay = over.data.current?.dayOfWeek ?? null;
       if (!toDay) return;
       let toOrder =
@@ -158,7 +167,16 @@ const MainContent: React.FC<MainContentProps> = () => {
     }
     const taskId = id.toString().replace("task-", "");
     const task = findTask(taskId);
-    return task ? `${task.dayOfWeek}-droppable` : null;
+
+    if (!task) {
+      return null;
+    }
+
+    // A backlog task's container is its project, not the Some day column: both are tasks with
+    // no week, and telling them apart is exactly what `projectId` is for.
+    return task.taskType === "someday" && task.belongsToProject
+      ? `project-${task.projectId}-droppable`
+      : `${task.dayOfWeek}-droppable`;
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -178,6 +196,13 @@ const MainContent: React.FC<MainContentProps> = () => {
       !overContainer ||
       activeContainer === overContainer
     ) {
+      return;
+    }
+
+    // Crossing into or out of the drawer is settled on drop, not while hovering: this handler
+    // writes the move on every pass, and a task dragged over a project on its way to Friday
+    // would be filed there and back again on the way.
+    if (activeContainer.startsWith("project-") || overContainer.startsWith("project-")) {
       return;
     }
 

@@ -20,25 +20,51 @@ interface TaskContentProps {
  */
 const TaskContent: React.FC<TaskContentProps> = ({ task }) => {
   const { t } = useTranslation();
-  const { categories } = useData();
+  const { categories, focusedCategory, toggleFocusCategory } = useData();
   const { settings } = useSettings();
 
   const category = categories.find((c) => c.id === task.categoryId);
+  const isFocused = category !== undefined && focusedCategory === category.id;
   const { done, total } = task.subtaskProgress;
   const subtaskLabel = subtaskProgressLabel(settings.subtaskDisplay, done, total);
 
   return (
     <>
       {category && (
-        <Chip
-          size="sm"
+        /* The one-tap way into focus mode, and back out of it.
+           `stopPropagation` on the pointer press rather than only on the click: on the wide
+           board this chip sits inside the drag handle, and dnd-kit starts a drag — and, under
+           the 10px threshold, opens the task — from `pointerdown`. Left alone, tapping the chip
+           opened the task instead of focusing its category. */
+        <button
+          type="button"
           className={clsx(
-            "shrink-0 text-xs rounded-md text-white",
-            task.completed ? category.getColorClass("bgFaded") : category.getColorClass("bg"),
+            "shrink-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-sky-500",
+            isFocused && "ring-2 ring-offset-1 ring-sky-500",
           )}
+          aria-pressed={isFocused}
+          aria-label={isFocused
+            ? t("category.focus_exit")
+            : t("category.focus", { name: category.name })}
+          title={isFocused
+            ? t("category.focus_exit")
+            : t("category.focus", { name: category.name })}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            toggleFocusCategory(category.id);
+          }}
         >
-          <Chip.Label>{category.name}</Chip.Label>
-        </Chip>
+          <Chip
+            size="sm"
+            className={clsx(
+              "text-xs rounded-md text-white cursor-pointer",
+              task.completed ? category.getColorClass("bgFaded") : category.getColorClass("bg"),
+            )}
+          >
+            <Chip.Label>{category.name}</Chip.Label>
+          </Chip>
+        </button>
       )}
 
       {/* Two lines rather than one truncated one, and three in the band where the seven columns

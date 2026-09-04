@@ -20,6 +20,20 @@ jest.mock("../../contexts/DataContext", () => ({
     }),
 }));
 
+jest.mock("react-i18next", () => ({
+    useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+// `env` reads `import.meta.env`, which jest cannot parse as CommonJS, and `db` opens Dexie —
+// neither is what this file is about. The data source is a `let` so a test can move it.
+let dataSource = "api";
+jest.mock("../../utils/env", () => ({ getEnvConfig: () => ({ dataSource }) }));
+jest.mock("../../store/db", () => ({ resetDemoData: jest.fn(async () => undefined) }));
+
+beforeEach(() => {
+    dataSource = "api";
+});
+
 beforeEach(() => {
     resetSyncHealth();
 });
@@ -77,5 +91,18 @@ describe("SyncStatusIndicator", () => {
 
         await act(async () => { reportSyncHealth("ok"); });
         expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();
+    });
+});
+
+describe("the demo", () => {
+    it("offers a reset instead of a queue nobody can flush", async () => {
+        // The demo has no backend, so every write stays pending for ever: the count only ever
+        // went up, and there was nothing a visitor could do about it.
+        dataSource = "demo";
+
+        await renderIndicator();
+
+        expect(screen.getByRole("button", { name: /demo.reset/ })).toBeInTheDocument();
+        expect(screen.queryByText(/pending/)).not.toBeInTheDocument();
     });
 });

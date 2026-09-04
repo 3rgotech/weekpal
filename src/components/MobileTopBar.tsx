@@ -1,5 +1,5 @@
-import React from "react";
-import { buttonVariants, Description, Dropdown, Label, Separator } from "@heroui/react";
+import React, { useState } from "react";
+import { buttonVariants, Dropdown, Label, Separator } from "@heroui/react";
 import clsx from "clsx";
 import { ChevronDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -10,10 +10,10 @@ import { useSettings } from "../contexts/SettingsContext";
 import { getEnvConfig } from "../utils/env";
 import { leftoverBadge } from "../utils/settings";
 import { useInstallPrompt } from "../utils/install";
+import InstallModal from "./InstallModal";
+import { useShortcuts } from "../contexts/ShortcutsContext";
+import { MENU_ITEM_CLASS } from "../utils/color";
 
-interface MobileTopBarProps {
-  onReviewLeftovers: () => void;
-}
 
 /**
  * The top bar on the vertical board: the logo, sync state, and one menu holding everything the
@@ -22,11 +22,13 @@ interface MobileTopBarProps {
  * Icon *and* word on the trigger. An unlabelled hamburger on a board whose rows already carry
  * three icon-only controls would be the fourth thing to guess at.
  */
-const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
+const MobileTopBar: React.FC = () => {
   const { t } = useTranslation();
   const { settings, updateSettings, openSettingsModal } = useSettings();
   const { leftovers } = useData();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
+  const { setLeftoversOpen } = useShortcuts();
+  const [installSteps, setInstallSteps] = useState(false);
   const { accountUrl, signupUrl, loginUrl } = getEnvConfig();
 
   const badge = leftoverBadge(leftovers.length);
@@ -60,10 +62,10 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                 <Dropdown.Item
                   id="leftovers"
                   textValue={t("leftovers.open")}
-                  onAction={onReviewLeftovers}
+                  onAction={() => setLeftoversOpen(true)}
                 >
-                  <Inbox size={16} />
-                  <Label>{t("leftovers.open")}</Label>
+                  <Inbox size={16} className={MENU_ITEM_CLASS} />
+                  <Label className={MENU_ITEM_CLASS}>{t("leftovers.open")}</Label>
                   {badge && (
                     <span className="px-1.5 rounded-full bg-danger text-white text-xs">{badge}</span>
                   )}
@@ -76,8 +78,10 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                     : t("visibility.show_completed_tasks")}
                   onAction={() => updateSettings({ showCompletedTasks: !settings.showCompletedTasks })}
                 >
-                  {settings.showCompletedTasks ? <EyeOff size={16} /> : <Eye size={16} />}
-                  <Label>
+                  {settings.showCompletedTasks
+                    ? <EyeOff size={16} className={MENU_ITEM_CLASS} />
+                    : <Eye size={16} className={MENU_ITEM_CLASS} />}
+                  <Label className={MENU_ITEM_CLASS}>
                     {settings.showCompletedTasks
                       ? t("visibility.hide_completed_tasks")
                       : t("visibility.show_completed_tasks")}
@@ -85,25 +89,34 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                 </Dropdown.Item>
 
                 <Dropdown.Item id="print" textValue={t("actions.print")} onAction={() => window.print()}>
-                  <Printer size={16} />
-                  <Label>{t("actions.print")}</Label>
+                  <Printer size={16} className={MENU_ITEM_CLASS} />
+                  <Label className={MENU_ITEM_CLASS}>{t("actions.print")}</Label>
                 </Dropdown.Item>
 
+                {/* No shortcuts entry here. This bar is the board you navigate by tapping; a
+                    sheet of keys is an entry that cannot be acted on from the device showing it. */}
                 <Dropdown.Item id="settings" textValue={t("actions.settings")} onAction={openSettingsModal}>
-                  <Settings size={16} />
-                  <Label>{t("actions.settings")}</Label>
+                  <Settings size={16} className={MENU_ITEM_CLASS} />
+                  <Label className={MENU_ITEM_CLASS}>{t("actions.settings")}</Label>
                 </Dropdown.Item>
 
                 {canInstall && (
                   <Dropdown.Item
                     id="install"
                     textValue={t("actions.install")}
-                    onAction={() => { void install(); }}
+                    onAction={() => {
+                      // iOS has no prompt to fire. The instruction used to be a description
+                      // beside the label, which squeezed "Install app" onto two lines and put a
+                      // paragraph in a menu; it is a dialog of its own now.
+                      if (needsManualSteps) {
+                        setInstallSteps(true);
+                      } else {
+                        void install();
+                      }
+                    }}
                   >
-                    <Download size={16} />
-                    <Label>{t("actions.install")}</Label>
-                    {/* iOS has no prompt to fire, so there the entry is the instruction itself. */}
-                    {needsManualSteps && <Description>{t("actions.install_steps")}</Description>}
+                    <Download size={16} className={MENU_ITEM_CLASS} />
+                    <Label className={MENU_ITEM_CLASS}>{t("actions.install")}</Label>
                   </Dropdown.Item>
                 )}
               </Dropdown.Section>
@@ -119,8 +132,8 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                       window.location.href = accountUrl;
                     }}
                   >
-                    <User size={16} />
-                    <Label>{t("actions.user_menu")}</Label>
+                    <User size={16} className={MENU_ITEM_CLASS} />
+                    <Label className={MENU_ITEM_CLASS}>{t("actions.user_menu")}</Label>
                   </Dropdown.Item>
                 ) : (
                   <>
@@ -131,8 +144,8 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                         if (signupUrl) window.location.href = signupUrl;
                       }}
                     >
-                      <UserPlus size={16} />
-                      <Label>{t("actions.sign_up")}</Label>
+                      <UserPlus size={16} className={MENU_ITEM_CLASS} />
+                      <Label className={MENU_ITEM_CLASS}>{t("actions.sign_up")}</Label>
                     </Dropdown.Item>
                     <Dropdown.Item
                       id="login"
@@ -141,8 +154,8 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
                         if (loginUrl) window.location.href = loginUrl;
                       }}
                     >
-                      <LogIn size={16} />
-                      <Label>{t("actions.log_in")}</Label>
+                      <LogIn size={16} className={MENU_ITEM_CLASS} />
+                      <Label className={MENU_ITEM_CLASS}>{t("actions.log_in")}</Label>
                     </Dropdown.Item>
                   </>
                 )}
@@ -151,6 +164,8 @@ const MobileTopBar: React.FC<MobileTopBarProps> = ({ onReviewLeftovers }) => {
           </Dropdown.Popover>
         </Dropdown>
       </div>
+
+      <InstallModal isOpen={installSteps} onOpenChange={setInstallSteps} />
     </div>
   );
 };

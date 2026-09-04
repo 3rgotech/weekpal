@@ -20,15 +20,22 @@ interface IconButtonProps {
   tooltipClass?: string;
 }
 
+/*
+ * The glyph, and the room around it.
+ *
+ * `xs` used to be a 16px icon inside 2px of padding, which is a circle the icon fills edge to
+ * edge — the drawer's pencil looked like a button with its border drawn through it. Every size
+ * now leaves at least a quarter of its own width as breathing space.
+ */
 const iconSizes = {
-  xs: 16,
-  sm: 20,
+  xs: 14,
+  sm: 18,
   md: 24,
 };
 
 const btnClasses = {
-  xs: "p-0.5",
-  sm: "p-1",
+  xs: "p-1",
+  sm: "p-1.5",
   md: "p-2",
 };
 
@@ -64,7 +71,10 @@ const IconButton: React.FC<IconButtonProps> = ({
        * aware, so a caller passing its own `border-*` still wins rather than tying with this one.
        */
       className={cn(
-        "rounded-full transition-colors border border-slate-300 dark:border-slate-600",
+        // `cursor-pointer` is explicit: Tailwind 4's reset gives buttons the default arrow, so
+        // every icon-only control on the board — the review's tick and bin among them — looked
+        // like text rather than something to press.
+        "rounded-full transition-colors border border-slate-300 dark:border-slate-600 cursor-pointer",
         btnClasses[size],
         wrapperClass,
         iconClass

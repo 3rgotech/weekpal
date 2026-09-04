@@ -44,13 +44,17 @@
         "log_in": "Se connecter",
         "menu": "Menu",
         "install": "Installer l'application",
-        "install_steps": "Appuyez sur Partager, puis « Sur l'écran d'accueil »"
+        "close": "Fermer"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",
         "all": "Toutes",
         "none": "Aucune",
-        "show_all": "Voir toutes"
+        "show_all": "Voir toutes",
+        "focus": "Se concentrer sur {{name}}",
+        "focus_exit": "Quitter le focus",
+        "focused": "Focus sur {{name}} — toutes les autres catégories sont masquées",
+        "selected": "{{count}} catégories"
     },
     "task": {
         "title": "Titre",
@@ -142,7 +146,10 @@
         "placeholder": "Nouveau projet…",
         "delete": "Supprimer le projet",
         "category": "Catégorie du projet",
-        "no_category": "Aucune catégorie"
+        "no_category": "Aucune catégorie",
+        "edit": "Modifier le projet",
+        "name": "Nom du projet",
+        "category_help": "La catégorie d'un projet s'applique à toutes ses tâches."
     },
     "visibility": {
         "show_completed_tasks": "Afficher les tâches complétées",
@@ -177,5 +184,37 @@
         "available": "Une nouvelle version de WeekPal est prête.",
         "refresh": "Actualiser",
         "dismiss": "Plus tard"
+    },
+    "demo": {
+        "reset": "Réinitialiser la démo",
+        "reset_confirm": "La démo est effacée et la semaine d'exemple rechargée. Rien de ce que vous avez créé ici n'est conservé.",
+        "reset_action": "Réinitialiser la démo"
+    },
+    "shortcuts": {
+        "title": "Raccourcis clavier",
+        "intro": "Ils agissent sur la tâche sélectionnée. Cliquez une tâche, ou appuyez sur j pour commencer.",
+        "next": "Sélectionner la tâche suivante",
+        "previous": "Sélectionner la tâche précédente",
+        "complete": "Terminer la tâche sélectionnée, ou la rouvrir",
+        "defer": "La repousser au jour suivant, ou à Un jour",
+        "new": "Ajouter une tâche au jour sélectionné",
+        "category": "Se concentrer sur sa catégorie, ou quitter le focus",
+        "help": "Afficher cette liste",
+        "escape": "Fermer cette liste, ou quitter le focus",
+        "completed_tasks": "Afficher ou masquer les tâches terminées",
+        "inbox": "Ouvrir les tâches laissées en arrière",
+        "projects": "Afficher ou masquer le panneau projets",
+        "week": "Semaine précédente, semaine suivante",
+        "today": "Revenir à cette semaine",
+        "print": "Imprimer la semaine (raccourci du navigateur)"
+    },
+    "install": {
+        "title": "Ajouter WeekPal à votre écran d'accueil",
+        "intro": "L'application s'ouvre en plein écran, fonctionne hors ligne et garde la semaine à portée de main.",
+        "step_share": "Touchez le bouton Partager — le carré avec une flèche.",
+        "step_menu": "Ouvrez le menu de votre navigateur.",
+        "step_add": "Choisissez « Sur l'écran d'accueil ».",
+        "step_confirm": "Confirmez le nom : l'icône arrive sur votre écran d'accueil.",
+        "open_share": "Ouvrir le menu de partage"
     }
 }

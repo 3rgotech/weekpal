@@ -101,6 +101,18 @@ class TaskStore extends BaseStore implements ITaskStore {
         return week.filter((task) => `${task.dayOfWeek}` === `${dayOfWeek}` && !task.completedAt).length;
     }
 
+    /**
+     * Where a new task lands at the bottom of a project's backlog.
+     *
+     * Separate from `nextOrder`, which counts the board's Some day list and deliberately leaves
+     * project tasks out of it: the two lists share a table but are ordered independently.
+     */
+    async nextBacklogOrder(projectId: string): Promise<number> {
+        const someday = await this.db.somedayTasks.toArray();
+
+        return someday.filter((task) => task.projectId === projectId && !task.completedAt).length;
+    }
+
     /** What the cache alone can answer: unfinished tasks sitting in a week that has ended. */
     private async localLeftovers(current: string): Promise<WeeklyTask[]> {
         const rows = await this.db.weeklyTasks.toArray();

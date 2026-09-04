@@ -1,18 +1,28 @@
 import React, { useEffect, useState } from 'react';
+import { Button, Modal } from '@heroui/react';
+import { useTranslation } from 'react-i18next';
 import { useData } from '../contexts/DataContext';
-import { CloudOff, Clock, LockKeyhole, TriangleAlert } from 'lucide-react';
+import { CloudOff, Clock, LockKeyhole, RotateCcw, TriangleAlert } from 'lucide-react';
 import { SyncHealth, subscribeToSyncHealth } from '../utils/syncStatus';
 import { probe, subscribeToConnectivity } from '../utils/connectivity';
+import { getEnvConfig } from '../utils/env';
+import { resetDemoData } from '../store/db';
 
 interface SyncStatusIndicatorProps {
     className?: string;
 }
 
 const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '' }) => {
+    const { t } = useTranslation();
     const { taskStore, categoryStore } = useData();
     const [isOnline, setIsOnline] = useState<boolean>(true);
     const [pendingChanges, setPendingChanges] = useState<number>(0);
     const [health, setHealth] = useState<SyncHealth>('ok');
+    const [confirmingReset, setConfirmingReset] = useState(false);
+
+    // The demo has no backend to sync with, so its queue only ever grows and the count it
+    // produced told the visitor nothing they could act on. What they can do is start over.
+    const isDemo = getEnvConfig().dataSource === 'demo';
 
     useEffect(() => subscribeToSyncHealth(setHealth), []);
 
@@ -61,6 +71,51 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
             clearInterval(interval);
         };
     }, [taskStore, categoryStore]);
+
+    const reset = async () => {
+        await resetDemoData();
+        // A reload rather than a re-render: every store holds an open connection to the database
+        // that has just been deleted, and the fixtures are seeded when a fresh one is opened.
+        window.location.reload();
+    };
+
+    if (isDemo) {
+        return (
+            <>
+                <button
+                    type="button"
+                    className={`flex items-center gap-1.5 text-xs p-1 px-2 bg-black/5 rounded-sm cursor-pointer hover:bg-black/10 ${className}`}
+                    onClick={() => setConfirmingReset(true)}
+                >
+                    <RotateCcw size={14} className="text-sky-600" />
+                    <span className="text-gray-600 dark:text-gray-300">{t("demo.reset")}</span>
+                </button>
+
+                <Modal isOpen={confirmingReset} onOpenChange={setConfirmingReset}>
+                    <Modal.Backdrop>
+                        <Modal.Container size="sm">
+                            <Modal.Dialog>
+                                <Modal.Header>
+                                    <Modal.Heading>{t("demo.reset")}</Modal.Heading>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <p className="text-sm">{t("demo.reset_confirm")}</p>
+                                </Modal.Body>
+                                <Modal.Footer>
+                                    <Button variant="secondary" onPress={() => setConfirmingReset(false)}>
+                                        {t("actions.cancel")}
+                                    </Button>
+                                    <Button variant="primary" onPress={() => { void reset(); }}>
+                                        {t("demo.reset_action")}
+                                    </Button>
+                                </Modal.Footer>
+                            </Modal.Dialog>
+                        </Modal.Container>
+                    </Modal.Backdrop>
+                </Modal>
+            </>
+        );
+    }
 
     // If everything is synced and online, don't show anything
     if (isOnline && pendingChanges === 0 && health === 'ok') {

@@ -44,13 +44,17 @@
         "log_in": "Log in",
         "menu": "Menu",
         "install": "Install app",
-        "install_steps": "Tap Share, then Add to Home Screen"
+        "close": "Close"
     },
     "category": {
         "help": "Select one or more categories to only display them",
         "all": "All",
         "none": "No category",
-        "show_all": "Show all"
+        "show_all": "Show all",
+        "focus": "Focus on {{name}}",
+        "focus_exit": "Exit focus",
+        "focused": "Focused on {{name}} — every other category is hidden",
+        "selected": "{{count}} categories"
     },
     "visibility": {
         "show_completed_tasks": "Show completed tasks",
@@ -152,7 +156,10 @@
         "placeholder": "New project…",
         "delete": "Delete project",
         "category": "Project category",
-        "no_category": "No category"
+        "no_category": "No category",
+        "edit": "Edit project",
+        "name": "Project name",
+        "category_help": "A project's category applies to every task in it."
     },
     "leftovers": {
         "title": "Left behind",
@@ -177,5 +184,37 @@
         "available": "A new version of WeekPal is ready.",
         "refresh": "Refresh",
         "dismiss": "Not now"
+    },
+    "demo": {
+        "reset": "Reset demo",
+        "reset_confirm": "This clears the demo and loads the sample week again. Nothing you made here is kept.",
+        "reset_action": "Reset the demo"
+    },
+    "shortcuts": {
+        "title": "Keyboard shortcuts",
+        "intro": "These act on the selected task. Click a task, or press j to start.",
+        "next": "Select the next task",
+        "previous": "Select the previous task",
+        "complete": "Tick the selected task off, or put it back",
+        "defer": "Push it to the next day, or to Some day",
+        "new": "Add a task to the selected day",
+        "category": "Focus its category, and leave focus again",
+        "help": "Show this list",
+        "escape": "Close this list, or leave category focus",
+        "completed_tasks": "Show or hide completed tasks",
+        "inbox": "Open what was left behind",
+        "projects": "Show or hide the projects drawer",
+        "week": "Last week, next week",
+        "today": "Back to this week",
+        "print": "Print the week (your browser's own)"
+    },
+    "install": {
+        "title": "Add WeekPal to your home screen",
+        "intro": "It opens full screen, works offline, and keeps the week where you can reach it.",
+        "step_share": "Tap the share button — the square with an arrow out of it.",
+        "step_menu": "Open your browser's menu.",
+        "step_add": "Choose \\u201cAdd to Home Screen\\u201d.",
+        "step_confirm": "Confirm the name, and it lands on your home screen.",
+        "open_share": "Open the share sheet"
     }
 }

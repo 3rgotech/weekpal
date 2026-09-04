@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Logo from "./Logo";
 import WeekSelector from "./WeekSelector";
 import CategoryFilter from "./CategoryFilter";
@@ -15,17 +15,16 @@ import { getEnvConfig } from "../utils/env";
 import { useData } from "../contexts/DataContext";
 import { leftoverBadge } from "../utils/settings";
 import { useInstallPrompt } from "../utils/install";
+import InstallModal from "./InstallModal";
+import { useShortcuts } from "../contexts/ShortcutsContext";
 
-interface TopBarProps {
-  /** Opens the weekly look back at unfinished tasks, which otherwise shows itself once a week. */
-  onReviewLeftovers?: () => void;
-}
-
-const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
+const TopBar: React.FC = () => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
   const { leftovers } = useData();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
+  const { openHelp, setLeftoversOpen } = useShortcuts();
+  const [installSteps, setInstallSteps] = useState(false);
 
   // Closing the review hides it until next week, so without this the board gave no sign that
   // anything was still waiting in it.
@@ -64,8 +63,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
           </Tooltip.Content>
         </Tooltip>
         {/* <Menu icon="refresh" title="Refresh" /> */}
-        {onReviewLeftovers && (
-          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
             {/* `isInvisible` is gone in v3, and rendering an empty badge in its place would
                 leave a dot on the button with nothing in it — so an empty inbox has no badge. */}
             <Badge.Anchor>
@@ -74,7 +72,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
                 iconClass={ICON_BUTTON_CLASS}
                 wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
                 tooltip={t("leftovers.open")}
-                onClick={onReviewLeftovers}
+                onClick={() => setLeftoversOpen(true)}
                 size="md"
               />
               {badge !== null && (
@@ -87,8 +85,7 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
                 </Badge>
               )}
             </Badge.Anchor>
-          </div>
-        )}
+        </div>
         {/* Only when there is something to install: gone inside the installed app, and gone in
             any browser that cannot install at all. An iPad in landscape gets this bar too, and
             iOS has no prompt to fire — so there the tooltip carries the instruction rather than
@@ -99,8 +96,15 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
               icon="download"
               iconClass={ICON_BUTTON_CLASS}
               wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-              tooltip={needsManualSteps ? t("actions.install_steps") : t("actions.install")}
-              onClick={() => { void install(); }}
+              tooltip={t("actions.install")}
+              // iOS has no prompt to fire, so there the button opens the directions instead.
+              onClick={() => {
+                if (needsManualSteps) {
+                  setInstallSteps(true);
+                } else {
+                  void install();
+                }
+              }}
               size="md"
             />
           </div>
@@ -126,6 +130,18 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
             <Tooltip.Arrow />
           </Tooltip.Content>
         </Tooltip>
+        {/* The shortcuts exist whether or not this is here; it is here so they are findable
+            without knowing to press `?` first. */}
+        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+          <IconButton
+            icon="keyboard"
+            iconClass={ICON_BUTTON_CLASS}
+            wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+            tooltip={t("shortcuts.title")}
+            onClick={openHelp}
+            size="md"
+          />
+        </div>
         <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton
             icon="settings"
@@ -156,6 +172,8 @@ const TopBar: React.FC<TopBarProps> = ({ onReviewLeftovers }) => {
           </div>
         )}
       </div>
+
+      <InstallModal isOpen={installSteps} onOpenChange={setInstallSteps} />
     </div>
   );
 };

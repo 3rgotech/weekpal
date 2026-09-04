@@ -1,19 +1,23 @@
 import React, { useRef, useState } from "react";
 import { useData } from "../contexts/DataContext";
-import Task from "../data/task";
-import { DayOfWeek, WeekTaskList } from "../types";
+import Task, { SomedayTask } from "../data/task";
+import { DayOfWeek } from "../types";
 import IconButton from "./IconButton";
 import { useCalendar } from "../contexts/CalendarContext";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 
 interface NewTaskProps {
-  dayOfWeek: DayOfWeek;
+  /** Which bucket on the board the task lands in. Absent for a project's backlog, which is not
+      one of the board's buckets — it has no week at all. */
+  dayOfWeek?: DayOfWeek;
+  /** Set in the projects drawer: the new task joins this project's backlog. */
+  projectId?: string;
 }
 
-const NewTask = ({ dayOfWeek }: NewTaskProps) => {
+const NewTask = ({ dayOfWeek, projectId }: NewTaskProps) => {
   const { currentWeek } = useCalendar();
-  const { addTask } = useData();
+  const { addTask, projects } = useData();
   const { t } = useTranslation();
   const [creatingNewTask, setCreatingNewTask] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -27,14 +31,24 @@ const NewTask = ({ dayOfWeek }: NewTaskProps) => {
 
   const handleSubmit = () => {
     if (inputValue.trim()) {
-      const task = Task.create(
-        dayOfWeek === "someday" ? "someday" : "weekly",
-        {
+      // A backlog task is a task with no week that names a project. It takes the project's
+      // category straight away, which is the rule the backend applies anyway.
+      const project = projectId ? projects.find((p) => p.id === projectId) ?? null : null;
+
+      const task = projectId
+        ? new SomedayTask({
           title: inputValue,
-          weekCode: currentWeek,
-          dayOfWeek,
-        }
-      );
+          projectId,
+          categoryId: project?.categoryId ?? null,
+        })
+        : Task.create(
+          dayOfWeek === "someday" ? "someday" : "weekly",
+          {
+            title: inputValue,
+            weekCode: currentWeek,
+            dayOfWeek,
+          }
+        );
       if (task) {
         addTask(task);
         handleCancel();

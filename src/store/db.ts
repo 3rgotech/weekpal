@@ -224,19 +224,74 @@ export class WeekpalDB extends Dexie {
 
         this.on("populate", function (transaction: Transaction) {
             if (dataSource === 'test' || dataSource === 'demo') {
-                (transaction.db as WeekpalDB).categories.bulkAdd(
-                    testCategories.map((c) => (new Category(c)))
-                );
-                (transaction.db as WeekpalDB).events.bulkAdd(
-                    testEvents.map((e) => (new Event(e)))
-                );
-                (transaction.db as WeekpalDB).weeklyTasks.bulkAdd(
-                    testWeeklyTasks.map((t) => (new WeeklyTask(t)))
-                );
-                (transaction.db as WeekpalDB).somedayTasks.bulkAdd(
-                    testSomedayTasks.map((t) => (new SomedayTask(t)))
-                );
+                seedFixtures(transaction.db as WeekpalDB);
             }
         });
+    }
+}
+
+/**
+ * The sample week, as it ships.
+ *
+ * Task fixtures mint their ids when they are constructed, so seeding is not idempotent: run it
+ * twice and the demo holds two of everything. It is called from exactly two places — the
+ * database being created, and the reset below, which empties every table first.
+ */
+function seedFixtures(db: WeekpalDB): void {
+    db.categories.bulkAdd(testCategories.map((c) => new Category(c)));
+    db.events.bulkAdd(testEvents.map((e) => new Event(e)));
+    db.weeklyTasks.bulkAdd(testWeeklyTasks.map((t) => new WeeklyTask(t)));
+    db.somedayTasks.bulkAdd(testSomedayTasks.map((t) => new SomedayTask(t)));
+}
+
+/**
+ * Throw the demo away and start it again.
+ *
+ * The demo has no backend — every write queues against an adapter that will never exist — so
+ * "undo" here can only mean the fixtures as they shipped.
+ *
+ * Emptying the tables and seeding them again, rather than deleting the database: `Dexie.delete()`
+ * waits on every open connection, and the page doing the asking is holding one. The delete
+ * finished around the reload rather than before it, the fresh page created the database itself,
+ * and `on("populate")` ran a second time — a reset demo came back holding two of every task.
+ * Nothing here depends on when a connection closes.
+ *
+ * Refuses outside the demo, because the same call against the real database would delete work
+ * that has not reached the server yet.
+ */
+export async function resetDemoData(): Promise<void> {
+    if (getEnvConfig().dataSource !== 'demo') {
+        throw new Error("The demo can only be reset in demo mode.");
+    }
+
+    const db = new WeekpalDB();
+
+    await db.open();
+
+    const tables = [
+        db.categories,
+        db.events,
+        db.weeklyTasks,
+        db.somedayTasks,
+        db.taskNotes,
+        db.projects,
+        db.pendingChanges,
+    ];
+
+    // One transaction: a reset interrupted halfway is a demo with half a week in it.
+    await db.transaction('rw', tables, async () => {
+        await Promise.all(tables.map((table) => table.clear()));
+        seedFixtures(db);
+    });
+
+    db.close();
+
+    // Local copies outlive the database: settings and the review's "seen this week" mark are in
+    // localStorage, and a demo that reopens still filtered or still silent is not a fresh one.
+    try {
+        localStorage.removeItem("settings");
+        localStorage.removeItem("leftover-review-week");
+    } catch {
+        // Storage blocked. The data itself is gone, which is what was asked for.
     }
 }

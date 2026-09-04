@@ -11,7 +11,15 @@ import { useCalendar } from "./CalendarContext";
 import useDayJs from "../utils/dayjs";
 import Event from "../data/event";
 import EventStore from "../store/EventStore";
-import { NO_CATEGORY_KEY } from "../utils/categories";
+import {
+  CategoryFilterState,
+  NO_CATEGORY_FILTER,
+  focusCategory as focusCategoryIn,
+  leaveFocus,
+  matchesCategorySelection,
+  selectCategories,
+  toggleFocus,
+} from "../utils/categories";
 import { newId } from "../utils/id";
 
 /**
@@ -52,6 +60,21 @@ interface DataContextProps {
   categories: Array<Category>;
   selectedCategories: string[];
   setSelectedCategories: (categories: string[]) => void;
+  /**
+   * The one category the board has been narrowed to, or null when it shows everything it is
+   * filtered to show.
+   *
+   * Focus is the filter, not a second mechanism beside it: focusing sets the selection to that
+   * one category and remembers what was selected before, so leaving focus puts the board back
+   * the way it was rather than dropping the person into an unfiltered week they did not ask for.
+   */
+  focusedCategory: string | null;
+  /** Narrow the board to one category, keeping the selection it replaces. */
+  focusCategory: (categoryId: string) => void;
+  /** Focus a category, or leave focus if that category is already the focused one. */
+  toggleFocusCategory: (categoryId: string) => void;
+  /** Leave focus and restore the selection focus replaced. */
+  clearFocus: () => void;
   taskStore: TaskStore | null;
   categoryStore: CategoryStore | null;
   noteStore: NoteStore | null;
@@ -59,6 +82,19 @@ interface DataContextProps {
   projects: Array<Project>;
   saveProject: (project: Project) => Promise<void>;
   deleteProject: (project: Project) => Promise<void>;
+  /**
+   * Each loaded project's backlog, keyed by project id.
+   *
+   * Held here rather than in the drawer that draws it, because a backlog task is a task like any
+   * other: it can be dragged onto a day, ticked, or deleted, and every one of those has to leave
+   * the list it came from. While the drawer owned this state, the board could not even see those
+   * tasks — `findTask` missed them, so a drag out of the drawer ended in nothing at all.
+   */
+  backlogs: Record<string, Task[]>;
+  /** Fetch a project's unscheduled tasks; safe to call again for a refresh. */
+  loadBacklog: (projectId: string) => Promise<void>;
+  /** Send a task to a project's backlog: it keeps its identity and loses its week. */
+  moveTaskToProject: (task: Task, projectId: string) => Promise<void>;
   /**
    * Passed through rather than wrapped in a store: history is read-only and server-derived, so
    * there is no local table for a store to sit in front of.
@@ -90,7 +126,28 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  // Selection and focus travel together — see `CategoryFilterState`, which is where the
+  // transitions live so they can be reasoned about without a provider around them.
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilterState>(NO_CATEGORY_FILTER);
+
+  const selectedCategories = categoryFilter.selected;
+  const focusedCategory = categoryFilter.focus?.categoryId ?? null;
+
+  const setSelectedCategories = useCallback((categories: string[]) => {
+    setCategoryFilter(selectCategories(categories));
+  }, []);
+
+  const focusCategory = useCallback((categoryId: string) => {
+    setCategoryFilter((current) => focusCategoryIn(current, categoryId));
+  }, []);
+
+  const clearFocus = useCallback(() => {
+    setCategoryFilter(leaveFocus);
+  }, []);
+
+  const toggleFocusCategory = useCallback((categoryId: string) => {
+    setCategoryFilter((current) => toggleFocus(current, categoryId));
+  }, []);
 
   const taskStore = useMemo(() => new TaskStore(taskAdapter || undefined), [taskAdapter]);
   const categoryStore = useMemo(() => new CategoryStore(categoryAdapter || undefined), [categoryAdapter]);
@@ -98,6 +155,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const noteStore = useMemo(() => new NoteStore(noteAdapter || undefined), [noteAdapter]);
   const projectStore = useMemo(() => new ProjectStore(projectAdapter || undefined), [projectAdapter]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [backlogs, setBacklogs] = useState<Record<string, Task[]>>({});
   const [leftovers, setLeftovers] = useState<WeeklyTask[]>([]);
   const [leftoversLoaded, setLeftoversLoaded] = useState(false);
 
@@ -145,6 +203,18 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const deleteProject = async (project: Project) => {
     await projectStore.delete(project);
     await refreshProjects();
+
+    // Its tasks are not deleted with it — they lose their project and become ordinary Some day
+    // tasks — so the list goes and the board is read again, or they would be in neither place
+    // until the next reload.
+    setBacklogs((prev) => {
+      const { [project.id]: removed, ...rest } = prev;
+      return rest;
+    });
+
+    if (taskStore) {
+      setTasks(await taskStore.list(currentWeek));
+    }
   };
 
   useEffect(() => {
@@ -166,8 +236,77 @@ const DataProvider: React.FC<DataProviderProps> = ({
   }, [taskStore, categoryStore, eventStore, currentWeek, selectedCategories]);
 
   const findTask = (taskId: string) => {
-    return tasks.find((task) => task.id === taskId) ?? null;
+    return tasks.find((task) => task.id === taskId)
+      ?? Object.values(backlogs).flat().find((task) => task.id === taskId)
+      ?? null;
   };
+
+  /**
+   * Where a task lives once it has changed: the board, a project's backlog, or neither.
+   *
+   * A task with no week and a project is a backlog task, and everything else the board can show
+   * is a board task — so one write can move a task from one list to the other, and both lists
+   * have to be told. Every mutation below routes through here rather than calling `setTasks`
+   * with its own idea of the rules, which is how a task dragged into a project used to stay in
+   * the Some day column as well as appearing in the drawer.
+   */
+  const isBacklogTask = (task: Task): boolean => (
+    task.taskType === "someday" && task.belongsToProject
+  );
+
+  const applyTaskChanges = (updated: Task[]) => {
+    if (updated.length === 0) {
+      return;
+    }
+
+    const byId = new Map(updated.map((task) => [task.id, task]));
+
+    setTasks((prevTasks) => {
+      const merged = prevTasks
+        .map((prevTask) => byId.get(prevTask.id) ?? prevTask)
+        .filter((task) => !isBacklogTask(task));
+
+      const added = updated.filter((task) => (
+        !isBacklogTask(task)
+        && !prevTasks.some((prev) => prev.id === task.id)
+        && (task.taskType === "someday" || (task as WeeklyTask).weekCode === currentWeek)
+      ));
+
+      return [...merged, ...added];
+    });
+
+    setBacklogs((prevBacklogs) => {
+      const next: Record<string, Task[]> = {};
+
+      // Dropped from every list first: a task that changed project must not be left behind in
+      // the one it came from.
+      Object.entries(prevBacklogs).forEach(([projectId, list]) => {
+        next[projectId] = list.filter((task) => !byId.has(task.id));
+      });
+
+      updated.filter(isBacklogTask).forEach((task) => {
+        const projectId = task.projectId as string;
+
+        // A backlog nobody has opened is not filled in here: it is fetched whole when it is.
+        if (next[projectId] === undefined) {
+          return;
+        }
+
+        next[projectId] = [...next[projectId], task].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      });
+
+      return next;
+    });
+  };
+
+  const loadBacklog = useCallback(async (projectId: string): Promise<void> => {
+    if (!projectStore) {
+      return;
+    }
+
+    const backlog = await projectStore.backlog(projectId);
+    setBacklogs((prev) => ({ ...prev, [projectId]: backlog }));
+  }, [projectStore]);
 
   const addTask = (task: WeeklyTask | SomedayTask) => {
     if (!taskStore) {
@@ -184,14 +323,15 @@ const DataProvider: React.FC<DataProviderProps> = ({
       );
       task.order = task.order ?? sameDayTasks.length;
     } else if (task instanceof SomedayTask) {
-      // Count someday tasks for default order
-      // TODO : only count visible tasks
-      const somedayTasks = tasks.filter((t) => t instanceof SomedayTask);
-      task.order = task.order ?? somedayTasks.length;
+      // A project's backlog is ordered on its own, not against the board's Some day list.
+      const siblings = task.belongsToProject
+        ? (backlogs[task.projectId as string] ?? [])
+        : tasks.filter((t) => t instanceof SomedayTask);
+      task.order = task.order ?? siblings.length;
     }
 
     taskStore.create(task).then((t) => {
-      setTasks((prevTasks) => [...prevTasks, t]);
+      applyTaskChanges([t]);
     });
   };
 
@@ -200,7 +340,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
       return;
     }
     taskStore.update(task).then((updatedTask) => {
-      setTasks((prevTasks) => prevTasks.map((prevTask) => prevTask.id === updatedTask.id ? updatedTask : prevTask));
+      applyTaskChanges([updatedTask]);
     });
   };
 
@@ -219,13 +359,37 @@ const DataProvider: React.FC<DataProviderProps> = ({
     const byId = new Map(updated.map((task) => [task.id, task]));
 
     taskStore.putMany(updated).then(() => {
-      setTasks((prevTasks) => {
-        const merged = prevTasks.map((prevTask) => byId.get(prevTask.id) ?? prevTask);
-        const added = updated.filter((task) => !prevTasks.some((prev) => prev.id === task.id));
-
-        return [...merged, ...added];
-      });
+      applyTaskChanges([...byId.values()]);
     });
+  };
+
+  /**
+   * Send a task to a project's backlog.
+   *
+   * The same upsert every other move is: the task keeps its id, loses its week, and gains the
+   * project. It also takes the project's category when the project has one — that is the rule
+   * the backend enforces anyway (a project's category is the authority for its tasks), and
+   * waiting for a pull to show it would mean a task that changes colour a second after landing.
+   */
+  const moveTaskToProject = async (task: Task, projectId: string): Promise<void> => {
+    if (!taskStore) {
+      return;
+    }
+
+    const project = projects.find((candidate) => candidate.id === projectId) ?? null;
+
+    const moved = new SomedayTask({
+      ...task,
+      projectId,
+      categoryId: project?.categoryId ?? task.categoryId,
+    });
+
+    moved.order = await taskStore.nextBacklogOrder(projectId);
+
+    const stored = await taskStore.update(moved);
+
+    dropLeftover(stored.id);
+    applyTaskChanges([stored]);
   };
 
   const completeTask = (task: Task) => {
@@ -255,6 +419,10 @@ const DataProvider: React.FC<DataProviderProps> = ({
     }
     taskStore.delete(task).then(() => {
       setTasks((prevTasks) => prevTasks.filter((prevTask) => prevTask.id !== task.id));
+      setBacklogs((prevBacklogs) => Object.fromEntries(
+        Object.entries(prevBacklogs)
+          .map(([projectId, list]) => [projectId, list.filter((t) => t.id !== task.id)]),
+      ));
     });
 
     dropLeftover(task.id);
@@ -476,14 +644,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
     const stored = await taskStore.update(moved);
 
     dropLeftover(stored.id);
-
-    setTasks((prevTasks) => {
-      const without = prevTasks.filter((prevTask) => prevTask.id !== stored.id);
-      const onScreen = stored.taskType === "someday"
-        || (stored as WeeklyTask).weekCode === currentWeek;
-
-      return onScreen ? [...without, stored] : without;
-    });
+    applyTaskChanges([stored]);
   };
 
   const rescueTask = (task: Task, destination: RescueDestination): Promise<void> => {
@@ -525,21 +686,18 @@ const DataProvider: React.FC<DataProviderProps> = ({
       ? new WeeklyTask({ ...fields, weekCode: weekly.weekCode, dayOfWeek: weekly.dayOfWeek })
       : new SomedayTask(fields);
 
-    copy.order = await taskStore.nextOrder(weekly ? weekly.weekCode : null, weekly ? weekly.dayOfWeek : null);
+    copy.order = !weekly && task.belongsToProject
+      ? await taskStore.nextBacklogOrder(task.projectId as string)
+      : await taskStore.nextOrder(weekly ? weekly.weekCode : null, weekly ? weekly.dayOfWeek : null);
 
     const stored = await taskStore.create(copy);
 
-    setTasks((prevTasks) => {
-      const onScreen = stored.taskType === "someday"
-        || (stored as WeeklyTask).weekCode === currentWeek;
-
-      return onScreen ? [...prevTasks, stored] : prevTasks;
-    });
+    applyTaskChanges([stored]);
   };
 
   const memoizedTasks = useMemo(() => {
     return tasks
-      .filter(t => selectedCategories.length === 0 || selectedCategories.includes(t.categoryId ?? NO_CATEGORY_KEY))
+      .filter(t => matchesCategorySelection(t.categoryId, selectedCategories))
       .sort((a, b) => {
         // First sort by completion status
         if (a.completedAt === null && b.completedAt !== null) return -1;
@@ -557,7 +715,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
   const memoizedEvents = useMemo(() => {
     return events
-      .filter(e => selectedCategories.length === 0 || selectedCategories.includes(e.categoryId ?? NO_CATEGORY_KEY))
+      .filter(e => matchesCategorySelection(e.categoryId, selectedCategories))
       .sort((a, b) => {
         return dayjs(a.startHour).isBefore(dayjs(b.startHour)) ? -1 : 1;
       });
@@ -584,6 +742,10 @@ const DataProvider: React.FC<DataProviderProps> = ({
         categories,
         selectedCategories,
         setSelectedCategories,
+        focusedCategory,
+        focusCategory,
+        toggleFocusCategory,
+        clearFocus,
         taskStore,
         categoryStore,
         noteStore,
@@ -592,6 +754,9 @@ const DataProvider: React.FC<DataProviderProps> = ({
         projects,
         saveProject,
         deleteProject,
+        backlogs,
+        loadBacklog,
+        moveTaskToProject,
       }}
     >
       {children}

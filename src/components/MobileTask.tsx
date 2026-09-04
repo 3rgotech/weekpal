@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import Task from "../data/task";
 import { useData } from "../contexts/DataContext";
@@ -6,6 +6,8 @@ import { useTaskModal } from "../contexts/TaskModalContext";
 import IconButton from "./IconButton";
 import TaskContent from "./TaskContent";
 import TaskMenu from "./TaskMenu";
+import { useShortcuts } from "../contexts/ShortcutsContext";
+import clsx from "clsx";
 
 interface MobileTaskProps {
   task: Task;
@@ -22,9 +24,27 @@ const MobileTask: React.FC<MobileTaskProps> = ({ task }) => {
   const { t } = useTranslation();
   const { completeTask, uncompleteTask } = useData();
   const { open } = useTaskModal();
+  const { activeTaskId, setActiveTaskId } = useShortcuts();
+  const rowRef = useRef<HTMLLIElement>(null);
+
+  const isActive = activeTaskId === task.id;
+
+  // A phone has no keyboard, but a tablet with one lands on this board in portrait.
+  useEffect(() => {
+    if (isActive) {
+      rowRef.current?.scrollIntoView({ block: "nearest" });
+    }
+  }, [isActive]);
 
   return (
-    <li className="flex items-center gap-2 min-h-12 px-2 py-2 border-b border-slate-200 dark:border-slate-600">
+    <li
+      ref={rowRef}
+      className={clsx(
+        "flex items-center gap-2 min-h-12 px-2 py-2 border-b border-slate-200 dark:border-slate-600",
+        isActive && "ring-2 ring-sky-500 bg-sky-50 dark:bg-sky-900/40",
+      )}
+      onPointerDown={() => setActiveTaskId(task.id)}
+    >
       <div className="flex-1 flex items-center gap-x-2 min-w-0">
         <TaskContent task={task} />
       </div>

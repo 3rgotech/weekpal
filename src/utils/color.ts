@@ -38,3 +38,13 @@ export const ICON_BUTTON_WRAPPER_CLASS = "border-slate-300 dark:border-sky-900 h
  * component of its own, and it inherits the content's background, so the colour is stated once.
  */
 export const TOOLTIP_CLASSES = "bg-sky-950 dark:bg-white text-white dark:text-sky-950";
+
+/*
+ * Text and icons inside a popover menu.
+ *
+ * HeroUI paints the popover itself, but what we put inside one — a lucide icon, a section header,
+ * a label of our own — takes its colour from the cascade, which in dark mode left icons drawn in
+ * the same near-black as the surface behind them. Stated once, applied wherever we hand HeroUI
+ * our own content.
+ */
+export const MENU_ITEM_CLASS = "text-sky-950 dark:text-white";

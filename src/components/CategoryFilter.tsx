@@ -6,6 +6,8 @@ import clsx from "clsx";
 import { CircleSlash2, RotateCcw, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CLEAR_SELECTION_KEY, NO_CATEGORY_KEY } from "../utils/categories";
+import { MENU_ITEM_CLASS } from "../utils/color";
+
 const CategoryFilter: React.FC = () => {
   const { t } = useTranslation();
   const { categories, selectedCategories, setSelectedCategories } = useData();
@@ -16,7 +18,7 @@ const CategoryFilter: React.FC = () => {
     label: string;
     startContent?: React.JSX.Element;
   }> = [
-      { key: CLEAR_SELECTION_KEY, label: t("category.show_all"), startContent: <RotateCcw /> },
+      { key: CLEAR_SELECTION_KEY, label: t("category.show_all"), startContent: <RotateCcw className={MENU_ITEM_CLASS} /> },
       ...categories.map((category) => ({
         key: category.id,
         label: category.name,
@@ -26,8 +28,25 @@ const CategoryFilter: React.FC = () => {
           ></div>
         ),
       })),
-      { key: NO_CATEGORY_KEY, label: t("category.none"), startContent: <CircleSlash2 /> },
+      { key: NO_CATEGORY_KEY, label: t("category.none"), startContent: <CircleSlash2 className={MENU_ITEM_CLASS} /> },
     ];
+
+  /**
+   * What the trigger says, on one line.
+   *
+   * `Select.Value` renders each selected item's own content, so a multiple selection stacked the
+   * colour swatch above its label and then stacked every chosen category below the last — a
+   * two-category filter was taller than the bar it sits in. The trigger states the selection
+   * itself instead: the colours, and a name or a count.
+   */
+  const selected = selectedCategories
+    .map((id) => categories.find((category) => category.id === id) ?? null);
+
+  const summary = selectedCategories.length === 0
+    ? t("category.all")
+    : selectedCategories.length === 1
+      ? (selected[0]?.name ?? t("category.none"))
+      : t("category.selected", { count: selectedCategories.length });
 
   return (
     <Select
@@ -54,18 +73,33 @@ const CategoryFilter: React.FC = () => {
       {/* No `Select.Indicator`. v2 hid the chevron with a `selectorIcon: "hidden"` slot
           override; in v3 the indicator is a component, so leaving it out is the whole of it.
           The trigger keeps its transparent, full-height styling as plain classes. */}
-      <Select.Trigger className="h-full flex grow items-center justify-center gap-2 bg-transparent shadow-none data-[hovered]:bg-transparent">
-        <Tag color="black" />
-        <Select.Value />
+      <Select.Trigger className="h-full flex grow items-center justify-center gap-2 bg-transparent shadow-none data-[hovered]:bg-transparent overflow-hidden">
+        <Tag className="shrink-0 text-sky-950 dark:text-white" />
+
+        <span className="flex items-center gap-1 min-w-0" data-testid="category-summary">
+          {/* Three swatches at most: past that the count is the useful part, and the row has to
+              stay inside a bar that is one line tall. */}
+          {selected.slice(0, 3).map((category, index) => (
+            <span
+              key={selectedCategories[index]}
+              className={clsx(
+                "w-3 h-3 rounded-full shrink-0",
+                category ? category.getColorClass("bg") : "bg-slate-400",
+              )}
+              aria-hidden="true"
+            />
+          ))}
+          <span className="truncate text-sky-950 dark:text-white">{summary}</span>
+        </span>
       </Select.Trigger>
       <Select.Popover>
         <ListBox className="max-h-128 overflow-auto">
           <ListBox.Section>
-            <Header className="pl-0">{t("category.help")}</Header>
+            <Header className={clsx("pl-0", MENU_ITEM_CLASS)}>{t("category.help")}</Header>
             {items.map((item) => (
               <ListBox.Item key={item.key} id={item.key} textValue={item.label}>
                 {item.startContent}
-                <Label>{item.label}</Label>
+                <Label className={MENU_ITEM_CLASS}>{item.label}</Label>
               </ListBox.Item>
             ))}
           </ListBox.Section>

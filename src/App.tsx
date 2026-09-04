@@ -3,15 +3,16 @@ import { DataProvider } from "./contexts/DataContext";
 import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
 import { TaskModalProvider } from "./contexts/TaskModalContext";
+import { ShortcutsProvider } from "./contexts/ShortcutsContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
-import LeftoverReview from "./components/LeftoverReview";
 import MobileBoard from "./components/MobileBoard";
 import MobileTopBar from "./components/MobileTopBar";
+import CategoryFocusBar from "./components/CategoryFocusBar";
 import PrintSheet from "./components/PrintSheet";
 import UpdateBar from "./components/UpdateBar";
 import { useVerticalLayout } from "./utils/layout";
@@ -65,9 +66,6 @@ function App() {
     null
   );
   const [showDemoModal, setShowDemoModal] = useState(false);
-  // Held here rather than inside the review: the button that reopens it lives in the top bar,
-  // which is a sibling, and the review itself needs the data provider to look for leftovers.
-  const [showLeftoverReview, setShowLeftoverReview] = useState(false);
 
   useEffect(() => {
     if (!window.indexedDB) {
@@ -129,21 +127,27 @@ function App() {
               projectAdapter={projectAdapter}
             >
               <TaskModalProvider>
+                {/* Inside the task modal's provider: the keys stand down while it is open, and
+                    `n` is what opens it. */}
+                <ShortcutsProvider>
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (
                   <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white print:hidden">
                     <header className="flex-none">
-                      {vertical ? (
-                        <MobileTopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
-                      ) : (
-                        <TopBar onReviewLeftovers={() => setShowLeftoverReview(true)} />
-                      )}
+                      {/* The review the inbox button opens is state in `ShortcutsProvider`
+                          now — the same state `i` toggles — so neither bar is handed a callback
+                          for it any more. */}
+                      {vertical ? <MobileTopBar /> : <TopBar />}
                     </header>
 
                     {/* Under the bar, above the board: it takes its own space rather than
                         floating, so it can never sit on top of the day pills. */}
                     <UpdateBar />
+
+                    {/* Same row treatment, and only present while a category has focus: it is
+                        the only way back out, so it belongs on both boards. */}
+                    <CategoryFocusBar />
 
                     <div className="grow overflow-hidden">
                       {vertical ? <MobileBoard /> : <MainContent />}
@@ -152,16 +156,13 @@ function App() {
                       isOpen={showDemoModal}
                       onClose={() => setShowDemoModal(false)}
                     />
-                    <LeftoverReview
-                      isOpen={showLeftoverReview}
-                      onOpenChange={setShowLeftoverReview}
-                    />
                   </div>
                 )}
 
                 {/* Outside the shell above, which is hidden on paper. Always mounted so ⌘P works
                     as well as the toolbar button. */}
                 <PrintSheet />
+                </ShortcutsProvider>
               </TaskModalProvider>
             </DataProvider>
           </CalendarProvider>
