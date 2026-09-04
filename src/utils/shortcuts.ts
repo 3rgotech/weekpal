@@ -2,16 +2,18 @@ import Task, { WeeklyTask } from "../data/task";
 import { DayOfWeek, TaskLocation } from "../types";
 
 /**
- * The board in reading order: the seven days, then the undated bucket, then Some day.
+ * The board in its default reading order: the seven days, then the undated bucket, then Some day.
  *
- * The same order the wide board lays out and the day pills run in, so `j` and `k` walk the week
- * the way the eye does rather than the way the array happened to be built.
+ * The order a Monday-to-Sunday board with nothing hidden lays out in. Both functions below take
+ * the live order as an argument instead — {@link boardDayOrder} builds it from the settings — so
+ * that `j`, `k` and `d` walk the week the user is actually looking at. This is the fallback for
+ * callers that have no board to ask, and the shape the order is expected to have.
  */
 export const BOARD_ORDER: DayOfWeek[] = ["1", "2", "3", "4", "5", "6", "7", "0", "someday"];
 
 /** Every task the board is showing, in the order it shows them. */
-export function boardOrder(tasks: Task[]): Task[] {
-    return BOARD_ORDER.flatMap((day) => tasks
+export function boardOrder(tasks: Task[], order: DayOfWeek[] = BOARD_ORDER): Task[] {
+    return order.flatMap((day) => tasks
         .filter((task) => `${task.dayOfWeek}` === day)
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0)));
 }
@@ -40,23 +42,27 @@ export function nextTask(ordered: Task[], currentId: string | null, direction: 1
 }
 
 /**
- * Where `d` sends a task: one step further away.
+ * Where `d` sends a task: one step further along the board.
  *
- * A weekday moves to the next one. Sunday has no next day in the week on screen, and the undated
- * "this week" bucket is already dayless, so both fall to Some day — the honest answer to "not
- * now" at the end of a week, and one that keeps the task in view rather than pushing it into a
- * week nobody is looking at. A task already in Some day has nowhere further to go.
+ * The *next column on screen*, not the next weekday — a Friday task on a board that hides the
+ * weekend defers past it, and under a Sunday start a Sunday task defers to Monday rather than
+ * falling off the end of the week. The last day has nowhere further to go inside the week, and
+ * the undated "this week" bucket is already dayless, so both fall to Some day — the honest answer
+ * to "not now" at the end of a week, and one that keeps the task in view rather than pushing it
+ * into a week nobody is looking at. A task already in Some day has nowhere further to go.
  */
-export function deferTarget(task: Task): TaskLocation | null {
+export function deferTarget(task: Task, order: DayOfWeek[] = BOARD_ORDER): TaskLocation | null {
     if (task.taskType === "someday") {
         return null;
     }
 
     const weekly = task as WeeklyTask;
-    const day = parseInt(`${weekly.dayOfWeek}`, 10);
+    const day = `${weekly.dayOfWeek}` as DayOfWeek;
+    const days: DayOfWeek[] = order.filter((bucket) => bucket !== "0" && bucket !== "someday");
+    const next = days[days.indexOf(day) + 1];
 
-    if (day >= 1 && day <= 6) {
-        return { weekCode: weekly.weekCode, dayOfWeek: `${day + 1}` as DayOfWeek };
+    if (days.includes(day) && next !== undefined) {
+        return { weekCode: weekly.weekCode, dayOfWeek: next };
     }
 
     return { weekCode: null, dayOfWeek: null };

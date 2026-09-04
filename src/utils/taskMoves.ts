@@ -2,6 +2,7 @@ import { Dayjs } from "dayjs";
 import { weekCodeToDate } from "./dayjs";
 import Task, { WeeklyTask } from "../data/task";
 import { DayOfWeek, TaskLocation } from "../types";
+import { DEFAULT_WEEK_STARTS_ON, Weekday, weekCodeOf } from "./week";
 
 /**
  * The one-tap moves a task offers, in the order they are shown.
@@ -19,7 +20,14 @@ export type TaskMove =
     | 'thisWeek'
     | 'someday';
 
-const weekOf = (date: Dayjs): string => date.format("GGGG[w]WW");
+/**
+ * Which stored week a date lands in.
+ *
+ * Depends on where the user's week starts: under a Sunday start, a Sunday opens the following
+ * week rather than closing the one before it, so "today" on a Sunday means a different week code
+ * than the ISO calendar alone would give.
+ */
+const weekOf = (date: Dayjs, weekStartsOn: Weekday): string => weekCodeOf(date, weekStartsOn);
 
 const dayOf = (date: Dayjs): DayOfWeek => `${date.isoWeekday()}` as DayOfWeek;
 
@@ -27,10 +35,10 @@ const dayOf = (date: Dayjs): DayOfWeek => `${date.isoWeekday()}` as DayOfWeek;
 const isUndated = (task: Task): boolean =>
     task instanceof WeeklyTask && `${task.dayOfWeek}` === "0";
 
-const isOnDate = (task: Task, date: Dayjs): boolean =>
+const isOnDate = (task: Task, date: Dayjs, weekStartsOn: Weekday): boolean =>
     task instanceof WeeklyTask
     && !isUndated(task)
-    && task.weekCode === weekOf(date)
+    && task.weekCode === weekOf(date, weekStartsOn)
     && `${task.dayOfWeek}` === `${date.isoWeekday()}`;
 
 /**
@@ -40,21 +48,26 @@ const isOnDate = (task: Task, date: Dayjs): boolean =>
  * week than you gave it" — moving a task that already slipped two weeks ago lands it two weeks
  * ago plus one, not next week. Every other move counts from now, because they name a date.
  */
-export function moveTarget(task: Task, move: TaskMove, now: Dayjs): TaskLocation {
+export function moveTarget(
+    task: Task,
+    move: TaskMove,
+    now: Dayjs,
+    weekStartsOn: Weekday = DEFAULT_WEEK_STARTS_ON,
+): TaskLocation {
     switch (move) {
         case 'today':
-            return { weekCode: weekOf(now), dayOfWeek: dayOf(now) };
+            return { weekCode: weekOf(now, weekStartsOn), dayOfWeek: dayOf(now) };
 
         case 'tomorrow': {
             const tomorrow = now.add(1, "day");
 
-            return { weekCode: weekOf(tomorrow), dayOfWeek: dayOf(tomorrow) };
+            return { weekCode: weekOf(tomorrow, weekStartsOn), dayOfWeek: dayOf(tomorrow) };
         }
 
         case 'nextMonday': {
             const monday = now.add(1, "week").startOf("isoWeek");
 
-            return { weekCode: weekOf(monday), dayOfWeek: dayOf(monday) };
+            return { weekCode: weekOf(monday, weekStartsOn), dayOfWeek: dayOf(monday) };
         }
 
         case 'nextWeekSameDay': {
@@ -64,11 +77,11 @@ export function moveTarget(task: Task, move: TaskMove, now: Dayjs): TaskLocation
             const weekly = task as WeeklyTask;
             const nextWeek = weekCodeToDate(weekly.weekCode).add(1, "week");
 
-            return { weekCode: weekOf(nextWeek), dayOfWeek: weekly.dayOfWeek };
+            return { weekCode: weekOf(nextWeek, weekStartsOn), dayOfWeek: weekly.dayOfWeek };
         }
 
         case 'thisWeek':
-            return { weekCode: weekOf(now), dayOfWeek: "0" };
+            return { weekCode: weekOf(now, weekStartsOn), dayOfWeek: "0" };
 
         case 'someday':
             return { weekCode: null, dayOfWeek: null };
@@ -81,11 +94,15 @@ export function moveTarget(task: Task, move: TaskMove, now: Dayjs): TaskLocation
  * A move that would leave the task exactly where it is gets left out rather than shown and
  * ignored: a menu whose entries sometimes do nothing is a menu people stop trusting.
  */
-export function availableMoves(task: Task, now: Dayjs): TaskMove[] {
+export function availableMoves(
+    task: Task,
+    now: Dayjs,
+    weekStartsOn: Weekday = DEFAULT_WEEK_STARTS_ON,
+): TaskMove[] {
     const weekly = task instanceof WeeklyTask ? task : null;
     const moves: TaskMove[] = [];
 
-    moves.push(isOnDate(task, now) ? 'tomorrow' : 'today');
+    moves.push(isOnDate(task, now, weekStartsOn) ? 'tomorrow' : 'today');
     moves.push('nextMonday');
 
     // Someday has no week to advance from.
@@ -93,7 +110,7 @@ export function availableMoves(task: Task, now: Dayjs): TaskMove[] {
         moves.push('nextWeekSameDay');
     }
 
-    if (!(weekly && isUndated(weekly) && weekly.weekCode === weekOf(now))) {
+    if (!(weekly && isUndated(weekly) && weekly.weekCode === weekOf(now, weekStartsOn))) {
         moves.push('thisWeek');
     }
 

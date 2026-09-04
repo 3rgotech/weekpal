@@ -12,6 +12,7 @@ import {
 import { useTranslation } from "react-i18next";
 import Task from "../data/task";
 import { useData } from "../contexts/DataContext";
+import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
 import { availableMoves, moveTarget, TaskMove } from "../utils/taskMoves";
 
@@ -56,8 +57,9 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onAction, size = 16 }) => {
   const { t } = useTranslation();
   const dayjs = useDayJs();
   const { relocateTask, duplicateTask, deleteTask } = useData();
+  const { settings: { weekStartsOn } } = useSettings();
 
-  const moves = availableMoves(task, dayjs());
+  const moves = availableMoves(task, dayjs(), weekStartsOn);
 
   const run = async (action: () => void | Promise<void>) => {
     await action();
@@ -84,7 +86,7 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onAction, size = 16 }) => {
                   key={move}
                   id={move}
                   textValue={t(MOVE_LABELS[move])}
-                  onAction={() => run(() => relocateTask(task, moveTarget(task, move, dayjs())))}
+                  onAction={() => run(() => relocateTask(task, moveTarget(task, move, dayjs(), weekStartsOn)))}
                 >
                   <Label>{t(MOVE_LABELS[move])}</Label>
                   <Icon size={12} />

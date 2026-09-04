@@ -4,6 +4,8 @@ import React from "react";
 import { ShortcutsProvider, useShortcuts } from "../ShortcutsContext";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 import { DEFAULT_SETTINGS } from "../../utils/settings";
+import { getDayJs } from "../../utils/dayjs";
+import { fakeCalendar } from "../../test-support/calendar";
 
 jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -31,6 +33,7 @@ jest.mock("../DataContext", () => ({ useData: () => data }));
 const updateSettings = jest.fn();
 jest.mock("../SettingsContext", () => ({ useSettings: () => ({ settings, updateSettings }) }));
 const calendar = {
+    ...fakeCalendar(getDayJs()(), DEFAULT_SETTINGS),
     currentWeek: "2026w10",
     goToPreviousWeek: jest.fn(),
     goToNextWeek: jest.fn(),

@@ -14,7 +14,10 @@
         "language": "Language",
         "weekHeaderFormat": "Week header format",
         "dayHeaderFormat": "Day header format",
-        "subtaskDisplay": "Subtask progress"
+        "subtaskDisplay": "Subtask progress",
+        "weekStartsOn": "First day of the week",
+        "workingDays": "Working days",
+        "nonWorkingDays": "Non-working days"
     },
     "main": {
         "this_week": "This week",
@@ -44,7 +47,9 @@
         "log_in": "Log in",
         "menu": "Menu",
         "install": "Install app",
-        "close": "Close"
+        "close": "Close",
+        "show": "Show",
+        "hide": "Hide"
     },
     "category": {
         "help": "Select one or more categories to only display them",

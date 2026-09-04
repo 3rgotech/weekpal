@@ -121,7 +121,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   projectAdapter = null,
   historyAdapter = null
 }) => {
-  const { currentWeek } = useCalendar();
+  const { currentWeek, thisWeek } = useCalendar();
   const dayjs = useDayJs();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -406,7 +406,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
     // otherwise stay one short until the next reload.
     const weekly = task instanceof WeeklyTask ? task : null;
 
-    if (weekly && weekly.weekCode < dayjs().format("GGGG[w]WW")) {
+    if (weekly && weekly.weekCode < thisWeek) {
       setLeftovers((previous) => (
         previous.some((leftover) => leftover.id === weekly.id) ? previous : [...previous, weekly]
       ));
@@ -648,8 +648,6 @@ const DataProvider: React.FC<DataProviderProps> = ({
   };
 
   const rescueTask = (task: Task, destination: RescueDestination): Promise<void> => {
-    const thisWeek = dayjs().format("GGGG[w]WW");
-
     if (destination === "someday") {
       return relocateTask(task, { weekCode: null, dayOfWeek: null });
     }

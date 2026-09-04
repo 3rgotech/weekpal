@@ -4,6 +4,7 @@ import Project from "../data/project";
 import Task, { SomedayTask, WeeklyTask } from "../data/task";
 import Note from "../data/note";
 import HistoryEntry from "../data/history";
+import { Weekday } from "../utils/week";
 
 export type Theme = "light" | "dark" | "system";
 export type Language = "en" | "fr";
@@ -29,7 +30,15 @@ export interface Settings {
   weekHeaderFormat: string;
   showCompletedTasks: boolean;
   showEvents: boolean;
-  showWeekend: boolean;
+  /**
+   * The days this user works, as ISO weekday numbers. Never empty — a board with no day
+   * columns is not a board — and always ascending, whatever order they were picked in.
+   */
+  workingDays: Weekday[];
+  /** Whether the days outside {@link Settings.workingDays} are drawn at all. */
+  showNonWorkingDays: boolean;
+  /** Which ISO weekday the seven columns open on. */
+  weekStartsOn: Weekday;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

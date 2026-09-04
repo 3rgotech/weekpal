@@ -14,7 +14,10 @@
         "language": "Langue",
         "weekHeaderFormat": "Format de la semaine",
         "dayHeaderFormat": "Format du jour",
-        "subtaskDisplay": "Progression des sous-tâches"
+        "subtaskDisplay": "Progression des sous-tâches",
+        "weekStartsOn": "Premier jour de la semaine",
+        "workingDays": "Jours travaillés",
+        "nonWorkingDays": "Jours non travaillés"
     },
     "main": {
         "this_week": "Cette semaine",
@@ -44,7 +47,9 @@
         "log_in": "Se connecter",
         "menu": "Menu",
         "install": "Installer l'application",
-        "close": "Fermer"
+        "close": "Fermer",
+        "show": "Afficher",
+        "hide": "Masquer"
     },
     "category": {
         "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",

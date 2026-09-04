@@ -9,6 +9,7 @@ import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
+import { Weekday, dateOfDay } from "../utils/week";
 import iconDark from "../assets/icon_dark.svg";
 
 /**
@@ -32,7 +33,7 @@ const PrintSheet: React.FC = () => {
     const { settings } = useSettings();
     const dayjs = useDayJs(settings.language);
     const { tasks, events, categories } = useData();
-    const { currentDate, firstDayOfWeek } = useCalendar();
+    const { currentDate, firstDayOfWeek, layout } = useCalendar();
 
     const visible = (task: Task) => settings.showCompletedTasks || !task.completed;
 
@@ -67,9 +68,15 @@ const PrintSheet: React.FC = () => {
         </li>
     );
 
-    /** A day, or one of the two undated buckets — the same shape either way. */
+    /**
+     * A day, or one of the two undated buckets — the same shape either way.
+     *
+     * The height is an inline style rather than a Tailwind arbitrary value: how tall a stacked
+     * cell should be depends on how many are stacked, and a class name built at runtime is one
+     * Tailwind never sees and so never generates.
+     */
     const column = (heading: React.ReactNode, day: DayOfWeek, minHeight: string) => (
-        <section className={clsx("flex flex-col", minHeight)}>
+        <section className="flex flex-col" style={{ minHeight }}>
             {heading}
             <ul className="mt-1">
                 {eventsOf(day).map(eventLine)}
@@ -98,9 +105,17 @@ const PrintSheet: React.FC = () => {
         </header>
     );
 
-    const weekdays = [0, 1, 2, 3, 4].map((offset) => firstDayOfWeek.add(offset, "day"));
-    const saturday = firstDayOfWeek.add(5, "day");
-    const sunday = firstDayOfWeek.add(6, "day");
+    const dateOfColumn = (day: Weekday) =>
+        dateOfDay(firstDayOfWeek, day, settings.weekStartsOn);
+
+    /** A working day, printed at full height. */
+    const dayColumn = (day: Weekday, minHeight: string) =>
+        column(dayHeading(dateOfColumn(day)), `${day}` as DayOfWeek, minHeight);
+
+    // The board's own shape, column for column — a printout that rearranges the week teaches you
+    // to read it twice. A column's cells split its height between them, so a stacked pair of
+    // weekend days is half-height each and a lone day fills the column.
+    const columnHeight = 112;
 
     return (
         <div className="hidden print:block bg-white text-black">
@@ -114,24 +129,24 @@ const PrintSheet: React.FC = () => {
                 <img src={iconDark} alt="" className="w-8 h-8 grayscale" />
             </header>
 
-            {/* Six columns with the weekend stacked in the last one, which is the board's own
-                shape — a printout that rearranges the week teaches you to read it twice. */}
-            <div className="grid grid-cols-6 gap-x-5">
-                {weekdays.map((date, index) => (
-                    <React.Fragment key={date.format("YYYY-MM-DD")}>
-                        {column(dayHeading(date), `${index + 1}` as DayOfWeek, "min-h-[112mm]")}
-                    </React.Fragment>
+            <div
+                className="grid gap-x-5"
+                style={{ gridTemplateColumns: `repeat(${layout.columnCount}, minmax(0, 1fr))` }}
+            >
+                {layout.columns.map((column) => (
+                    <div className="flex flex-col gap-5" key={column.days[0]}>
+                        {column.days.map((day) => (
+                            <React.Fragment key={day}>
+                                {dayColumn(day, `${Math.floor(columnHeight / column.days.length)}mm`)}
+                            </React.Fragment>
+                        ))}
+                    </div>
                 ))}
-
-                <div className="flex flex-col gap-5">
-                    {column(dayHeading(saturday), "6", "min-h-[53mm]")}
-                    {column(dayHeading(sunday), "7", "min-h-[53mm]")}
-                </div>
             </div>
 
             <div className="grid grid-cols-2 gap-x-5 mt-6">
-                {column(bucketHeading(t("main.this_week")), "0", "min-h-[42mm]")}
-                {column(bucketHeading(t("main.some_day")), "someday", "min-h-[42mm]")}
+                {column(bucketHeading(t("main.this_week")), "0", "42mm")}
+                {column(bucketHeading(t("main.some_day")), "someday", "42mm")}
             </div>
         </div>
     );

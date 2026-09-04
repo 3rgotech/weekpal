@@ -19,18 +19,18 @@ import { useTaskModal } from "./contexts/TaskModalContext";
 import { useCalendar } from "./contexts/CalendarContext";
 import DraggableTask from "./components/DraggableTask";
 import Task from "./data/task";
-import clsx from "clsx";
 import { useSettings } from "./contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import useDayJs from "./utils/dayjs";
+import { Weekday, dateOfDay } from "./utils/week";
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
   const { t } = useTranslation();
   const {
-    settings: { dayHeaderFormat },
+    settings: { dayHeaderFormat, weekStartsOn },
   } = useSettings();
-  const { firstDayOfWeek } = useCalendar();
+  const { firstDayOfWeek, layout } = useCalendar();
   const { tasks, moveTask, findTask, moveTaskToProject } = useData();
   const { open: openTaskModal } = useTaskModal();
   const dayjs = useDayJs();
@@ -242,6 +242,18 @@ const MainContent: React.FC<MainContentProps> = () => {
     recentlyMovedToNewContainer.current = true;
   };
 
+  const dayColumn = (day: Weekday) => {
+    const date = dateOfDay(firstDayOfWeek, day, weekStartsOn);
+
+    return (
+      <TaskList
+        title={date.format(dayHeaderFormat)}
+        dayOfWeek={`${day}` as DayOfWeek}
+        isToday={date.isSame(dayjs(), "day")}
+      />
+    );
+  };
+
   return (
     <DndContext
       collisionDetection={collisionDetectionStrategy}
@@ -260,35 +272,37 @@ const MainContent: React.FC<MainContentProps> = () => {
           and of a notch down the side when a tablet is held in landscape. */}
       <div className="h-full flex flex-row overflow-hidden pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <div className="p-2 xl:p-4 flex-1 flex flex-col overflow-hidden">
-        <div className="grow grid grid-cols-6 grid-rows-3 gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
-          {[...Array(7).keys()].map((i) => (
-            <div
-              className={clsx(
-                // `min-h-0` is what makes the cell scroll its own list: without it a grid item
-                // takes its content's height as a minimum and spills past the row.
-                `min-h-0 overflow-hidden rounded-lg`,
-                [5, 6].includes(i)
-                  ? "col-span-1 row-span-1"
-                  : "col-span-1 row-span-2"
-              )}
-              key={i}
-            >
-              <TaskList
-                title={firstDayOfWeek.add(i, "day").format(dayHeaderFormat)}
-                dayOfWeek={`${i + 1}` as DayOfWeek}
-                isToday={firstDayOfWeek.add(i, "day").isSame(dayjs(), "day")}
-              />
-            </div>
-          ))}
+        <div className="grow flex flex-col gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
+          {/* Two rows in a 2:1 split, as a flex column rather than the three-row grid this
+              replaces: with the number of day columns now a setting, the buckets underneath
+              would otherwise need their spans recomputed from it, and an odd column count has
+              no honest halves to span. */}
           <div
-            className={`col-span-3 row-span-1 min-h-0 overflow-hidden rounded-lg`}
+            className="flex-[2] min-h-0 grid gap-2 xl:gap-4"
+            style={{ gridTemplateColumns: `repeat(${layout.columnCount}, minmax(0, 1fr))` }}
           >
-            <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
+            {/* One element per column, whether it holds one day or a run of days that are not
+                worked — the weekend's stacked pair generalised. `min-h-0` is what makes a cell
+                scroll its own list: without it a grid item takes its content's height as a
+                minimum and spills past the row. */}
+            {layout.columns.map((column) => (
+              <div className="min-h-0 flex flex-col gap-2 xl:gap-4" key={column.days[0]}>
+                {column.days.map((day) => (
+                  <div className="flex-1 min-h-0 overflow-hidden rounded-lg" key={day}>
+                    {dayColumn(day)}
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
-          <div
-            className={`col-span-3 row-span-1 min-h-0 overflow-hidden rounded-lg`}
-          >
-            <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
+
+          <div className="flex-1 min-h-0 grid grid-cols-2 gap-2 xl:gap-4">
+            <div className="min-h-0 overflow-hidden rounded-lg">
+              <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
+            </div>
+            <div className="min-h-0 overflow-hidden rounded-lg">
+              <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
+            </div>
           </div>
         </div>
 

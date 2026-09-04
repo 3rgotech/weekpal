@@ -5,6 +5,7 @@ import MobileBoard from "../MobileBoard";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 import { DEFAULT_SETTINGS } from "../../utils/settings";
 import { getDayJs } from "../../utils/dayjs";
+import { fakeCalendar } from "../../test-support/calendar";
 
 jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -33,24 +34,20 @@ const modal = { open: jest.fn(), openNewTask: jest.fn() };
 
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 jest.mock("../../contexts/TaskModalContext", () => ({ useTaskModal: () => modal }));
+const settings = { ...DEFAULT_SETTINGS };
+
 jest.mock("../../contexts/SettingsContext", () => ({
-    useSettings: () => ({ settings: DEFAULT_SETTINGS, updateSettings: jest.fn() }),
+    useSettings: () => ({ settings, updateSettings: jest.fn() }),
 }));
 jest.mock("../../contexts/CalendarContext", () => ({
-    useCalendar: () => ({
-        currentDate: now,
-        currentWeek: thisWeek,
-        firstDayOfWeek: now.startOf("isoWeek"),
-        goToPreviousWeek: jest.fn(),
-        goToNextWeek: jest.fn(),
-        goToToday: jest.fn(),
-    }),
+    useCalendar: () => fakeCalendar(now, settings),
 }));
 
 const weekly = (title: string, dayOfWeek: string) => new WeeklyTask({ title, weekCode: thisWeek, dayOfWeek });
 
 beforeEach(() => {
     jest.clearAllMocks();
+    Object.assign(settings, DEFAULT_SETTINGS);
     data.tasks = [];
 });
 
@@ -98,6 +95,45 @@ describe("the board on a phone", () => {
         fireEvent.click(screen.getByLabelText("actions.edit_task"));
 
         expect(modal.open).toHaveBeenCalledWith(task);
+    });
+
+    it("gives a pill to every bucket the board draws, in the user's week order", () => {
+        settings.weekStartsOn = 7;
+
+        render(<MobileBoard />);
+
+        const pills = screen.getAllByRole("button")
+            .filter((button) => button.className.includes("flex-1 min-w-0"))
+            .map((button) => button.textContent);
+
+        // Sunday leads, the rest of the week follows, then the two undated buckets.
+        expect(pills.slice(-2)).toEqual(["main.this_week_short", "main.some_day_short"]);
+        expect(pills[0]).toBe(now.startOf("isoWeek").add(6, "day").format("dd"));
+        expect(pills[1]).toBe(now.startOf("isoWeek").format("dd"));
+    });
+
+    it("drops the pills for days that are hidden", () => {
+        settings.showNonWorkingDays = false;
+
+        render(<MobileBoard />);
+
+        const saturday = now.startOf("isoWeek").add(5, "day").format("dd");
+
+        expect(screen.queryByText(saturday)).not.toBeInTheDocument();
+        expect(screen.getByText(now.startOf("isoWeek").format("dd"))).toBeInTheDocument();
+    });
+
+    it("does not open on a day it is not drawing", () => {
+        // A weekend day hidden while today falls on it would otherwise open the board on a
+        // column with no way back to it.
+        settings.workingDays = [now.isoWeekday() === 1 ? 2 : 1];
+        settings.showNonWorkingDays = false;
+        data.tasks = [weekly("Today's task", today)];
+
+        render(<MobileBoard />);
+
+        expect(screen.queryByText("Today's task")).not.toBeInTheDocument();
+        expect(screen.getByText("main.this_week")).toBeInTheDocument();
     });
 
     it("moves a task through the menu, since there is nothing to drag", () => {

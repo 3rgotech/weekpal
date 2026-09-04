@@ -4,9 +4,11 @@ import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { RescueDestination, useData } from "../contexts/DataContext";
+import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs, { weekCodeToDate } from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
+import { Weekday, dateOfWeekDay } from "../utils/week";
 import { WeeklyTask } from "../data/task";
 import IconButton from "./IconButton";
 
@@ -57,10 +59,23 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     rescueTask,
   } = useData();
 
+  const { thisWeek } = useCalendar();
+
+  /**
+   * Which date a leftover sat on, as this user's board would have drawn it.
+   *
+   * Not `task.date`, which is the ISO date: a Sunday belongs to the start of its week rather than
+   * the end of it once the week starts on Sunday, and a review that dates it a week out is a
+   * review nobody trusts.
+   */
+  const leftoverDate = (task: WeeklyTask) => dateOfWeekDay(
+    weekCodeToDate(task.weekCode),
+    parseInt(`${task.dayOfWeek}`, 10) as Weekday,
+    settings.weekStartsOn,
+  );
   const [busy, setBusy] = useState<string | null>(null);
   const refreshedAt = useRef(Date.now());
 
-  const thisWeek = dayjs().format("GGGG[w]WW");
 
   const reviewed = (): string | null => {
     try {
@@ -181,7 +196,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                       )}
                     >
                       <span className="w-24 shrink-0 text-xs text-slate-500 dark:text-slate-400">
-                        {undated ? t("main.this_week") : task.date?.format("ddd D MMM")}
+                        {undated ? t("main.this_week") : leftoverDate(task).format("ddd D MMM")}
                       </span>
 
                       {category && (

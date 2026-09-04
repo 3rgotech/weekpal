@@ -1,11 +1,19 @@
 import { Language, Settings, SubtaskDisplay } from "../types";
+import {
+    DEFAULT_WEEK_STARTS_ON,
+    DEFAULT_WORKING_DAYS,
+    normaliseWeekStart,
+    normaliseWorkingDays,
+} from "./week";
 
 /**
  * Must stay in step with `App\Support\BoardSettings::defaults()` on the server.
  *
  * `showEvents` and `showWeekend` were missing here while being declared on the
  * `Settings` type, so a fresh browser started with them undefined — which reads
- * as false at every call site that tests them.
+ * as false at every call site that tests them. {@link withDefaults} is what stops
+ * that happening again as fields are added: a browser holding a settings object
+ * saved before this release has none of the new keys.
  */
 export const DEFAULT_SETTINGS: Settings = {
     theme: "system",
@@ -14,8 +22,27 @@ export const DEFAULT_SETTINGS: Settings = {
     weekHeaderFormat: "[[WEEK]] W - MMMM YYYY",
     showCompletedTasks: true,
     showEvents: true,
-    showWeekend: true,
+    workingDays: DEFAULT_WORKING_DAYS,
+    showNonWorkingDays: true,
+    weekStartsOn: DEFAULT_WEEK_STARTS_ON,
     subtaskDisplay: "percentage",
+}
+
+/**
+ * A complete settings object out of whatever was in storage.
+ *
+ * localStorage holds one JSON blob written by whichever version of the app saved it last, so a
+ * returning browser is a partial object from the app's point of view — missing every field added
+ * since. Defaults fill the gaps, and the two shapes that cannot simply be defaulted are repaired:
+ * an unusable working-day set and a week start outside 1–7 would both render a broken board.
+ */
+export function withDefaults(stored: Partial<Settings> | null | undefined): Settings {
+    return {
+        ...DEFAULT_SETTINGS,
+        ...(stored ?? {}),
+        workingDays: normaliseWorkingDays(stored?.workingDays),
+        weekStartsOn: normaliseWeekStart(stored?.weekStartsOn),
+    };
 }
 
 export const LANGUAGES: Array<Language> = [

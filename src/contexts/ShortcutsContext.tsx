@@ -7,6 +7,7 @@ import Task from "../data/task";
 import LeftoverReview from "../components/LeftoverReview";
 import ShortcutsHelp from "../components/ShortcutsHelp";
 import { boardOrder, deferTarget, isTypingTarget, nextTask } from "../utils/shortcuts";
+import { boardDayOrder } from "../utils/week";
 
 interface ShortcutsContextProps {
     /** The task the keyboard is pointed at, or null when the board has no selection. */
@@ -42,7 +43,7 @@ const ShortcutsContext = createContext<ShortcutsContextProps | undefined>(undefi
 const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { tasks, completeTask, uncompleteTask, relocateTask, toggleFocusCategory } = useData();
     const { settings, updateSettings } = useSettings();
-    const { currentWeek, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
+    const { currentWeek, layout, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
     const { openNewTask, isOpen: taskModalIsOpen } = useTaskModal();
 
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
@@ -51,10 +52,16 @@ const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [projectsOpen, setProjectsOpen] = useState(false);
 
     // What the keys can reach is exactly what the board is showing: the category filter has
-    // already been applied to `tasks`, and completed tasks are skipped when they are hidden.
+    // already been applied to `tasks`, completed tasks are skipped when they are hidden, and the
+    // day order is the board's own — hidden days are not walked and not deferred onto.
+    const dayOrder = useMemo(() => boardDayOrder(layout), [layout]);
+
     const ordered = useMemo(
-        () => boardOrder(tasks.filter((task) => settings.showCompletedTasks || !task.completed)),
-        [tasks, settings.showCompletedTasks],
+        () => boardOrder(
+            tasks.filter((task) => settings.showCompletedTasks || !task.completed),
+            dayOrder,
+        ),
+        [tasks, settings.showCompletedTasks, dayOrder],
     );
 
     // A selected task that has been filtered away, completed out of sight or deleted would
@@ -162,7 +169,7 @@ const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     return;
                 }
                 case "d": {
-                    const target = task ? deferTarget(task) : null;
+                    const target = task ? deferTarget(task, dayOrder) : null;
                     if (!task || !target) {
                         return;
                     }
@@ -194,6 +201,7 @@ const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         projectsOpen,
         settings.showCompletedTasks,
         currentWeek,
+        dayOrder,
         openNewTask,
         completeTask,
         uncompleteTask,

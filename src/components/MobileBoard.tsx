@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import { DayOfWeek } from "../types";
@@ -10,6 +10,7 @@ import DayNav from "./DayNav";
 import EventList from "./EventList";
 import MobileTask from "./MobileTask";
 import NewTask from "./NewTask";
+import { boardDayOrder } from "../utils/week";
 
 /**
  * The board on a phone or an upright tablet: one bucket at a time.
@@ -27,20 +28,30 @@ const MobileBoard: React.FC = () => {
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
   const { tasks, events } = useData();
-  const { firstDayOfWeek } = useCalendar();
+  const { dateOf, layout } = useCalendar();
 
-  const [visibleDay, setVisibleDay] = useState<DayOfWeek>(
-    () => `${dayjs().isoWeekday()}` as DayOfWeek,
-  );
+  // Opens on today, unless today is a day this user has hidden — then on the first bucket the
+  // board still draws, so it never opens on a column its own nav cannot get back to.
+  const [visibleDay, setVisibleDay] = useState<DayOfWeek>(() => {
+    const today = `${dayjs().isoWeekday()}` as DayOfWeek;
+
+    return boardDayOrder(layout).includes(today) ? today : "0";
+  });
+
+  // A day can stop being drawn while it is the one on screen — hiding non-working days from the
+  // settings modal does exactly that.
+  useEffect(() => {
+    if (!boardDayOrder(layout).includes(visibleDay)) {
+      setVisibleDay("0");
+    }
+  }, [layout, visibleDay]);
 
   const dayTasks = tasks.filter(
     (task) => task.dayOfWeek === visibleDay && (settings.showCompletedTasks || !task.completed),
   );
   const dayEvents = events.filter((event) => event.dayOfWeek === visibleDay);
 
-  const date = visibleDay === "0" || visibleDay === "someday"
-    ? null
-    : firstDayOfWeek.add(parseInt(visibleDay, 10) - 1, "day");
+  const date = dateOf(visibleDay);
 
   const isToday = date?.isSame(dayjs(), "day") ?? false;
 

@@ -5,6 +5,7 @@ import PrintSheet from "../PrintSheet";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 import { DEFAULT_SETTINGS } from "../../utils/settings";
 import { getDayJs } from "../../utils/dayjs";
+import { fakeCalendar } from "../../test-support/calendar";
 
 jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -20,13 +21,14 @@ const data = { tasks: [] as unknown[], events: [] as unknown[], categories: [] a
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 jest.mock("../../contexts/SettingsContext", () => ({ useSettings: () => ({ settings }) }));
 jest.mock("../../contexts/CalendarContext", () => ({
-    useCalendar: () => ({ currentDate: now, currentWeek: thisWeek, firstDayOfWeek: monday }),
+    useCalendar: () => fakeCalendar(now, settings),
 }));
 
 const weekly = (title: string, dayOfWeek: string, extra: Record<string, unknown> = {}) =>
     new WeeklyTask({ title, weekCode: thisWeek, dayOfWeek, ...extra });
 
 beforeEach(() => {
+    Object.assign(settings, DEFAULT_SETTINGS);
     settings.showCompletedTasks = true;
     data.tasks = [];
     data.events = [];
@@ -83,6 +85,33 @@ describe("the printable week", () => {
 
         expect(today?.className).toContain("border-b-2");
         expect(other?.className).not.toContain("border-b-2");
+    });
+
+    it("prints one column per working day, with the rest stacked beside them", () => {
+        const { container } = render(<PrintSheet />);
+        const grid = container.querySelector("[style*='grid-template-columns']") as HTMLElement;
+
+        // Monday to Friday tall, the weekend sharing the sixth — the board's own shape.
+        expect(grid.style.gridTemplateColumns).toBe("repeat(6, minmax(0, 1fr))");
+    });
+
+    it("prints seven columns for someone who works every day", () => {
+        settings.workingDays = [1, 2, 3, 4, 5, 6, 7];
+
+        const { container } = render(<PrintSheet />);
+        const grid = container.querySelector("[style*='grid-template-columns']") as HTMLElement;
+
+        expect(grid.style.gridTemplateColumns).toBe("repeat(7, minmax(0, 1fr))");
+    });
+
+    it("leaves hidden days off the sheet entirely", () => {
+        settings.showNonWorkingDays = false;
+        data.tasks = [weekly("Monday task", "1"), weekly("Sunday task", "7")];
+
+        render(<PrintSheet />);
+
+        expect(screen.getByText("Monday task")).toBeInTheDocument();
+        expect(screen.queryByText("Sunday task")).not.toBeInTheDocument();
     });
 
     it("uses no dark-mode variant anywhere — the sheet is ink on paper", () => {

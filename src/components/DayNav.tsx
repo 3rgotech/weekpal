@@ -6,6 +6,7 @@ import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
+import { boardDayOrder } from "../utils/week";
 import IconButton from "./IconButton";
 
 interface DayNavProps {
@@ -16,9 +17,10 @@ interface DayNavProps {
 /**
  * The bottom bar of the vertical board: which day you are looking at, and which week it is in.
  *
- * Nine buckets in a row that has to fit a phone, so the labels are the shortest thing that still
- * says which is which — two letters for the weekdays, from the locale rather than sliced off an
- * English name, and initials for the two undated buckets.
+ * Up to nine buckets in a row that has to fit a phone, so the labels are the shortest thing that
+ * still says which is which — two letters for the weekdays, from the locale rather than sliced off
+ * an English name, and initials for the two undated buckets. Hiding days makes the row shorter
+ * rather than the pills wider than they need to be.
  *
  * At the bottom because that is where a thumb is. The week controls sit above the pills: changing
  * week is the rarer move, and putting it in the same row would have cost the days their width.
@@ -27,10 +29,13 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
-  const { currentDate, firstDayOfWeek, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
+  const { currentDate, dateOf, layout, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
 
   const today = dayjs();
-  const weekdays: DayOfWeek[] = ["1", "2", "3", "4", "5", "6", "7"];
+
+  // The same buckets the wide board draws, in the same order — days the user has hidden are not
+  // reachable there, and a pill for one here would be the only way into a column that is gone.
+  const buckets = boardDayOrder(layout);
 
   const label = (day: DayOfWeek): string => {
     if (day === "0") {
@@ -41,13 +46,10 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
       return t("main.some_day_short");
     }
 
-    return firstDayOfWeek.add(parseInt(day, 10) - 1, "day").format("dd");
+    return dateOf(day)?.format("dd") ?? "";
   };
 
-  const isToday = (day: DayOfWeek): boolean =>
-    day !== "0"
-    && day !== "someday"
-    && firstDayOfWeek.add(parseInt(day, 10) - 1, "day").isSame(today, "day");
+  const isToday = (day: DayOfWeek): boolean => dateOf(day)?.isSame(today, "day") ?? false;
 
   const pill = (day: DayOfWeek) => (
     <button
@@ -85,9 +87,13 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
           type="button"
           onClick={() => {
             // Jumping to this week and staying on Thursday because that is where you happened to
-            // be reads as nothing having happened. Today's week, today's day.
+            // be reads as nothing having happened. Today's week, today's day — unless today is a
+            // day this user has hidden, in which case the undated bucket is the honest landing
+            // place rather than a column that is not on screen.
+            const day = `${today.isoWeekday()}` as DayOfWeek;
+
             goToToday();
-            onSelect(`${today.isoWeekday()}` as DayOfWeek);
+            onSelect(buckets.includes(day) ? day : "0");
           }}
           className="flex-1 text-center text-sm font-semibold dark:text-white truncate"
         >
@@ -106,9 +112,7 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
       </div>
 
       <div className="flex items-stretch gap-0.5 px-1 pb-1">
-        {weekdays.map(pill)}
-        {pill("0")}
-        {pill("someday")}
+        {buckets.map(pill)}
       </div>
     </nav>
   );

@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import LeftoverReview from "../LeftoverReview";
 import { WeeklyTask } from "../../data/task";
 import { DEFAULT_SETTINGS } from "../../utils/settings";
+import { getDayJs } from "../../utils/dayjs";
+import { fakeCalendar } from "../../test-support/calendar";
 
 jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
@@ -28,6 +30,10 @@ jest.mock("../../contexts/DataContext", () => ({
 
 jest.mock("../../contexts/SettingsContext", () => ({
     useSettings: () => ({ settings: DEFAULT_SETTINGS }),
+}));
+
+jest.mock("../../contexts/CalendarContext", () => ({
+    useCalendar: () => fakeCalendar(getDayJs()(), DEFAULT_SETTINGS),
 }));
 
 const leftover = (id: string, dayOfWeek: string) => new WeeklyTask({

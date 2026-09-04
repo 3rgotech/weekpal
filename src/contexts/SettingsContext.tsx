@@ -26,8 +26,10 @@ import {
   LANGUAGE_FLAGS,
   SUBTASK_DISPLAYS,
   WEEK_HEADER_FORMATS,
+  withDefaults,
 } from "../utils/settings";
-import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
+import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
+import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
 import AdapterFactory from "../adapter";
@@ -47,10 +49,16 @@ const SettingsContext = createContext<SettingsContextProps | undefined>(
 
 const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { t, i18n } = useTranslation();
-  const [settings, setSettings] = useLocalStorage<Settings>(
+  const [stored, setSettings] = useLocalStorage<Settings>(
     "settings",
     DEFAULT_SETTINGS
   );
+
+  // What the app reads is never the raw blob: a browser that last saved before a field existed
+  // has none of it, and a working-day set out of a hand-edited localStorage would render a board
+  // with no columns.
+  const settings = useMemo(() => withDefaults(stored), [stored]);
+
   const overlay = useOverlayState();
   const dayjs = useDayJs(settings.language);
 
@@ -124,6 +132,10 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     i18n.changeLanguage(settings.language);
   }, [settings.language]);
+
+  /** A date that falls on ISO weekday `day`, purely so the locale can name it. */
+  const nameOf = (day: Weekday, format: string) =>
+    dayjs().startOf("isoWeek").add(day - 1, "day").format(format);
 
   const providedValues = {
     settings,
@@ -266,6 +278,89 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   </ListBox>
                 </Select.Popover>
               </Select>
+              <h3 className="text-base dark:text-white">
+                {t("settings.weekStartsOn")}
+              </h3>
+              <Select
+                value={`${settings.weekStartsOn}`}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({
+                    weekStartsOn: parseInt(`${key}`, 10) as Weekday,
+                  })
+                }
+                className="col-span-2"
+                isRequired
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {WEEKDAYS.map((day) => (
+                      <ListBox.Item
+                        key={day}
+                        id={`${day}`}
+                        textValue={nameOf(day, "dddd")}
+                      >
+                        <Label>{nameOf(day, "dddd")}</Label>
+                      </ListBox.Item>
+                    ))}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+              <h3 className="text-base dark:text-white">
+                {t("settings.workingDays")}
+              </h3>
+              {/* Listed in this user's own week order, so the row reads the way the board does.
+                  Buttons rather than a multi-select: seven options that are all on screen at once
+                  are quicker to set than a popover, and this is the setting people revisit. */}
+              <div className="col-span-2 flex gap-1">
+                {orderedWeekdays(settings.weekStartsOn).map((day) => {
+                  const isWorking = settings.workingDays.includes(day);
+
+                  return (
+                    <button
+                      key={day}
+                      type="button"
+                      aria-pressed={isWorking}
+                      aria-label={nameOf(day, "dddd")}
+                      onClick={() => updateSettings({
+                        workingDays: toggleWorkingDay(settings.workingDays, day),
+                      })}
+                      className={clsx(
+                        "flex-1 py-1.5 rounded-md text-xs font-semibold uppercase transition-colors",
+                        isWorking
+                          ? "bg-sky-500 text-white"
+                          : "bg-slate-200 text-slate-600 dark:bg-sky-900 dark:text-slate-300",
+                      )}
+                    >
+                      {nameOf(day, "dd")}
+                    </button>
+                  );
+                })}
+              </div>
+              <h3 className="text-base dark:text-white">
+                {t("settings.nonWorkingDays")}
+              </h3>
+              <ButtonGroup size="sm" className="col-span-2 justify-start">
+                <Button
+                  variant="secondary"
+                  className={clsx({ "bg-sky-500 text-white": settings.showNonWorkingDays })}
+                  onPress={() => updateSettings({ showNonWorkingDays: true })}
+                >
+                  <Eye />
+                  {t("actions.show")}
+                </Button>
+                <Button
+                  variant="secondary"
+                  className={clsx({ "bg-sky-500 text-white": !settings.showNonWorkingDays })}
+                  onPress={() => updateSettings({ showNonWorkingDays: false })}
+                >
+                  <EyeOff />
+                  {t("actions.hide")}
+                </Button>
+              </ButtonGroup>
               <h3 className="text-base dark:text-white">
                 {t("settings.dayHeaderFormat")}
               </h3>
