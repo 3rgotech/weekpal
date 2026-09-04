@@ -1,4 +1,5 @@
 import { Language, Settings, SubtaskDisplay } from "../types";
+import { normaliseDayCapacity } from "./capacity";
 import {
     DEFAULT_WEEK_STARTS_ON,
     DEFAULT_WORKING_DAYS,
@@ -25,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
     workingDays: DEFAULT_WORKING_DAYS,
     showNonWorkingDays: true,
     weekStartsOn: DEFAULT_WEEK_STARTS_ON,
+    dayCapacity: 0,
     subtaskDisplay: "percentage",
 }
 
@@ -42,6 +44,7 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
         ...(stored ?? {}),
         workingDays: normaliseWorkingDays(stored?.workingDays),
         weekStartsOn: normaliseWeekStart(stored?.weekStartsOn),
+        dayCapacity: normaliseDayCapacity(stored?.dayCapacity),
     };
 }
 

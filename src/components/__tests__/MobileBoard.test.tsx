@@ -43,7 +43,8 @@ jest.mock("../../contexts/CalendarContext", () => ({
     useCalendar: () => fakeCalendar(now, settings),
 }));
 
-const weekly = (title: string, dayOfWeek: string) => new WeeklyTask({ title, weekCode: thisWeek, dayOfWeek });
+const weekly = (title: string, dayOfWeek: string, extra: Record<string, unknown> = {}) =>
+    new WeeklyTask({ title, weekCode: thisWeek, dayOfWeek, ...extra });
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -134,6 +135,34 @@ describe("the board on a phone", () => {
 
         expect(screen.queryByText("Today's task")).not.toBeInTheDocument();
         expect(screen.getByText("main.this_week")).toBeInTheDocument();
+    });
+
+    it("says how full a day is once a limit is set, and stays quiet until then", () => {
+        data.tasks = [weekly("One", today), weekly("Two", today), weekly("Three", today)];
+
+        const { rerender } = render(<MobileBoard />);
+        expect(screen.queryByText("3")).not.toBeInTheDocument();
+
+        settings.dayCapacity = 3;
+        rerender(<MobileBoard />);
+
+        // At the limit: named in full for a screen reader, since a bare "3" says nothing.
+        const count = screen.getByLabelText("capacity.planned");
+        expect(count.textContent).toBe("3");
+        expect(count.className).toContain("amber");
+    });
+
+    it("counts what is left to do, not what was planned", () => {
+        // A day you have worked through should stop warning rather than stay red all evening.
+        data.tasks = [
+            weekly("Done", today, { completedAt: now.toISOString() }),
+            weekly("Still to do", today),
+        ];
+        settings.dayCapacity = 2;
+
+        render(<MobileBoard />);
+
+        expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
     });
 
     it("moves a task through the menu, since there is nothing to drag", () => {

@@ -20,6 +20,7 @@ describe("DEFAULT_SETTINGS", () => {
     "workingDays",
     "showNonWorkingDays",
     "weekStartsOn",
+    "dayCapacity",
     "subtaskDisplay",
   ];
 
@@ -85,6 +86,13 @@ describe("withDefaults", () => {
     expect(withDefaults({ workingDays: [] }).workingDays).toEqual([1, 2, 3, 4, 5]);
     expect(withDefaults({ workingDays: "every day" }).workingDays).toEqual([1, 2, 3, 4, 5]);
     expect(withDefaults({ workingDays: [3, 9, 3, 1] }).workingDays).toEqual([1, 3]);
+  });
+
+  it("leaves the day-capacity warning off unless it was set", () => {
+    expect(DEFAULT_SETTINGS.dayCapacity).toBe(0);
+    expect(withDefaults({}).dayCapacity).toBe(0);
+    expect(withDefaults({ dayCapacity: 6 }).dayCapacity).toBe(6);
+    expect(withDefaults({ dayCapacity: -1 }).dayCapacity).toBe(0);
   });
 
   it("repairs a week start that is not a day", () => {

@@ -17,7 +17,10 @@
         "subtaskDisplay": "Subtask progress",
         "weekStartsOn": "First day of the week",
         "workingDays": "Working days",
-        "nonWorkingDays": "Non-working days"
+        "nonWorkingDays": "Non-working days",
+        "dayCapacity": "Tasks per day",
+        "dayCapacityOff": "No limit",
+        "dayCapacityTasks": "{{limit}} tasks"
     },
     "main": {
         "this_week": "This week",
@@ -221,5 +224,8 @@
         "step_add": "Choose \\u201cAdd to Home Screen\\u201d.",
         "step_confirm": "Confirm the name, and it lands on your home screen.",
         "open_share": "Open the share sheet"
+    },
+    "capacity": {
+        "planned": "Planned: {{planned}} of {{limit}}"
     }
 }

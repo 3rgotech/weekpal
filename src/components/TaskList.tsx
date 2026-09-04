@@ -49,6 +49,15 @@ const TaskList: React.FC<TaskProps> = ({
     (event) => event.dayOfWeek === dayOfWeek
   );
 
+  // Counted off what is still to do, not off what is on screen: hiding completed tasks must not
+  // change how full the day says it is, and a day you have finished should stop warning rather
+  // than stay red for the rest of it. The undated buckets get no count — a limit on Some day is
+  // its own feature, with its own number.
+  const isDay = dayOfWeek !== "0" && dayOfWeek !== "someday";
+  const planned = isDay
+    ? tasks.filter((task) => task.dayOfWeek === dayOfWeek && !task.completed).length
+    : undefined;
+
   return (
     <div ref={setNodeRef} className={`h-full flex flex-col`}>
       <TaskListHeader
@@ -56,6 +65,7 @@ const TaskList: React.FC<TaskProps> = ({
         dayOfWeek={dayOfWeek}
         weekCode={currentWeek}
         isToday={isToday}
+        planned={planned}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul className={clsx("flex-1 overflow-y-auto py-1 space-y-2")}>

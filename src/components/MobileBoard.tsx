@@ -10,6 +10,7 @@ import DayNav from "./DayNav";
 import EventList from "./EventList";
 import MobileTask from "./MobileTask";
 import NewTask from "./NewTask";
+import CapacityCount from "./CapacityCount";
 import { boardDayOrder } from "../utils/week";
 
 /**
@@ -71,6 +72,9 @@ const MobileBoard: React.FC = () => {
       >
         <h2 className="text-lg font-semibold">{dayName}</h2>
         {dayDate && <span className="text-sm uppercase opacity-80">{dayDate}</span>}
+        <span className="ml-auto">
+          <CapacityCount planned={date ? dayTasks.filter((task) => !task.completed).length : undefined} />
+        </span>
       </header>
 
       {dayEvents.length > 0 && (

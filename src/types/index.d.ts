@@ -39,6 +39,12 @@ export interface Settings {
   showNonWorkingDays: boolean;
   /** Which ISO weekday the seven columns open on. */
   weekStartsOn: Weekday;
+  /**
+   * How many tasks a day is expected to hold before it warns, or 0 for no limit.
+   *
+   * Soft throughout: nothing is refused or moved when a day goes past it.
+   */
+  dayCapacity: number;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

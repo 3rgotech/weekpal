@@ -29,6 +29,7 @@ import {
   withDefaults,
 } from "../utils/settings";
 import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
+import { DAY_CAPACITIES } from "../utils/capacity";
 import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
@@ -361,6 +362,39 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   {t("actions.hide")}
                 </Button>
               </ButtonGroup>
+              <h3 className="text-base dark:text-white">
+                {t("settings.dayCapacity")}
+              </h3>
+              <Select
+                value={`${settings.dayCapacity}`}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({
+                    dayCapacity: parseInt(`${key}`, 10),
+                  })
+                }
+                className="col-span-2"
+                isRequired
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {DAY_CAPACITIES.map((capacity) => {
+                      const label = capacity === 0
+                        ? t("settings.dayCapacityOff")
+                        : t("settings.dayCapacityTasks", { limit: capacity });
+
+                      return (
+                        <ListBox.Item key={capacity} id={`${capacity}`} textValue={label}>
+                          <Label>{label}</Label>
+                        </ListBox.Item>
+                      );
+                    })}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
               <h3 className="text-base dark:text-white">
                 {t("settings.dayHeaderFormat")}
               </h3>

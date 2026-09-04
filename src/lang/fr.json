@@ -17,7 +17,10 @@
         "subtaskDisplay": "Progression des sous-tâches",
         "weekStartsOn": "Premier jour de la semaine",
         "workingDays": "Jours travaillés",
-        "nonWorkingDays": "Jours non travaillés"
+        "nonWorkingDays": "Jours non travaillés",
+        "dayCapacity": "Tâches par jour",
+        "dayCapacityOff": "Sans limite",
+        "dayCapacityTasks": "{{limit}} tâches"
     },
     "main": {
         "this_week": "Cette semaine",
@@ -221,5 +224,8 @@
         "step_add": "Choisissez « Sur l'écran d'accueil ».",
         "step_confirm": "Confirmez le nom : l'icône arrive sur votre écran d'accueil.",
         "open_share": "Ouvrir le menu de partage"
+    },
+    "capacity": {
+        "planned": "Prévu : {{planned}} sur {{limit}}"
     }
 }
