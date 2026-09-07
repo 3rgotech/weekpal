@@ -92,7 +92,7 @@ const PrintSheet: React.FC = () => {
     const eventsOf = (day: DayOfWeek) => events.filter((event) => event.dayOfWeek === day);
 
     const taskLine = (task: Task) => (
-        <li key={task.id} className="flex items-baseline gap-1.5 py-[3px] text-[11px] leading-snug">
+        <li key={task.id} className="flex items-baseline gap-1.5 py-[3px] text-[11px] leading-snug break-inside-avoid">
             <span className={clsx("min-w-0", task.completed && "line-through text-neutral-500")}>
                 {task.title}
             </span>
@@ -142,11 +142,23 @@ const PrintSheet: React.FC = () => {
         </header>
     );
 
-    const bucketHeading = (label: string) => (
-        <header className="border-b border-black pb-1">
-            <span className="text-[13px] font-bold">{label}</span>
-        </header>
-    );
+    /**
+     * A heading for one of the undated buckets, carrying how much is in it.
+     *
+     * The count is the point. These lists can run to hundreds after an import, and a printed page
+     * that quietly stops at whatever fitted looks exactly like a complete one — there is nothing
+     * on paper to say otherwise.
+     */
+    const bucketHeading = (label: string, day: DayOfWeek) => {
+        const total = tasksOf(day).length;
+
+        return (
+            <header className="flex items-baseline justify-between border-b border-black pb-1">
+                <span className="text-[13px] font-bold">{label}</span>
+                {total > 0 && <span className="text-[11px] text-neutral-500">{total}</span>}
+            </header>
+        );
+    };
 
     const dateOfColumn = (day: Weekday) =>
         dateOfDay(firstDayOfWeek, day, settings.weekStartsOn);
@@ -191,9 +203,13 @@ const PrintSheet: React.FC = () => {
                 ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-x-5 mt-6">
-                {column(bucketHeading(t("main.this_week")), "0", "42mm")}
-                {column(bucketHeading(t("main.some_day")), "someday", "42mm")}
+            {/* Block, not a grid, and `break-inside: auto`: a CSS grid does not fragment across
+                printed pages in any browser worth relying on, so a long Some day list was simply
+                cut off at the page boundary with nothing to show for the rest. Laid out as two
+                floated blocks the content flows onto further pages the way text does. */}
+            <div className="mt-6 print-buckets">
+                {column(bucketHeading(t("main.this_week"), "0"), "0", "42mm")}
+                {column(bucketHeading(t("main.some_day"), "someday"), "someday", "42mm")}
             </div>
         </div>
     );

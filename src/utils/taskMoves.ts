@@ -89,6 +89,23 @@ export function moveTarget(
 }
 
 /**
+ * Which position a drop lands on, given where the dragged row is against the row under it.
+ *
+ * The rule is the target's **midpoint**: past halfway and the task goes after it, short of that
+ * and it goes before. The board used to compare against the target's *bottom* edge, which meant
+ * a whole row's worth of travel counted as "still above" — so a task dropped between the second
+ * and third landed between the first and second, every time, and the further you aimed the more
+ * wrong it looked.
+ *
+ * Used at the end of a drag as well as during it. Only the live preview applied any above/below
+ * test before; the drop itself took the target's own order unconditionally, which re-applied the
+ * same "insert before" whatever the preview had shown.
+ */
+export function dropOrder(activeTop: number, overTop: number, overHeight: number, overOrder: number): number {
+    return activeTop > overTop + overHeight / 2 ? overOrder + 1 : overOrder;
+}
+
+/**
  * Where a task goes to make room in a column that is over its limit.
  *
  * One step further out, never further in, so resolving one column cannot be what fills the one

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { availableMoves, moveTarget, relieveTarget } from "../taskMoves";
+import { availableMoves, dropOrder, moveTarget, relieveTarget } from "../taskMoves";
 import { getDayJs } from "../dayjs";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 
@@ -97,5 +97,37 @@ describe("making room in a column that is over its limit", () => {
         // What makes a shortlist a shortlist rather than a pile.
         expect(relieveTarget(new SomedayTask({ title: "Learn the cello" }), "2026w35"))
             .toEqual({ weekCode: "2026w35", dayOfWeek: "0" });
+    });
+});
+
+describe("where a drop lands", () => {
+    // A row 40px tall sitting at y=100, so its middle is 120.
+    const row = { top: 100, height: 40, order: 5 };
+    const at = (activeTop: number) => dropOrder(activeTop, row.top, row.height, row.order);
+
+    it("goes before the row while the dragged one is above its middle", () => {
+        expect(at(100)).toBe(5);
+        expect(at(119)).toBe(5);
+    });
+
+    it("goes after the row once past its middle", () => {
+        expect(at(121)).toBe(6);
+        expect(at(140)).toBe(6);
+    });
+
+    it("uses the middle, not the bottom edge", () => {
+        // The bug this replaces: the old test asked whether the dragged row had cleared the
+        // target's *bottom*, so a whole row of travel still counted as "above" and a task aimed
+        // between the second and third landed between the first and second.
+        const justPastMiddle = row.top + row.height / 2 + 1;
+
+        expect(at(justPastMiddle)).toBe(6);
+        // Under the old rule this same position was still "above" — it needed to pass 140.
+        expect(justPastMiddle).toBeLessThan(row.top + row.height);
+    });
+
+    it("treats the first row like any other", () => {
+        expect(dropOrder(105, 100, 40, 0)).toBe(0);
+        expect(dropOrder(125, 100, 40, 0)).toBe(1);
     });
 });

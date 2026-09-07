@@ -159,4 +159,32 @@ describe("the printable week", () => {
 
         expect(screen.queryByText("Monday task")).not.toBeInTheDocument();
     });
+
+    it("says how many are in each undated bucket", () => {
+        // A printed page that stops at whatever fitted looks exactly like a complete one. The
+        // count is the only thing on the paper that can say otherwise.
+        data.tasks = [
+            weekly("Undated one", "0"),
+            weekly("Undated two", "0"),
+            new SomedayTask({ id: "s1", title: "Later one" }),
+        ];
+
+        const { container } = printed();
+        const headings = [...container.querySelectorAll("header")]
+            .map((h) => h.textContent)
+            .filter((text) => /this_week|some_day/.test(text ?? ""));
+
+        expect(headings.some((h) => h?.includes("2"))).toBe(true);
+        expect(headings.some((h) => h?.includes("1"))).toBe(true);
+    });
+
+    it("leaves an empty bucket without a count, rather than printing a nought", () => {
+        data.tasks = [];
+
+        const { container } = printed();
+        const someday = [...container.querySelectorAll("header")]
+            .find((h) => h.textContent?.includes("some_day"));
+
+        expect(someday?.textContent).toBe("main.some_day");
+    });
 });

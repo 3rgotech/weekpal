@@ -23,6 +23,7 @@ import { useSettings } from "./contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import useDayJs from "./utils/dayjs";
 import { Weekday, dateOfDay } from "./utils/week";
+import { dropOrder } from "./utils/taskMoves";
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
@@ -148,15 +149,17 @@ const MainContent: React.FC<MainContentProps> = () => {
 
       const toDay = over.data.current?.dayOfWeek ?? null;
       if (!toDay) return;
-      let toOrder =
-        over.data.current?.type === "container"
-          ? null
-          : over.data.current?.currentOrder;
-      if (toOrder === null) {
-        toOrder = tasks.filter(
-          (t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay
-        ).length;
-      }
+
+      const onContainer = over.data.current?.type === "container";
+      const activeTop = active.rect.current.translated?.top;
+
+      // Dropped on empty space in a column: the end of it. Dropped on a task: whichever side of
+      // that task's middle the dragged row finished on — the same rule the live preview uses, so
+      // the drop lands where the preview said it would.
+      const toOrder = onContainer || activeTop === undefined
+        ? tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay).length
+        : dropOrder(activeTop, over.rect.top, over.rect.height, over.data.current?.currentOrder ?? 0);
+
       moveTask(task, toDay, toOrder);
     }
   };
@@ -223,14 +226,11 @@ const MainContent: React.FC<MainContentProps> = () => {
       const overTask = findTask(over.id.toString().replace("task-", ""));
       if (!overTask) return;
 
-      const isBelowOverItem =
-        over &&
-        active.rect.current.translated &&
-        active.rect.current.translated.top > over.rect.top + over.rect.height;
+      const activeTop = active.rect.current.translated?.top;
 
-      newOrder = isBelowOverItem
-        ? (overTask.order ?? 0) + 1
-        : overTask.order ?? 0;
+      newOrder = activeTop === undefined
+        ? overTask.order ?? 0
+        : dropOrder(activeTop, over.rect.top, over.rect.height, overTask.order ?? 0);
     } else {
       // If dropping in empty space, put at the end
       newOrder = tasksInTargetDay.length;
