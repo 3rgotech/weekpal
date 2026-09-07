@@ -7,6 +7,7 @@ import { ShortcutsProvider } from "./contexts/ShortcutsContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
+import { AccountProvider } from "./contexts/AccountContext";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
@@ -117,6 +118,7 @@ function App() {
       !indexedDBAvailable ? (
         <CannotLoadTheApp reason="indexeddb_unavailable" />
       ) : (
+        <AccountProvider>
         <SettingsProvider>
           <CalendarProvider>
             <DataProvider
@@ -167,6 +169,7 @@ function App() {
             </DataProvider>
           </CalendarProvider>
         </SettingsProvider>
+        </AccountProvider>
       )
   );
 }

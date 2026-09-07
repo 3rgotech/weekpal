@@ -2,11 +2,12 @@ import APITaskAdapter from './api/APITaskAdapter';
 import APICategoryAdapter from './api/APICategoryAdapter';
 import APIProjectAdapter from './api/APIProjectAdapter';
 import APISettingsAdapter from './api/APISettingsAdapter';
+import APIAccountAdapter from './api/APIAccountAdapter';
 import APITaskNoteAdapter from './api/APITaskNoteAdapter';
 import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -22,6 +23,7 @@ interface AdapterFactoryResult {
     settingsAdapter: ISettingsAdapter | null;
     noteAdapter: INoteAdapter | null;
     historyAdapter: IHistoryAdapter | null;
+    accountAdapter: IAccountAdapter | null;
 }
 
 class AdapterFactory {
@@ -47,6 +49,7 @@ class AdapterFactory {
             settingsAdapter: factory.createSettingsAdapter(),
             noteAdapter: factory.createNoteAdapter(),
             historyAdapter: factory.createHistoryAdapter(),
+            accountAdapter: factory.createAccountAdapter(),
         };
     }
 
@@ -90,6 +93,14 @@ class AdapterFactory {
 
     createHistoryAdapter(): IHistoryAdapter | null {
         return this.usesApi ? new APITaskHistoryAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test double: the demo and test sources have no account behind them, and a null adapter
+     * is read as "not subscribed" — which is the honest answer for an anonymous demo visitor.
+     */
+    createAccountAdapter(): IAccountAdapter | null {
+        return this.usesApi ? new APIAccountAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     createProjectAdapter(): IProjectAdapter | null {

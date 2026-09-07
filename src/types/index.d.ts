@@ -218,6 +218,22 @@ export interface ICategoryAdapter {
   delete(id: string): Promise<void>;
 }
 
+/**
+ * The account behind the board.
+ *
+ * `subscribed` is advisory: it decides what the UI offers, never what the API accepts. Every
+ * paid write is checked again on the server, because a client can be told anything.
+ */
+export interface Account {
+  id: number;
+  name: string;
+  subscribed: boolean;
+}
+
+export interface IAccountAdapter {
+  get(): Promise<Account>;
+}
+
 export interface ISettingsAdapter {
   get(): Promise<Settings>;
   /** Partial patch in, complete object out. */
