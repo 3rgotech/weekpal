@@ -38,6 +38,10 @@
  * migration had nowhere to map it: it became `lg` and the settings lost 160px of the width they
  * were laid out for. The category editor, written since, has three columns and never had it.
  *
+ * Wider than that old 672px, not merely back to it: both dialogs are now three columns of label
+ * and controls, and there is screen either side of them on anything wider than a small laptop.
+ * A `max-width`, so a narrow window still gets the whole width it has.
+ *
  * Done here rather than with a utility class because the v3 `Modal` parts do not forward
  * `className` at all — `Modal.Container`, `Modal.Dialog` and `Modal.Header` each drop it, so
  * nothing passed from a component reaches the DOM. This is the only place the cap can be lifted.
@@ -46,7 +50,43 @@
  * on purpose.
  */
 .modal__dialog--lg {
-    max-width: 42rem;
+    max-width: 56rem;
+}
+
+/**
+ * Make the settings tabs look like tabs.
+ *
+ * HeroUI 3 draws the selected tab's pill with a `Tabs.Indicator` component, which throws outside
+ * a `SharedElementTransition` — so nothing marks the selection but a slightly brighter label, and
+ * three of those spread across a wide dialog read as column headings rather than as controls.
+ * This draws the segmented control the component was going to.
+ *
+ * Scoped away from `--secondary`, which is the deliberately flat, underlined variant the task
+ * activity tabs use.
+ */
+.tabs:not(.tabs--secondary) {
+    /* Sized to its labels and left-aligned. Left to stretch, three tabs across a 56rem dialog put
+       a third of it under a solid pill, which reads as a banner rather than as a control. */
+    & > .tabs__list-container {
+        @apply inline-flex w-auto self-start rounded-3xl p-1;
+        @apply bg-slate-200 dark:bg-sky-950;
+    }
+
+    & .tabs__list {
+        min-width: 0;
+    }
+
+    & .tabs__tab {
+        @apply w-auto rounded-3xl px-5;
+
+        &[data-selected="true"] {
+            @apply bg-sky-500 text-white shadow-sm;
+        }
+
+        &[data-selected="false"]:hover {
+            @apply bg-slate-300 dark:bg-sky-900;
+        }
+    }
 }
 
 @media print {

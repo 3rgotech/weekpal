@@ -62,7 +62,12 @@ const SettingsModal: React.FC = () => {
                                 is changed — to localStorage first, then to the server — so a tab
                                 can be left at any moment without losing anything, and closing the
                                 dialog is not a decision. */}
-                            <Tabs aria-label={t("settings.settings")} variant="secondary">
+                            {/* The default variant, not `secondary`: secondary is flat, and three
+                                flat labels spread across a wide dialog read as column headings
+                                rather than as something to press. HeroUI's own `Tabs.Indicator`
+                                throws outside a `SharedElementTransition`, so the selected pill
+                                is drawn from `index.css` instead. */}
+                            <Tabs aria-label={t("settings.settings")}>
                                 <Tabs.List aria-label={t("settings.settings")}>
                                     <Tabs.Tab id="appearance">{t("settings.tab_appearance")}</Tabs.Tab>
                                     <Tabs.Tab id="week">{t("settings.tab_week")}</Tabs.Tab>
