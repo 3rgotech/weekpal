@@ -24,9 +24,21 @@ export class ImportRefused extends Error {
  * reader, and importing from another app is an online action by definition.
  */
 export default class APIImportAdapter extends APIBaseAdapter implements IImportAdapter {
+    async preview(file: File): Promise<ImportSummary> {
+        return this.send(file, true);
+    }
+
     async upload(file: File): Promise<ImportSummary> {
+        return this.send(file, false);
+    }
+
+    private async send(file: File, dryRun: boolean): Promise<ImportSummary> {
         const body = new FormData();
         body.append('file', file);
+
+        if (dryRun) {
+            body.append('dry_run', '1');
+        }
 
         const response = await this.getClient()
             // No `Content-Type`: the browser has to set it, because only it knows the multipart

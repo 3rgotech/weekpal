@@ -271,6 +271,10 @@
         "failed": "That file could not be imported. Check it has a column of task titles.",
         "unavailable": "Importing needs an account — the demo board has nowhere to import to.",
         "unmatched": "Columns it did not recognise: {{headers}}. Send us these and we can add them.",
-        "ignored": "Columns ignored: {{headers}}."
+        "ignored": "Columns ignored: {{headers}}.",
+        "will_import": "This will import {{n}} tasks.",
+        "will_be_undated": "{{n}} have no usable date and will all land in Some day.",
+        "will_create": "{{n}} new categories will be created.",
+        "confirm": "Import them"
     }
 }

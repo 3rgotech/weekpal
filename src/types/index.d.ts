@@ -268,9 +268,13 @@ export interface ImportSummary {
   columns: Record<string, number>;
   /** Headings that matched no field, as written in the file. */
   unmatched: string[];
+  /** True when nothing was written — the sheet was only counted. */
+  dry_run: boolean;
 }
 
 export interface IImportAdapter {
+  /** Count what an import would do, writing nothing. */
+  preview(file: File): Promise<ImportSummary>;
   upload(file: File): Promise<ImportSummary>;
 }
 

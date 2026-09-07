@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import ImportPanel from "../ImportPanel";
 import { ImportSummary } from "../../types";
@@ -22,10 +22,14 @@ const data = { reloadBoard: jest.fn(async () => undefined) };
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 
 const summary: ImportSummary = {
-    imported: 12, skipped: 0, categories_created: 0, undated: 0, columns: { title: 0 }, unmatched: [],
+    imported: 12, skipped: 0, categories_created: 0, undated: 0, columns: { title: 0 },
+    unmatched: [], dry_run: false,
 };
 
-const adapter = { upload: jest.fn(async (_file: File) => summary) };
+const adapter = {
+    preview: jest.fn(async (_file: File) => ({ ...summary, dry_run: true })),
+    upload: jest.fn(async (_file: File) => summary),
+};
 const adapters = { importAdapter: adapter as unknown as null };
 
 jest.mock("../../adapter", () => ({
@@ -44,21 +48,54 @@ const chooseFile = (upload: File) => {
 beforeEach(() => {
     jest.clearAllMocks();
     adapters.importAdapter = adapter as unknown as null;
+    adapter.preview.mockImplementation(async () => ({ ...summary, dry_run: true }));
     adapter.upload.mockImplementation(async () => summary);
 });
 
+/** Choose a file and accept what the preview reports — the ordinary path through the panel. */
+const chooseAndConfirm = async (upload: File) => {
+    chooseFile(upload);
+    await waitFor(() => expect(screen.getByText("import.confirm")).toBeTruthy());
+
+    // Awaited inside `act`, so the upload's own state updates land before the assertions rather
+    // than after them — otherwise every test here reports an unwrapped update.
+    await act(async () => {
+        fireEvent.click(screen.getByText("import.confirm"));
+    });
+};
+
 describe("bringing tasks in from another app", () => {
-    it("uploads the chosen file", async () => {
+    it("looks before it leaps — nothing is written on choosing a file", async () => {
         render(<ImportPanel />);
         chooseFile(file());
+
+        await waitFor(() => expect(adapter.preview).toHaveBeenCalledTimes(1));
+        expect((adapter.preview.mock.calls[0][0] as File).name).toBe("tasks.csv");
+        expect(adapter.upload).not.toHaveBeenCalled();
+    });
+
+    it("imports the same file once confirmed", async () => {
+        render(<ImportPanel />);
+        await chooseAndConfirm(file());
 
         await waitFor(() => expect(adapter.upload).toHaveBeenCalledTimes(1));
         expect((adapter.upload.mock.calls[0][0] as File).name).toBe("tasks.csv");
     });
 
-    it("says what came of it", async () => {
+    it("writes nothing if the preview is declined", async () => {
         render(<ImportPanel />);
         chooseFile(file());
+
+        await waitFor(() => expect(screen.getByText("actions.cancel")).toBeTruthy());
+        fireEvent.click(screen.getByText("actions.cancel"));
+
+        expect(adapter.upload).not.toHaveBeenCalled();
+        expect(screen.queryByText("import.confirm")).toBeNull();
+    });
+
+    it("says what came of it", async () => {
+        render(<ImportPanel />);
+        await chooseAndConfirm(file());
 
         await waitFor(() => expect(screen.getByText("import.done:12")).toBeTruthy());
     });
@@ -67,18 +104,44 @@ describe("bringing tasks in from another app", () => {
         // The import wrote straight to the server. Without this the board shows none of it until
         // the next scheduled pull, which reads as the import having failed.
         render(<ImportPanel />);
-        chooseFile(file());
+        await chooseAndConfirm(file());
 
         await waitFor(() => expect(data.reloadBoard).toHaveBeenCalledTimes(1));
     });
 
-    it("mentions only what actually happened", async () => {
-        adapter.upload.mockImplementation(async () => ({
-            imported: 5, skipped: 2, categories_created: 1, undated: 3, columns: { title: 0 }, unmatched: [],
+    it("warns before importing that undated tasks will all land in Some day", async () => {
+        // The line this whole step exists for: a thousand undated tasks in one column is worth
+        // knowing about before it happens, not after.
+        adapter.preview.mockImplementation(async () => ({
+            ...summary, imported: 1000, undated: 1000, dry_run: true,
         }));
 
         render(<ImportPanel />);
         chooseFile(file());
+
+        await waitFor(() => expect(screen.getByText("import.will_import:1000")).toBeTruthy());
+        expect(screen.getByText("import.will_be_undated:1000")).toBeTruthy();
+    });
+
+    it("names unrecognised columns before anything is created, not after", async () => {
+        adapter.preview.mockImplementation(async () => ({
+            ...summary, unmatched: ["Priority"], dry_run: true,
+        }));
+
+        render(<ImportPanel />);
+        chooseFile(file());
+
+        await waitFor(() => expect(screen.getByText("import.ignored:Priority")).toBeTruthy());
+    });
+
+    it("mentions only what actually happened", async () => {
+        adapter.upload.mockImplementation(async () => ({
+            imported: 5, skipped: 2, categories_created: 1, undated: 3, columns: { title: 0 },
+            unmatched: [], dry_run: false,
+        }));
+
+        render(<ImportPanel />);
+        await chooseAndConfirm(file());
 
         await waitFor(() => expect(screen.getByText("import.skipped:2")).toBeTruthy());
         expect(screen.getByText("import.undated:3")).toBeTruthy();
@@ -87,7 +150,7 @@ describe("bringing tasks in from another app", () => {
 
     it("stays quiet about counts that are zero", async () => {
         render(<ImportPanel />);
-        chooseFile(file());
+        await chooseAndConfirm(file());
 
         await waitFor(() => expect(screen.getByText("import.done:12")).toBeTruthy());
         expect(screen.queryByText("import.skipped:0")).toBeNull();
@@ -95,7 +158,7 @@ describe("bringing tasks in from another app", () => {
     });
 
     it("explains a refusal instead of failing silently", async () => {
-        adapter.upload.mockImplementation(async () => { throw new Error("422"); });
+        adapter.preview.mockImplementation(async () => { throw new Error("422"); });
         jest.spyOn(console, "error").mockImplementation(() => { });
 
         render(<ImportPanel />);
@@ -110,7 +173,7 @@ describe("bringing tasks in from another app", () => {
         render(<ImportPanel />);
         chooseFile(file());
 
-        await waitFor(() => expect(adapter.upload).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(adapter.preview).toHaveBeenCalledTimes(1));
         expect((screen.getByLabelText("import.choose") as HTMLInputElement).value).toBe("");
     });
 
@@ -127,7 +190,7 @@ describe("bringing tasks in from another app", () => {
     it("names the columns a refusal did not recognise", async () => {
         // Those words are the diagnosis: they are what someone quotes in a support message, and
         // what goes into the alias table to make the next file of that shape work.
-        adapter.upload.mockImplementation(async () => {
+        adapter.preview.mockImplementation(async () => {
             throw new ImportRefused(["Priority", "Assignee"]);
         });
 
@@ -141,13 +204,11 @@ describe("bringing tasks in from another app", () => {
     it("mentions columns it ignored even when the import worked", async () => {
         // A file whose notes column was skipped looks like a success until a task is opened and
         // found empty.
-        adapter.upload.mockImplementation(async () => ({
-            ...summary, unmatched: ["Priority"],
-        }));
+        adapter.upload.mockImplementation(async () => ({ ...summary, unmatched: ["Priority"] }));
 
         render(<ImportPanel />);
-        chooseFile(file());
+        await chooseAndConfirm(file());
 
-        await waitFor(() => expect(screen.getByText("import.ignored:Priority")).toBeTruthy());
+        await waitFor(() => expect(screen.getByText("import.done:12")).toBeTruthy());
     });
 });

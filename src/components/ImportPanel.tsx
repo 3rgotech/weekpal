@@ -36,6 +36,11 @@ const ImportPanel: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [unmatched, setUnmatched] = useState<string[]>([]);
 
+    // What a dry run said the file would do, and the file itself, held until it is confirmed.
+    // Nothing is written until then: a sheet of a thousand undated tasks puts every one of them
+    // in Some day, and being told that afterwards is being told too late.
+    const [pending, setPending] = useState<{ file: File; preview: ImportSummary } | null>(null);
+
     const adapter = useMemo(() => AdapterFactory.createAdapters().importAdapter, []);
 
     const choose = async (file: File | undefined) => {
@@ -47,14 +52,10 @@ const ImportPanel: React.FC = () => {
         setSummary(null);
         setError(null);
         setUnmatched([]);
+        setPending(null);
 
         try {
-            const result = await adapter.upload(file);
-
-            setSummary(result);
-            // The import wrote straight to the server, so the board has to be told to look again
-            // — otherwise nothing appears until the next scheduled pull and it reads as a failure.
-            await reloadBoard();
+            setPending({ file, preview: await adapter.preview(file) });
         } catch (failure) {
             // A refusal is the server's answer, not a broken connection — reporting it as a sync
             // failure would put the board into an offline state over a bad spreadsheet.
@@ -73,6 +74,30 @@ const ImportPanel: React.FC = () => {
             if (input.current) {
                 input.current.value = "";
             }
+        }
+    };
+
+    const confirm = async () => {
+        if (!adapter || !pending) {
+            return;
+        }
+
+        setBusy(true);
+        setError(null);
+
+        try {
+            const result = await adapter.upload(pending.file);
+
+            setSummary(result);
+            setPending(null);
+            // The import wrote straight to the server, so the board has to be told to look again
+            // — otherwise nothing appears until the next scheduled pull and it reads as a failure.
+            await reloadBoard();
+        } catch (failure) {
+            reportSyncFailure(classifyFailure(failure));
+            setError(t("import.failed"));
+        } finally {
+            setBusy(false);
         }
     };
 
@@ -125,6 +150,40 @@ const ImportPanel: React.FC = () => {
                                 {t("import.unmatched", { headers: unmatched.join(", ") })}
                             </p>
                         )}
+                    </div>
+                )}
+
+                {pending !== null && (
+                    <div className="flex flex-col gap-2 rounded-md border border-slate-200 dark:border-slate-600 p-3">
+                        <p className="text-sm dark:text-white">
+                            {t("import.will_import", { n: pending.preview.imported })}
+                        </p>
+
+                        <ul className="text-xs text-slate-500 dark:text-slate-400">
+                            {/* The line this whole step exists for. Everything undated lands in
+                                one column, and a big number here is worth seeing beforehand. */}
+                            {pending.preview.undated > 0 && (
+                                <li>{t("import.will_be_undated", { n: pending.preview.undated })}</li>
+                            )}
+                            {pending.preview.categories_created > 0 && (
+                                <li>{t("import.will_create", { n: pending.preview.categories_created })}</li>
+                            )}
+                            {pending.preview.skipped > 0 && (
+                                <li>{t("import.skipped", { n: pending.preview.skipped })}</li>
+                            )}
+                            {pending.preview.unmatched.length > 0 && (
+                                <li>{t("import.ignored", { headers: pending.preview.unmatched.join(", ") })}</li>
+                            )}
+                        </ul>
+
+                        <div className="flex items-center gap-2">
+                            <Button variant="primary" isDisabled={busy} onPress={() => { void confirm(); }}>
+                                {busy ? t("import.working") : t("import.confirm")}
+                            </Button>
+                            <Button variant="secondary" isDisabled={busy} onPress={() => setPending(null)}>
+                                {t("actions.cancel")}
+                            </Button>
+                        </div>
                     </div>
                 )}
 

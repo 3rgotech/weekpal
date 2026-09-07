@@ -271,6 +271,10 @@
         "failed": "Ce fichier n'a pas pu être importé. Vérifiez qu'il contient une colonne de titres.",
         "unavailable": "L'importation nécessite un compte — le mode démo n'a nulle part où importer.",
         "unmatched": "Colonnes non reconnues : {{headers}}. Envoyez-les nous et nous pourrons les ajouter.",
-        "ignored": "Colonnes ignorées : {{headers}}."
+        "ignored": "Colonnes ignorées : {{headers}}.",
+        "will_import": "{{n}} tâches seront importées.",
+        "will_be_undated": "{{n}} n'ont pas de date exploitable et iront toutes dans Un jour.",
+        "will_create": "{{n}} nouvelles catégories seront créées.",
+        "confirm": "Importer"
     }
 }
