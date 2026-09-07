@@ -61,6 +61,19 @@ export function normaliseDayCapacity(value: unknown): number {
 }
 
 /**
+ * How many tasks a column draws before it stops and offers the rest on request.
+ *
+ * Not a product decision, a survival one. Nothing capped this, and a column holding a thousand
+ * tasks — which one import of an undated backlog produces — renders a thousand draggable rows
+ * inside a drag-and-drop context and freezes the tab outright: measured at 11,374 DOM nodes and
+ * no completed animation frame in forty-five seconds.
+ *
+ * Fifty is well past what fits on screen in any column, so nobody reaches it by working
+ * normally; it is only ever hit by a list that was already unusable.
+ */
+export const COLUMN_RENDER_CAP = 50;
+
+/**
  * Whether a column has gone past its limit, rather than merely reached it.
  *
  * The distinction the hard limit turns on: being *at* the number is a full column and warns, and

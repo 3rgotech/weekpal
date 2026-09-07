@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import { DayOfWeek } from "../types";
@@ -15,9 +16,19 @@ import iconDark from "../assets/icon_dark.svg";
 /**
  * The week as a sheet of A4, landscape.
  *
- * Rendered on every page load and hidden until the print stylesheet asks for it, rather than
- * built on demand: printing is a browser gesture (⌘P as much as the toolbar button), and a sheet
- * that only exists after a click would print blank for anyone who used the shortcut.
+ * Built when printing begins, not on every page load.
+ *
+ * It used to render always and hide behind the print stylesheet, because printing is a browser
+ * gesture — ⌘P as much as the toolbar button — and a sheet that only existed after a click would
+ * print blank for anyone using the shortcut. The cost of that was invisible until it was not: the
+ * sheet lays out the *whole week*, so every task on the board was rendered twice, and a Some day
+ * list of a thousand tasks measured two thousand rendered rows.
+ *
+ * `beforeprint` is the answer to both. The browser fires it and waits for the handler before it
+ * captures the page, so the sheet exists in time — and `flushSync` is what makes that true rather
+ * than merely likely, since an ordinary `setState` would be scheduled and the snapshot taken
+ * without it. The print media query is listened to as well: Safari has historically fired that
+ * and not the event.
  *
  * Deliberately its own markup rather than a print stylesheet over the board. The board is a
  * fixed-height flex layout whose day columns scroll independently — on paper that prints the
@@ -29,6 +40,38 @@ import iconDark from "../assets/icon_dark.svg";
  * printer as a black rectangle.
  */
 const PrintSheet: React.FC = () => {
+    const [printing, setPrinting] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        // `flushSync`, so the sheet is in the document before the browser captures the page.
+        // A scheduled render would land after the snapshot and print an empty page.
+        const start = () => flushSync(() => setPrinting(true));
+        const stop = () => setPrinting(false);
+
+        window.addEventListener("beforeprint", start);
+        window.addEventListener("afterprint", stop);
+
+        const query = window.matchMedia?.("print");
+        const change = (event: MediaQueryListEvent) => (event.matches ? start() : stop());
+
+        query?.addEventListener?.("change", change);
+
+        // Already printing at mount — a print started before this had a chance to listen.
+        if (query?.matches) {
+            setPrinting(true);
+        }
+
+        return () => {
+            window.removeEventListener("beforeprint", start);
+            window.removeEventListener("afterprint", stop);
+            query?.removeEventListener?.("change", change);
+        };
+    }, []);
+
     const { t } = useTranslation();
     const { settings } = useSettings();
     const dayjs = useDayJs(settings.language);
@@ -116,6 +159,10 @@ const PrintSheet: React.FC = () => {
     // to read it twice. A column's cells split its height between them, so a stacked pair of
     // weekend days is half-height each and a lone day fills the column.
     const columnHeight = 112;
+
+    if (!printing) {
+        return null;
+    }
 
     return (
         <div className="hidden print:block bg-white text-black">

@@ -37,7 +37,8 @@
         "some_day": "Un jour",
         "add_new_task": "Cliquez pour ajouter une tâche",
         "this_week_short": "CS",
-        "some_day_short": "UJ"
+        "some_day_short": "UJ",
+        "show_all_tasks": "{{shown}} sur {{total}} affichées — tout afficher"
     },
     "actions": {
         "add_task": "Ajouter la tâche",

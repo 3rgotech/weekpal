@@ -6,7 +6,7 @@ import { useData } from "../contexts/DataContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
-import { Gauge, columnLimit } from "../utils/capacity";
+import { Gauge, COLUMN_RENDER_CAP, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import useDayJs from "../utils/dayjs";
 import DayNav from "./DayNav";
@@ -43,6 +43,12 @@ const MobileBoard: React.FC = () => {
     return boardDayOrder(layout).includes(today) ? today : "0";
   });
 
+  // Back to a capped list when the bucket changes: scrolling one long column open should not
+  // leave every other one uncapped for the rest of the session.
+  useEffect(() => {
+    setLimitRendering(true);
+  }, [visibleDay]);
+
   // A day can stop being drawn while it is the one on screen — hiding non-working days from the
   // settings modal does exactly that.
   useEffect(() => {
@@ -55,6 +61,12 @@ const MobileBoard: React.FC = () => {
     (task) => task.dayOfWeek === visibleDay && (settings.showCompletedTasks || !task.completed),
   );
   const dayEvents = events.filter((event) => event.dayOfWeek === visibleDay);
+
+  // Same cap as the wide board: a thousand rows in one column is what stops the tab responding,
+  // and they are past the bottom of the screen either way.
+  const [limitRendering, setLimitRendering] = useState(true);
+  const capped = limitRendering && dayTasks.length > COLUMN_RENDER_CAP;
+  const visibleTasks = capped ? dayTasks.slice(0, COLUMN_RENDER_CAP) : dayTasks;
 
   const date = dateOf(visibleDay);
 
@@ -122,9 +134,22 @@ const MobileBoard: React.FC = () => {
       )}
 
       <ul className="flex-1 overflow-y-auto px-1">
-        {dayTasks.map((task) => (
+        {visibleTasks.map((task) => (
           <MobileTask key={task.id} task={task} />
         ))}
+
+        {capped && (
+          <li className="px-1 py-2 text-center">
+            <button
+              type="button"
+              onClick={() => setLimitRendering(false)}
+              className="text-xs underline text-slate-500 dark:text-slate-400 cursor-pointer"
+            >
+              {t("main.show_all_tasks", { shown: visibleTasks.length, total: dayTasks.length })}
+            </button>
+          </li>
+        )}
+
         <NewTask dayOfWeek={visibleDay} />
       </ul>
 

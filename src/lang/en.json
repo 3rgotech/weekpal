@@ -37,7 +37,8 @@
         "some_day": "Some day",
         "add_new_task": "Click to add task",
         "this_week_short": "TW",
-        "some_day_short": "SD"
+        "some_day_short": "SD",
+        "show_all_tasks": "Showing {{shown}} of {{total}} — show them all"
     },
     "actions": {
         "add_task": "Add task",

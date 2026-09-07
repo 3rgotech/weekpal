@@ -291,6 +291,48 @@ describe("the board on a phone", () => {
         expect(screen.queryByLabelText("capacity.planned")).toBeNull();
     });
 
+    it("stops drawing a column long before it can freeze the board", () => {
+        // Measured before this existed: a thousand tasks in one column rendered 11,374 DOM nodes
+        // and the tab could not complete a single animation frame in forty-five seconds.
+        const many = Array.from({ length: 120 }, (_, i) => weekly(`Task ${i}`, today));
+        data.tasks = many;
+        data.allTasks = many;
+
+        render(<MobileBoard />);
+
+        expect(screen.getAllByText(/^Task \d+$/)).toHaveLength(50);
+        expect(screen.getByText("main.show_all_tasks")).toBeInTheDocument();
+    });
+
+    it("draws the rest when asked", () => {
+        const many = Array.from({ length: 120 }, (_, i) => weekly(`Task ${i}`, today));
+        data.tasks = many;
+        data.allTasks = many;
+
+        render(<MobileBoard />);
+        fireEvent.click(screen.getByText("main.show_all_tasks"));
+
+        expect(screen.getAllByText(/^Task \d+$/)).toHaveLength(120);
+        expect(screen.queryByText("main.show_all_tasks")).not.toBeInTheDocument();
+    });
+
+    it("caps again when another bucket is opened", () => {
+        // Scrolling one long column open should not leave every other one uncapped for the rest
+        // of the session.
+        const many = Array.from({ length: 120 }, (_, i) => weekly(`Task ${i}`, today));
+        const someday = Array.from({ length: 120 }, (_, i) => new SomedayTask({ id: `s${i}`, title: `Later ${i}` }));
+        data.tasks = [...many, ...someday];
+        data.allTasks = [...many, ...someday];
+
+        render(<MobileBoard />);
+        fireEvent.click(screen.getByText("main.show_all_tasks"));
+        expect(screen.getAllByText(/^Task \d+$/)).toHaveLength(120);
+
+        fireEvent.click(screen.getByText("main.some_day_short"));
+
+        expect(screen.getAllByText(/^Later \d+$/)).toHaveLength(50);
+    });
+
     it("moves a task through the menu, since there is nothing to drag", () => {
         const task = weekly("Today's task", today);
         data.tasks = [task];

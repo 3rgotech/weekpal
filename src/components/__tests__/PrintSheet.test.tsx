@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import React from "react";
 import PrintSheet from "../PrintSheet";
 import { SomedayTask, WeeklyTask } from "../../data/task";
@@ -27,6 +27,23 @@ jest.mock("../../contexts/CalendarContext", () => ({
 const weekly = (title: string, dayOfWeek: string, extra: Record<string, unknown> = {}) =>
     new WeeklyTask({ title, weekCode: thisWeek, dayOfWeek, ...extra });
 
+/**
+ * Render the sheet as printing it does.
+ *
+ * It builds itself on `beforeprint` rather than sitting hidden in every page — always rendering
+ * it meant every task on the board was laid out twice, which is what made a large Some day list
+ * freeze the tab. The event is what the browser fires, and waits for, before capturing the page.
+ */
+const printed = () => {
+    const rendered = render(<PrintSheet />);
+
+    act(() => {
+        window.dispatchEvent(new Event("beforeprint"));
+    });
+
+    return rendered;
+};
+
 beforeEach(() => {
     Object.assign(settings, DEFAULT_SETTINGS);
     settings.showCompletedTasks = true;
@@ -44,7 +61,7 @@ describe("the printable week", () => {
             new SomedayTask({ title: "Someday task" }),
         ];
 
-        render(<PrintSheet />);
+        printed();
 
         expect(screen.getByText("Monday task")).toBeInTheDocument();
         expect(screen.getByText("Sunday task")).toBeInTheDocument();
@@ -60,7 +77,7 @@ describe("the printable week", () => {
             new SomedayTask({ title: "Backlog task", projectId: "01930000-0000-7000-8000-000000000001" }),
         ];
 
-        render(<PrintSheet />);
+        printed();
 
         expect(screen.getByText("Someday task")).toBeInTheDocument();
         expect(screen.queryByText("Backlog task")).not.toBeInTheDocument();
@@ -69,7 +86,7 @@ describe("the printable week", () => {
     it("prints completed tasks struck through, and drops them when the board does", () => {
         data.tasks = [weekly("Done task", "1", { completedAt: now.toISOString() })];
 
-        const { rerender } = render(<PrintSheet />);
+        const { rerender } = printed();
         expect(screen.getByText("Done task").className).toContain("line-through");
 
         settings.showCompletedTasks = false;
@@ -78,7 +95,7 @@ describe("the printable week", () => {
     });
 
     it("marks today with weight, since colour does not survive a black-and-white print", () => {
-        render(<PrintSheet />);
+        printed();
 
         const today = screen.getByText(now.format("D MMM")).closest("header");
         const other = screen.getByText(monday.add(now.isoWeekday() % 7, "day").format("D MMM")).closest("header");
@@ -88,7 +105,7 @@ describe("the printable week", () => {
     });
 
     it("prints one column per working day, with the rest stacked beside them", () => {
-        const { container } = render(<PrintSheet />);
+        const { container } = printed();
         const grid = container.querySelector("[style*='grid-template-columns']") as HTMLElement;
 
         // Monday to Friday tall, the weekend sharing the sixth — the board's own shape.
@@ -98,7 +115,7 @@ describe("the printable week", () => {
     it("prints seven columns for someone who works every day", () => {
         settings.workingDays = [1, 2, 3, 4, 5, 6, 7];
 
-        const { container } = render(<PrintSheet />);
+        const { container } = printed();
         const grid = container.querySelector("[style*='grid-template-columns']") as HTMLElement;
 
         expect(grid.style.gridTemplateColumns).toBe("repeat(7, minmax(0, 1fr))");
@@ -108,15 +125,38 @@ describe("the printable week", () => {
         settings.showNonWorkingDays = false;
         data.tasks = [weekly("Monday task", "1"), weekly("Sunday task", "7")];
 
-        render(<PrintSheet />);
+        printed();
 
         expect(screen.getByText("Monday task")).toBeInTheDocument();
         expect(screen.queryByText("Sunday task")).not.toBeInTheDocument();
     });
 
     it("uses no dark-mode variant anywhere — the sheet is ink on paper", () => {
-        const { container } = render(<PrintSheet />);
+        const { container } = printed();
 
         expect(container.innerHTML).not.toContain("dark:");
+    });
+
+    it("does not exist until a print begins", () => {
+        // The whole point of the change: laying the week out twice on every page load is what
+        // made a large Some day list freeze the board.
+        data.tasks = [weekly("Monday task", "1")];
+
+        render(<PrintSheet />);
+
+        expect(screen.queryByText("Monday task")).not.toBeInTheDocument();
+    });
+
+    it("puts itself away again when the print ends", () => {
+        data.tasks = [weekly("Monday task", "1")];
+
+        printed();
+        expect(screen.getByText("Monday task")).toBeInTheDocument();
+
+        act(() => {
+            window.dispatchEvent(new Event("afterprint"));
+        });
+
+        expect(screen.queryByText("Monday task")).not.toBeInTheDocument();
     });
 });
