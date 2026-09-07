@@ -82,8 +82,13 @@ function taskRecord(id, title, extra = {}) {
 
 async function seedSomeday(count = 120) {
     const db = await openBoardDb();
-    const store = rows(db, 'somedayTasks', 'readwrite');
+
+    // Every read finishes before the writing transaction is opened, and nothing is awaited once
+    // it is. IndexedDB commits a transaction the moment control returns to the event loop with no
+    // request outstanding, so an `await` between opening one and using it kills it — which is
+    // exactly what `TransactionInactiveError` means.
     const existing = (await readAll(rows(db, 'somedayTasks'))).length;
+    const store = rows(db, 'somedayTasks', 'readwrite');
 
     for (let i = 0; i < count; i++) {
         store.put(taskRecord(
@@ -123,8 +128,14 @@ async function clearSeeded() {
     let removed = 0;
 
     for (const table of ['somedayTasks', 'weeklyTasks']) {
+        // Read first, then open the writing transaction — see the note in `seedSomeday`.
         const all = await readAll(rows(db, table));
         const mine = all.filter((task) => String(task.id).startsWith(SEED_PREFIX));
+
+        if (mine.length === 0) {
+            continue;
+        }
+
         const store = rows(db, table, 'readwrite');
 
         mine.forEach((task) => { store.delete(task.id); removed++; });
