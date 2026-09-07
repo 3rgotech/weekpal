@@ -2,6 +2,7 @@ import React, { createContext, useState, ReactNode, useEffect, useMemo, useConte
 import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
+import BaseStore from "../store/BaseStore";
 import CategoryStore from "../store/CategoryStore";
 import NoteStore from "../store/NoteStore";
 import ProjectStore from "../store/ProjectStore";
@@ -51,6 +52,8 @@ interface DataContextProps {
    */
   overLimitColumn: DayOfWeek | null;
   clearOverLimit: () => void;
+  /** Pull the board again from the server, for when something changed it behind the client. */
+  reloadBoard: () => Promise<void>;
   findTask: (taskId: string) => Task | null;
   addTask: (task: WeeklyTask | SomedayTask) => void;
   updateTask: (task: Task) => void;
@@ -224,6 +227,20 @@ const DataProvider: React.FC<DataProviderProps> = ({
       setCategories(await categoryStore.list());
     }
   }, [categoryStore]);
+
+  const reloadBoard = async () => {
+    // The stores pull at most once every five minutes; an import has just written straight to the
+    // server, so that throttle is exactly wrong here.
+    BaseStore.resetThrottle("tasks", "categories", "projects");
+
+    if (categoryStore) {
+      setCategories(await categoryStore.list());
+    }
+
+    if (taskStore) {
+      setTasks(await taskStore.list(currentWeek));
+    }
+  };
 
   const saveCategory = async (category: Category) => {
     if (!categoryStore) {
@@ -797,6 +814,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         allTasks: tasks,
         overLimitColumn,
         clearOverLimit: () => setOverLimitColumn(null),
+        reloadBoard,
         findTask,
         addTask,
         updateTask,

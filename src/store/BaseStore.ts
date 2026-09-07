@@ -80,6 +80,20 @@ class BaseStore {
         return elapsed > 1000 * 60 * 5;
     }
 
+    /**
+     * Forget when a table was last pulled, so the next read goes to the server.
+     *
+     * The throttle exists to stop the board pulling on every render; it is wrong when something
+     * has just changed the server's copy behind the client's back — an import writes tasks and
+     * categories server-side, and without this the board would show none of them for five
+     * minutes and look like it had failed.
+     */
+    static resetThrottle(...tables: string[]): void {
+        for (const table of tables) {
+            localStorage.removeItem(`${table}-last-sync`);
+        }
+    }
+
     setLastSync(table: string) {
         localStorage.setItem(`${table}-last-sync`, Date.now().toString());
     }

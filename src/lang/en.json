@@ -29,7 +29,8 @@
         "tab_limits": "Limits",
         "hardLimits": "When a limit is passed",
         "limitsSoft": "Warn me",
-        "limitsHard": "Make me choose"
+        "limitsHard": "Make me choose",
+        "tab_import": "Import"
     },
     "main": {
         "this_week": "This week",
@@ -256,5 +257,17 @@
         "to_this_week": "Move to this week",
         "to_someday": "Move to Some day",
         "delete": "Delete"
+    },
+    "import": {
+        "title": "Import tasks",
+        "choose": "Choose a file",
+        "working": "Importing…",
+        "formats": "CSV, XLSX or ODS. The first row should be your column headings — title, notes, category, date and a done column are recognised. Older .xls workbooks are a different format; Excel can save one as .xlsx.",
+        "done": "Imported {{n}} tasks.",
+        "undated": "{{n}} had no usable date and went to Some day.",
+        "categories": "{{n}} new categories were created.",
+        "skipped": "{{n}} rows had no title and were skipped.",
+        "failed": "That file could not be imported. Check it has a column of task titles.",
+        "unavailable": "Importing needs an account — the demo board has nowhere to import to."
     }
 }

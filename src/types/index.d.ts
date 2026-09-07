@@ -257,6 +257,21 @@ export interface IAccountAdapter {
   get(): Promise<Account>;
 }
 
+/** What an import did, as the server counted it. */
+export interface ImportSummary {
+  imported: number;
+  skipped: number;
+  categories_created: number;
+  /** Rows that had no usable date and arrived in Some day. */
+  undated: number;
+  /** Which column of the sheet was read as which field, for the summary to explain itself. */
+  columns: Record<string, number>;
+}
+
+export interface IImportAdapter {
+  upload(file: File): Promise<ImportSummary>;
+}
+
 export interface ISettingsAdapter {
   get(): Promise<Settings>;
   /** Partial patch in, complete object out. */

@@ -29,7 +29,8 @@
         "tab_limits": "Limites",
         "hardLimits": "Quand une limite est dépassée",
         "limitsSoft": "M'avertir",
-        "limitsHard": "Me faire choisir"
+        "limitsHard": "Me faire choisir",
+        "tab_import": "Importer"
     },
     "main": {
         "this_week": "Cette semaine",
@@ -256,5 +257,17 @@
         "to_this_week": "Déplacer vers Cette semaine",
         "to_someday": "Déplacer vers Un jour",
         "delete": "Supprimer"
+    },
+    "import": {
+        "title": "Importer des tâches",
+        "choose": "Choisir un fichier",
+        "working": "Importation…",
+        "formats": "CSV, XLSX ou ODS. La première ligne doit contenir vos en-têtes — titre, notes, catégorie, date et une colonne « terminé » sont reconnues. Les anciens classeurs .xls sont un autre format ; Excel peut les enregistrer en .xlsx.",
+        "done": "{{n}} tâches importées.",
+        "undated": "{{n}} sans date exploitable sont allées dans Un jour.",
+        "categories": "{{n}} nouvelles catégories ont été créées.",
+        "skipped": "{{n}} lignes sans titre ont été ignorées.",
+        "failed": "Ce fichier n'a pas pu être importé. Vérifiez qu'il contient une colonne de titres.",
+        "unavailable": "L'importation nécessite un compte — le mode démo n'a nulle part où importer."
     }
 }

@@ -3,11 +3,12 @@ import APICategoryAdapter from './api/APICategoryAdapter';
 import APIProjectAdapter from './api/APIProjectAdapter';
 import APISettingsAdapter from './api/APISettingsAdapter';
 import APIAccountAdapter from './api/APIAccountAdapter';
+import APIImportAdapter from './api/APIImportAdapter';
 import APITaskNoteAdapter from './api/APITaskNoteAdapter';
 import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { IAccountAdapter, ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -24,6 +25,7 @@ interface AdapterFactoryResult {
     noteAdapter: INoteAdapter | null;
     historyAdapter: IHistoryAdapter | null;
     accountAdapter: IAccountAdapter | null;
+    importAdapter: IImportAdapter | null;
 }
 
 class AdapterFactory {
@@ -50,6 +52,7 @@ class AdapterFactory {
             noteAdapter: factory.createNoteAdapter(),
             historyAdapter: factory.createHistoryAdapter(),
             accountAdapter: factory.createAccountAdapter(),
+            importAdapter: factory.createImportAdapter(),
         };
     }
 
@@ -101,6 +104,11 @@ class AdapterFactory {
      */
     createAccountAdapter(): IAccountAdapter | null {
         return this.usesApi ? new APIAccountAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /** Null with no backend: there is nowhere to import *to* on a demo board. */
+    createImportAdapter(): IImportAdapter | null {
+        return this.usesApi ? new APIImportAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     createProjectAdapter(): IProjectAdapter | null {

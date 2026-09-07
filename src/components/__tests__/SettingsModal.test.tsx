@@ -17,9 +17,16 @@ jest.mock("../../contexts/SettingsContext", () => ({
     useSettings: () => ({ settings, updateSettings, settingsOverlay: overlay }),
 }));
 
-const data = { categories: [] as Category[] };
+const data = { categories: [] as Category[], reloadBoard: jest.fn(async () => undefined) };
 
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
+
+// The import panel reaches for an adapter, and the factory reads `import.meta.env`, which jest
+// cannot transform. Nulled here: the panel then renders its "needs an account" line.
+jest.mock("../../adapter", () => ({
+    __esModule: true,
+    default: { createAdapters: () => ({ importAdapter: null }) },
+}));
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -29,12 +36,13 @@ beforeEach(() => {
 });
 
 describe("the settings dialog", () => {
-    it("splits its controls across three tabs", () => {
+    it("splits its controls across tabs", () => {
         render(<SettingsModal />);
 
         expect(screen.getByText("settings.tab_appearance")).toBeTruthy();
         expect(screen.getByText("settings.tab_week")).toBeTruthy();
         expect(screen.getByText("settings.tab_limits")).toBeTruthy();
+        expect(screen.getByText("settings.tab_import")).toBeTruthy();
     });
 
     it("has no save button — every change is written as it is made", () => {

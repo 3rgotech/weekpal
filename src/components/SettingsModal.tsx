@@ -26,6 +26,7 @@ import {
 import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
 import { DAY_CAPACITIES, SOMEDAY_LIMITS, THIS_WEEK_LIMITS, toggleCountedCategory } from "../utils/capacity";
 import { NO_CATEGORY_KEY } from "../utils/categories";
+import ImportPanel from "./ImportPanel";
 
 /**
  * The settings dialog.
@@ -72,6 +73,7 @@ const SettingsModal: React.FC = () => {
                                     <Tabs.Tab id="appearance">{t("settings.tab_appearance")}</Tabs.Tab>
                                     <Tabs.Tab id="week">{t("settings.tab_week")}</Tabs.Tab>
                                     <Tabs.Tab id="limits">{t("settings.tab_limits")}</Tabs.Tab>
+                                    <Tabs.Tab id="import">{t("settings.tab_import")}</Tabs.Tab>
                                 </Tabs.List>
 
                 <Tabs.Panel id="appearance">
@@ -474,6 +476,12 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
+                    </div>
+                </Tabs.Panel>
+
+                <Tabs.Panel id="import">
+                    <div className="grid grid-cols-3 gap-x-4 gap-y-6 items-start py-2">
+                        <ImportPanel />
                     </div>
                 </Tabs.Panel>
                             </Tabs>
