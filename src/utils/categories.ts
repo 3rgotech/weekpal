@@ -90,6 +90,34 @@ export function leaveFocus(current: CategoryFilterState): CategoryFilterState {
     return current.focus ? { selected: current.focus.previous, focus: null } : current;
 }
 
+/**
+ * Drop a deleted category out of the filter, wherever it was hiding.
+ *
+ * Three places to look, and missing any one of them strands the board: it may be in the
+ * selection, it may be the focused category, and it may be in the selection focus is holding to
+ * restore later. A filter left pointing at a category that no longer exists shows an empty week
+ * with no row left to click to undo it.
+ */
+export function forgetCategory(
+    current: CategoryFilterState,
+    categoryId: string,
+): CategoryFilterState {
+    const without = (ids: string[]) => ids.filter((id) => id !== categoryId);
+
+    // Focus on the deleted category has nothing left to focus, so it falls back to whatever the
+    // selection was before it — minus the category, if it was in there too.
+    if (current.focus?.categoryId === categoryId) {
+        return { selected: without(current.focus.previous), focus: null };
+    }
+
+    return {
+        selected: without(current.selected),
+        focus: current.focus
+            ? { ...current.focus, previous: without(current.focus.previous) }
+            : null,
+    };
+}
+
 /** Focus a category, or leave focus when that category already has it. */
 export function toggleFocus(
     current: CategoryFilterState,

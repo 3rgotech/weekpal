@@ -15,6 +15,7 @@ import {
   CategoryFilterState,
   NO_CATEGORY_FILTER,
   focusCategory as focusCategoryIn,
+  forgetCategory,
   leaveFocus,
   matchesCategorySelection,
   selectCategories,
@@ -85,6 +86,9 @@ interface DataContextProps {
   clearFocus: () => void;
   taskStore: TaskStore | null;
   categoryStore: CategoryStore | null;
+  /** Create or rename a category. The client owns the id, so both are one upsert. */
+  saveCategory: (category: Category) => Promise<void>;
+  deleteCategory: (category: Category) => Promise<void>;
   noteStore: NoteStore | null;
   projectStore: ProjectStore | null;
   projects: Array<Project>;
@@ -202,6 +206,41 @@ const DataProvider: React.FC<DataProviderProps> = ({
   useEffect(() => {
     refreshProjects();
   }, [refreshProjects]);
+
+  const refreshCategories = useCallback(async () => {
+    if (categoryStore) {
+      setCategories(await categoryStore.list());
+    }
+  }, [categoryStore]);
+
+  const saveCategory = async (category: Category) => {
+    if (!categoryStore) {
+      return;
+    }
+
+    await categoryStore.update(category);
+    await refreshCategories();
+  };
+
+  const deleteCategory = async (category: Category) => {
+    if (!categoryStore) {
+      return;
+    }
+
+    await categoryStore.delete(category);
+    await refreshCategories();
+
+    // Tasks are not deleted with it — the column drops to `category_id: null` server-side — so
+    // the week is read again. Without this the board keeps colouring tasks by a category that no
+    // longer exists until the next reload, and the filter offers a row that matches nothing.
+    if (taskStore) {
+      setTasks(await taskStore.list(currentWeek));
+    }
+
+    // A filter or focus pointing at it would otherwise hide the whole board behind a category
+    // that is gone, with no row left to click to undo it.
+    setCategoryFilter((current) => forgetCategory(current, category.id));
+  };
 
   const saveProject = async (project: Project) => {
     await projectStore.update(project);
@@ -755,6 +794,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
         clearFocus,
         taskStore,
         categoryStore,
+        saveCategory,
+        deleteCategory,
         noteStore,
         historyAdapter,
         projectStore,

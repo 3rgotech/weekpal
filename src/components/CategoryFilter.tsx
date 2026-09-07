@@ -3,15 +3,17 @@ import { useData } from "../contexts/DataContext";
 import { Header, Label, ListBox, Select } from "@heroui/react";
 import type { Key } from "react-aria-components";
 import clsx from "clsx";
-import { CircleSlash2, RotateCcw, Tag } from "lucide-react";
+import { CircleSlash2, Pencil, RotateCcw, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { CLEAR_SELECTION_KEY, NO_CATEGORY_KEY } from "../utils/categories";
 import { MENU_ITEM_CLASS } from "../utils/color";
+import CategoryModal from "./CategoryModal";
 
 const CategoryFilter: React.FC = () => {
   const { t } = useTranslation();
   const { categories, selectedCategories, setSelectedCategories } = useData();
   const [isOpen, setIsOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const items: Array<{
     key: string;
@@ -49,6 +51,7 @@ const CategoryFilter: React.FC = () => {
       : t("category.selected", { count: selectedCategories.length });
 
   return (
+    <>
     <Select
       aria-label="Category selection"
       selectionMode="multiple"
@@ -104,8 +107,32 @@ const CategoryFilter: React.FC = () => {
             ))}
           </ListBox.Section>
         </ListBox>
+
+        {/* Outside the ListBox on purpose: this opens an editor, it does not select a category,
+            and a row inside the list would join the multi-select and be toggled by the keyboard
+            along with the filters. The divider is what says the two are different kinds of thing. */}
+        <div className="border-t border-slate-200 dark:border-slate-600 mt-1 pt-1">
+          <button
+            type="button"
+            className={clsx(
+              "w-full flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-left",
+              "hover:bg-slate-100 dark:hover:bg-slate-700",
+              MENU_ITEM_CLASS,
+            )}
+            onClick={() => {
+              setIsOpen(false);
+              setEditing(true);
+            }}
+          >
+            <Pencil size={16} className={MENU_ITEM_CLASS} />
+            {t("category.edit_categories")}
+          </button>
+        </div>
       </Select.Popover>
     </Select>
+
+    <CategoryModal isOpen={editing} onOpenChange={setEditing} />
+    </>
   );
 };
 

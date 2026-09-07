@@ -3,6 +3,7 @@ import {
     NO_CATEGORY_FILTER,
     NO_CATEGORY_KEY,
     focusCategory,
+    forgetCategory,
     leaveFocus,
     matchesCategorySelection,
     projectMatchesFocus,
@@ -98,5 +99,41 @@ describe("which project lists survive focus", () => {
 
     it("keeps everything when nothing has focus", () => {
         expect(projectMatchesFocus("home", null)).toBe(true);
+    });
+});
+
+describe("forgetCategory", () => {
+    it("drops it from a plain selection", () => {
+        const state = selectCategories(["work", "hobby"]);
+
+        expect(forgetCategory(state, "hobby")).toEqual({ selected: ["work"], focus: null });
+    });
+
+    it("leaves focus when the focused category is the one deleted", () => {
+        // Focus on something that no longer exists would show an empty week with no row left to
+        // click to undo it.
+        const state = focusCategory(selectCategories(["work", "hobby"]), "hobby");
+
+        expect(forgetCategory(state, "hobby")).toEqual({ selected: ["work"], focus: null });
+    });
+
+    it("also forgets it in the selection focus is holding to restore", () => {
+        // The hiding place that is easy to miss: leaving focus later would otherwise put the
+        // deleted category straight back into the filter.
+        const state = focusCategory(selectCategories(["work", "hobby"]), "work");
+        const after = forgetCategory(state, "hobby");
+
+        expect(after.focus?.previous).toEqual(["work"]);
+        expect(leaveFocus(after)).toEqual({ selected: ["work"], focus: null });
+    });
+
+    it("leaves a filter that never mentioned it alone", () => {
+        const state = selectCategories(["work"]);
+
+        expect(forgetCategory(state, "hobby")).toEqual(state);
+    });
+
+    it("copes with the unfiltered board", () => {
+        expect(forgetCategory(NO_CATEGORY_FILTER, "hobby")).toEqual(NO_CATEGORY_FILTER);
     });
 });

@@ -63,7 +63,14 @@
         "focus": "Se concentrer sur {{name}}",
         "focus_exit": "Quitter le focus",
         "focused": "Focus sur {{name}} — toutes les autres catégories sont masquées",
-        "selected": "{{count}} catégories"
+        "selected": "{{count}} catégories",
+        "edit_categories": "Modifier les catégories",
+        "name": "Nom de la catégorie",
+        "color": "Couleur de la catégorie",
+        "placeholder": "Nouvelle catégorie",
+        "add": "Ajouter une catégorie",
+        "delete": "Supprimer la catégorie",
+        "empty": "Aucune catégorie pour l'instant. Elles colorent vos tâches et alimentent le filtre."
     },
     "task": {
         "title": "Titre",

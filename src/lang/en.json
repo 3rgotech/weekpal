@@ -63,7 +63,14 @@
         "focus": "Focus on {{name}}",
         "focus_exit": "Exit focus",
         "focused": "Focused on {{name}} — every other category is hidden",
-        "selected": "{{count}} categories"
+        "selected": "{{count}} categories",
+        "edit_categories": "Edit categories",
+        "name": "Category name",
+        "color": "Category colour",
+        "placeholder": "New category",
+        "add": "Add category",
+        "delete": "Delete category",
+        "empty": "No categories yet. They colour your tasks and drive the filter."
     },
     "visibility": {
         "show_completed_tasks": "Show completed tasks",
