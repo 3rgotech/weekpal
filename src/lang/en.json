@@ -70,7 +70,10 @@
         "placeholder": "New category",
         "add": "Add category",
         "delete": "Delete category",
-        "empty": "No categories yet. They colour your tasks and drive the filter."
+        "empty": "No categories yet. They colour your tasks and drive the filter.",
+        "day_limit": "Max per day",
+        "no_limit": "None",
+        "day_limit_paid": "A per-category daily limit is part of the paid plan."
     },
     "visibility": {
         "show_completed_tasks": "Show completed tasks",
@@ -234,6 +237,7 @@
         "open_share": "Open the share sheet"
     },
     "capacity": {
-        "planned": "Planned: {{planned}} of {{limit}}"
+        "planned": "Planned: {{planned}} of {{limit}}",
+        "category": "{{name}}: {{planned}} of {{limit}}"
     }
 }

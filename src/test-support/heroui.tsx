@@ -131,12 +131,29 @@ export const TextField = ({ children, value, onChange, onKeyDown, className, ...
     </div>
 );
 
-export const Input = ({ value, onChange, ...props }: P) => (
-    <input value={value ?? ""} onChange={(event) => onChange?.(event.target.value)} {...filter(props)} />
+/**
+ * `isDisabled` becomes the DOM's own `disabled`, as react-aria does it.
+ *
+ * Left to {@link filter} the prop is dropped, and a control the real library would have disabled
+ * renders here as an ordinary editable one — so a test asserting that a paid field is locked
+ * passes against markup where it never was.
+ */
+export const Input = ({ value, onChange, isDisabled, ...props }: P) => (
+    <input
+        value={value ?? ""}
+        disabled={isDisabled === true}
+        onChange={(event) => onChange?.(event.target.value)}
+        {...filter(props)}
+    />
 );
 
-export const TextArea = ({ value, onChange, ...props }: P) => (
-    <textarea value={value ?? ""} onChange={(event) => onChange?.(event.target.value)} {...filter(props)} />
+export const TextArea = ({ value, onChange, isDisabled, ...props }: P) => (
+    <textarea
+        value={value ?? ""}
+        disabled={isDisabled === true}
+        onChange={(event) => onChange?.(event.target.value)}
+        {...filter(props)}
+    />
 );
 
 export const Checkbox = compound(

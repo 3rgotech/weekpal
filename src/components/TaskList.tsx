@@ -10,6 +10,8 @@ import { useCalendar } from "../contexts/CalendarContext";
 import clsx from "clsx";
 import EventList from "./EventList";
 import { useSettings } from "../contexts/SettingsContext";
+import { useAccount } from "../contexts/AccountContext";
+import { Gauge } from "../utils/capacity";
 
 interface TaskProps {
   title: string;
@@ -24,7 +26,8 @@ const TaskList: React.FC<TaskProps> = ({
 }) => {
   const { currentWeek, firstDayOfWeek } = useCalendar();
   const { settings } = useSettings();
-  const { tasks, allTasks, events } = useData();
+  const { subscribed } = useAccount();
+  const { tasks, allTasks, events, categories } = useData();
 
   const { setNodeRef, isOver } = useDroppable({
     id: `${dayOfWeek}-droppable`,
@@ -61,12 +64,46 @@ const TaskList: React.FC<TaskProps> = ({
   const isDay = dayOfWeek !== "0" && dayOfWeek !== "someday";
   const isSomeday = dayOfWeek === "someday";
 
-  const limit = isSomeday ? settings.somedayLimit : settings.dayCapacity;
-  const planned = isDay || isSomeday
+  const counted = isDay || isSomeday
     ? allTasks.filter((task) => (
       task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
-    )).length
-    : undefined;
+    ))
+    : [];
+
+  const gauges: Gauge[] = [];
+
+  if (isDay || isSomeday) {
+    gauges.push({
+      key: "column",
+      label: null,
+      planned: counted.length,
+      limit: isSomeday ? settings.somedayLimit : settings.dayCapacity,
+    });
+  }
+
+  // A category's own limit is a paid feature, so a lapsed account stops being measured against
+  // one without losing it: the numbers stay on the categories, and start applying again the
+  // moment the plan does.
+  if (isDay && subscribed) {
+    for (const category of categories) {
+      if (category.dayLimit === null) {
+        continue;
+      }
+
+      const inCategory = counted.filter((task) => task.categoryId === category.id).length;
+
+      // A category with a limit but nothing on this day says nothing useful, and every one of
+      // them in the tooltip would bury the day's actual problem.
+      if (inCategory > 0) {
+        gauges.push({
+          key: category.id,
+          label: category.name,
+          planned: inCategory,
+          limit: category.dayLimit,
+        });
+      }
+    }
+  }
 
   return (
     <div ref={setNodeRef} className={`h-full flex flex-col`}>
@@ -75,8 +112,7 @@ const TaskList: React.FC<TaskProps> = ({
         dayOfWeek={dayOfWeek}
         weekCode={currentWeek}
         isToday={isToday}
-        planned={planned}
-        limit={limit}
+        gauges={gauges}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul className={clsx("flex-1 overflow-y-auto py-1 space-y-2")}>

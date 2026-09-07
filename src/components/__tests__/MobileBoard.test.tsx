@@ -37,6 +37,9 @@ jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 jest.mock("../../contexts/TaskModalContext", () => ({ useTaskModal: () => modal }));
 const settings = { ...DEFAULT_SETTINGS };
 
+const account = { account: null, subscribed: false };
+
+jest.mock("../../contexts/AccountContext", () => ({ useAccount: () => account }));
 jest.mock("../../contexts/SettingsContext", () => ({
     useSettings: () => ({ settings, updateSettings: jest.fn() }),
 }));
@@ -50,8 +53,10 @@ const weekly = (title: string, dayOfWeek: string, extra: Record<string, unknown>
 beforeEach(() => {
     jest.clearAllMocks();
     Object.assign(settings, DEFAULT_SETTINGS);
+    account.subscribed = false;
     data.tasks = [];
     data.allTasks = [];
+    data.categories = [];
 });
 
 describe("the board on a phone", () => {

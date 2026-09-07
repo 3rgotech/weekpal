@@ -5,6 +5,8 @@ import { DayOfWeek } from "../types";
 import { useData } from "../contexts/DataContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
+import { useAccount } from "../contexts/AccountContext";
+import { Gauge } from "../utils/capacity";
 import useDayJs from "../utils/dayjs";
 import DayNav from "./DayNav";
 import EventList from "./EventList";
@@ -27,8 +29,9 @@ import { boardDayOrder } from "../utils/week";
 const MobileBoard: React.FC = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const { subscribed } = useAccount();
   const dayjs = useDayJs(settings.language);
-  const { tasks, allTasks, events } = useData();
+  const { tasks, allTasks, events, categories } = useData();
   const { dateOf, layout } = useCalendar();
 
   // Opens on today, unless today is a day this user has hidden — then on the first bucket the
@@ -57,14 +60,37 @@ const MobileBoard: React.FC = () => {
   const isToday = date?.isSame(dayjs(), "day") ?? false;
 
   // The same rule the wide board follows: days against `dayCapacity`, Some day against its own
-  // number, and the "this week" bucket uncounted.
+  // number, the "this week" bucket uncounted, and a paid account measured per category too.
   const isSomeday = visibleDay === "someday";
-  const limit = isSomeday ? settings.somedayLimit : settings.dayCapacity;
   const counted = date || isSomeday
     ? allTasks.filter((task) => (
       task.dayOfWeek === visibleDay && !task.completed && !task.belongsToProject
-    )).length
-    : undefined;
+    ))
+    : [];
+
+  const gauges: Gauge[] = date || isSomeday
+    ? [{
+      key: "column",
+      label: null,
+      planned: counted.length,
+      limit: isSomeday ? settings.somedayLimit : settings.dayCapacity,
+    }]
+    : [];
+
+  if (date && subscribed) {
+    for (const category of categories) {
+      const inCategory = counted.filter((task) => task.categoryId === category.id).length;
+
+      if (category.dayLimit !== null && inCategory > 0) {
+        gauges.push({
+          key: category.id,
+          label: category.name,
+          planned: inCategory,
+          limit: category.dayLimit,
+        });
+      }
+    }
+  }
 
   // The day header format is one string carrying two lines, split on a pipe — the same contract
   // `TaskListHeader` reads on the wide board.
@@ -83,7 +109,7 @@ const MobileBoard: React.FC = () => {
         <h2 className="text-lg font-semibold">{dayName}</h2>
         {dayDate && <span className="text-sm uppercase opacity-80">{dayDate}</span>}
         <span className="ml-auto">
-          <CapacityCount planned={counted} limit={limit} />
+          <CapacityCount gauges={gauges} />
         </span>
       </header>
 

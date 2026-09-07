@@ -4,6 +4,7 @@ import { Check, Plus, Trash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { useData } from "../contexts/DataContext";
+import { useAccount } from "../contexts/AccountContext";
 import Category from "../data/category";
 import { CategoryColor } from "../types";
 import { COLORS } from "../utils/color";
@@ -22,6 +23,8 @@ interface Draft {
     id: string;
     name: string;
     color: CategoryColor;
+    /** Tasks in this category one day may hold before the column warns. Null for no limit. */
+    dayLimit: number | null;
     /** True for a row added here that has never been saved. */
     isNew: boolean;
 }
@@ -30,6 +33,7 @@ const toDraft = (category: Category): Draft => ({
     id: category.id,
     name: category.name,
     color: category.color,
+    dayLimit: category.dayLimit,
     isNew: false,
 });
 
@@ -50,6 +54,7 @@ const toDraft = (category: Category): Draft => ({
 const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) => {
     const { t } = useTranslation();
     const { categories, saveCategory, deleteCategory } = useData();
+    const { subscribed } = useAccount();
 
     const [drafts, setDrafts] = useState<Draft[]>([]);
     const [busy, setBusy] = useState(false);
@@ -72,7 +77,13 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
     const add = () => {
         setDrafts((current) => [
             ...current,
-            { id: newId(), name: "", color: COLOR_NAMES[current.length % COLOR_NAMES.length], isNew: true },
+            {
+                id: newId(),
+                name: "",
+                color: COLOR_NAMES[current.length % COLOR_NAMES.length],
+                dayLimit: null,
+                isNew: true,
+            },
         ]);
     };
 
@@ -113,11 +124,18 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
 
             const before = categories.find((category) => category.id === draft.id);
 
-            if (before && before.name === name && before.color === draft.color) {
+            // Without the plan the limit is not editable, so it is not part of what changed —
+            // and the server clears it on the way through, which is the same answer.
+            const dayLimit = subscribed ? draft.dayLimit : null;
+
+            if (before
+                && before.name === name
+                && before.color === draft.color
+                && before.dayLimit === dayLimit) {
                 continue;
             }
 
-            await saveCategory(new Category({ id: draft.id, name, color: draft.color }));
+            await saveCategory(new Category({ id: draft.id, name, color: draft.color, dayLimit }));
         }
 
         setBusy(false);
@@ -134,6 +152,17 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                         </Modal.Header>
 
                         <Modal.Body className="flex flex-col gap-3">
+                            {drafts.length > 0 && (
+                                <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                    <span className="w-40 shrink-0">{t("category.color")}</span>
+                                    <span className="flex-1 min-w-0">{t("category.name")}</span>
+                                    <span className="w-24 shrink-0">{t("category.day_limit")}</span>
+                                    {/* Matches the delete button's width, so the headings sit over
+                                        the columns they name. */}
+                                    <span className="w-8 shrink-0" aria-hidden="true" />
+                                </div>
+                            )}
+
                             {drafts.length === 0 && (
                                 <p className="text-sm text-slate-500 dark:text-slate-400">
                                     {t("category.empty")}
@@ -180,6 +209,34 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                         className="flex-1 min-w-0"
                                     >
                                         <Input placeholder={t("category.placeholder")} />
+                                    </TextField>
+
+                                    {/* Disabled rather than hidden without a plan: a control you
+                                        can see and cannot use says the feature exists, where an
+                                        absent one says nothing at all. The server refuses a
+                                        limit from an unpaid account either way. */}
+                                    <TextField
+                                        aria-label={t("category.day_limit")}
+                                        value={draft.dayLimit === null ? "" : `${draft.dayLimit}`}
+                                        onChange={(value: string) => {
+                                            const parsed = parseInt(value, 10);
+
+                                            edit(draft.id, {
+                                                dayLimit: Number.isInteger(parsed) && parsed > 0
+                                                    ? Math.min(parsed, 50)
+                                                    : null,
+                                            });
+                                        }}
+                                        isDisabled={!subscribed}
+                                        className="w-24 shrink-0"
+                                    >
+                                        <Input
+                                            type="number"
+                                            min={1}
+                                            max={50}
+                                            placeholder={t("category.no_limit")}
+                                            title={subscribed ? undefined : t("category.day_limit_paid")}
+                                        />
                                     </TextField>
 
                                     <IconButton

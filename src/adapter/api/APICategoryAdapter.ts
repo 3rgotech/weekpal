@@ -10,6 +10,7 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
             id: row.id,
             name: row.name,
             color: row.color,
+            dayLimit: row.day_limit ?? null,
         }));
     }
 
@@ -22,7 +23,14 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
     async upsert(category: Category): Promise<Category> {
         const response = await this.getClient()
             .put(`categories/${category.id}`, {
-                json: { name: category.name, color: category.color },
+                // Sent only when there is one. The server refuses a limit from an account without
+                // the plan, and clears any it already held on the way through — so an unpaid save
+                // must not carry the field at all, or a rename would be rejected outright.
+                json: {
+                    name: category.name,
+                    color: category.color,
+                    ...(category.dayLimit === null ? {} : { day_limit: category.dayLimit }),
+                },
             })
             .json<{ data: any }>();
 
@@ -30,6 +38,7 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
             id: response.data.id,
             name: response.data.name,
             color: response.data.color,
+            dayLimit: response.data.day_limit ?? null,
         });
     }
 

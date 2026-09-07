@@ -19,6 +19,10 @@ const data = {
 
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 
+const account = { account: null, subscribed: true };
+
+jest.mock("../../contexts/AccountContext", () => ({ useAccount: () => account }));
+
 const work = new Category({ id: "work", name: "Work", color: "blue" });
 const home = new Category({ id: "home", name: "Home", color: "green" });
 

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
+import { render } from "@testing-library/react";
+import React from "react";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 import * as stub from "../heroui";
@@ -42,5 +44,14 @@ describe("the HeroUI stand-in", () => {
         expect(imported.size).toBeGreaterThan(10);
 
         expect([...imported].filter((name) => !(name in stub))).toEqual([]);
+    });
+
+    it("disables a control the real library would have disabled", () => {
+        // `filter` drops `isDisabled` for the components where it is not a DOM attribute, so the
+        // form controls have to translate it themselves — otherwise a test asserting that a paid
+        // field is locked passes against markup where it never was.
+        const { container } = render(React.createElement(stub.Input, { isDisabled: true }));
+
+        expect(container.querySelector("input")?.disabled).toBe(true);
     });
 });

@@ -18,8 +18,13 @@ const data = {
 
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 
-const category = (id: string, name: string, color = "sky") =>
-    new Category({ id, name, color });
+const account = { account: null, subscribed: true };
+
+jest.mock("../../contexts/AccountContext", () => ({ useAccount: () => account }));
+
+
+const category = (id: string, name: string, color = "sky", dayLimit: number | null = null) =>
+    new Category({ id, name, color, dayLimit });
 
 const open = () => render(<CategoryModal isOpen onOpenChange={() => { }} />);
 
@@ -27,8 +32,11 @@ const nameFields = () => screen.getAllByLabelText("category.name") as HTMLInputE
 
 beforeEach(() => {
     jest.clearAllMocks();
+    account.subscribed = true;
     data.categories = [category("work", "Work"), category("hobby", "Hobby", "lime")];
 });
+
+const limitFields = () => screen.getAllByLabelText("category.day_limit") as HTMLInputElement[];
 
 describe("the category editor", () => {
     it("lists every category with its name and colour", () => {
@@ -124,5 +132,48 @@ describe("the category editor", () => {
 
         await waitFor(() => expect(nameFields()).toHaveLength(2));
         expect(data.deleteCategory).not.toHaveBeenCalled();
+    });
+
+    it("offers the daily limit to a paid account, and saves it", async () => {
+        open();
+
+        fireEvent.change(limitFields()[0], { target: { value: "6" } });
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalledTimes(1));
+        expect(data.saveCategory.mock.calls[0][0].dayLimit).toBe(6);
+    });
+
+    it("disables the limit without a plan", () => {
+        account.subscribed = false;
+
+        open();
+
+        expect(limitFields()[0].disabled).toBe(true);
+    });
+
+    it("never sends a limit from an account without the plan", async () => {
+        // The server refuses one anyway; this stops a lapsed subscriber's rename being rejected
+        // because the editor echoed back a limit they can no longer set.
+        data.categories = [category("work", "Work", "sky", 6)];
+        account.subscribed = false;
+
+        open();
+        fireEvent.change(nameFields()[0], { target: { value: "Client work" } });
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalledTimes(1));
+        expect(data.saveCategory.mock.calls[0][0].dayLimit).toBeNull();
+    });
+
+    it("clears a limit when the field is emptied", async () => {
+        data.categories = [category("work", "Work", "sky", 6)];
+
+        open();
+        fireEvent.change(limitFields()[0], { target: { value: "" } });
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalledTimes(1));
+        expect(data.saveCategory.mock.calls[0][0].dayLimit).toBeNull();
     });
 });

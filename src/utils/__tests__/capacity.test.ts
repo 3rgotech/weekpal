@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { capacityLevel, normaliseDayCapacity, showsCapacity } from "../capacity";
+import { capacityLevel, normaliseDayCapacity, readGauges, showsCapacity, worstGauge } from "../capacity";
 
 describe("capacityLevel", () => {
     it("says nothing while a day is under its limit", () => {
@@ -52,5 +52,45 @@ describe("normaliseDayCapacity", () => {
         expect(normaliseDayCapacity("six")).toBe(0);
         expect(normaliseDayCapacity(undefined)).toBe(0);
         expect(normaliseDayCapacity(null)).toBe(0);
+    });
+});
+
+describe("choosing what a column says", () => {
+    const gauge = (key: string, planned: number, limit: number, label: string | null = key) =>
+        ({ key, label, planned, limit });
+
+    it("ignores anything without a limit", () => {
+        // A category with no limit is never counted against anything — that is what makes
+        // "cap my work tasks, ignore my hobbies" work.
+        expect(readGauges([gauge("hobby", 40, 0), gauge("work", 1, 6)]).map((g) => g.key))
+            .toEqual(["work"]);
+    });
+
+    it("surfaces the worst level, not the first", () => {
+        const worst = worstGauge([
+            gauge("day", 6, 6),        // at
+            gauge("work", 13, 6),      // over
+        ]);
+
+        expect(worst?.key).toBe("work");
+        expect(worst?.level).toBe("over");
+    });
+
+    it("breaks a tie on how far past the number it is", () => {
+        const worst = worstGauge([
+            gauge("study", 7, 6),
+            gauge("work", 11, 6),
+        ]);
+
+        expect(worst?.key).toBe("work");
+    });
+
+    it("still reports a day that is merely full", () => {
+        expect(worstGauge([gauge("day", 2, 6)])?.level).toBe("ok");
+    });
+
+    it("says nothing when nothing is limited", () => {
+        expect(worstGauge([gauge("day", 12, 0)])).toBeNull();
+        expect(worstGauge([])).toBeNull();
     });
 });

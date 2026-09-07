@@ -52,6 +52,48 @@ export function normaliseDayCapacity(value: unknown): number {
 }
 
 /**
+ * One thing being counted against one number: the whole day, or a single category within it.
+ *
+ * `label` is null for the day as a whole, and the category's name otherwise — which is what the
+ * tooltip reads out, and why the count is worth showing at all when several are in play.
+ */
+export interface Gauge {
+    key: string;
+    label: string | null;
+    planned: number;
+    limit: number;
+}
+
+export interface ReadGauge extends Gauge {
+    level: CapacityLevel;
+}
+
+const SEVERITY: Record<CapacityLevel, number> = { ok: 0, at: 1, over: 2 };
+
+/** Every gauge that is actually measuring something, worst first. */
+export function readGauges(gauges: Gauge[]): ReadGauge[] {
+    return gauges
+        .filter((gauge) => showsCapacity(gauge.limit))
+        .map((gauge) => ({ ...gauge, level: capacityLevel(gauge.planned, gauge.limit) }))
+        .sort((a, b) => (
+            SEVERITY[b.level] - SEVERITY[a.level]
+            // Then by how far past its number it is, so the column names the day's real problem
+            // rather than whichever category happened to sort first.
+            || (b.planned - b.limit) - (a.planned - a.limit)
+        ));
+}
+
+/**
+ * The one gauge a column shows.
+ *
+ * A day can be over on its own total and on two categories at once, and the heading has room for
+ * one small number. The worst is the one worth surfacing; the rest are in the tooltip.
+ */
+export function worstGauge(gauges: Gauge[]): ReadGauge | null {
+    return readGauges(gauges)[0] ?? null;
+}
+
+/**
  * Whether a day should show its count at all.
  *
  * Only once a limit exists: a bare number on every column all week is clutter for someone who

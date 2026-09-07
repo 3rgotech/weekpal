@@ -1,13 +1,14 @@
 import React from "react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
-import { capacityLevel, showsCapacity } from "../utils/capacity";
+import { Gauge, readGauges } from "../utils/capacity";
 
 interface CapacityCountProps {
-    /** Unfinished tasks in the column. Undefined for a bucket that is not counted. */
-    planned?: number;
-    /** The number this column is counted against, or 0 for no limit. */
-    limit: number;
+    /**
+     * What this column is being measured against: the day as a whole, and any category in it
+     * that carries a limit of its own. Empty when nothing is limited.
+     */
+    gauges: Gauge[];
 }
 
 const LEVEL_CLASS = {
@@ -20,8 +21,8 @@ const LEVEL_CLASS = {
  * How much is in a column, against how much its owner said fits.
  *
  * Shared by the day columns and by Some day, which are counted against different numbers — so
- * the limit arrives as a prop rather than being read here, and one component cannot quietly
- * measure a list against the wrong setting.
+ * what to measure arrives as a prop rather than being read here, and one component cannot
+ * quietly measure a list against the wrong setting.
  *
  * Colour and weight only — no badge, no border, no icon. The board already spends its colour on
  * categories and on marking today, and a day that is merely full does not deserve to outrank
@@ -31,25 +32,34 @@ const LEVEL_CLASS = {
  * week is clutter for someone who never asked to be counted. The width it occupies is reserved
  * either way, so turning the setting on does not shunt every heading sideways.
  */
-const CapacityCount: React.FC<CapacityCountProps> = ({ planned, limit }) => {
+const CapacityCount: React.FC<CapacityCountProps> = ({ gauges }) => {
     const { t } = useTranslation();
 
-    if (planned === undefined || !showsCapacity(limit)) {
+    const read = readGauges(gauges);
+    const worst = read[0];
+
+    if (worst === undefined) {
         // The menu button on the other side is 40px wide; this keeps the heading between them
         // centred rather than nudged left by its absence.
         return <span className="w-10 shrink-0" aria-hidden="true" />;
     }
 
-    const level = capacityLevel(planned, limit);
+    // Every gauge, worst first — a day can be over on its own total and on two categories at
+    // once, and the heading has room for one number. The rest are here.
+    const description = read
+        .map((gauge) => (gauge.label === null
+            ? t("capacity.planned", { planned: gauge.planned, limit: gauge.limit })
+            : t("capacity.category", { name: gauge.label, planned: gauge.planned, limit: gauge.limit })))
+        .join(" · ");
 
     return (
         <span
-            className={clsx("w-10 shrink-0 text-center text-xs tabular-nums", LEVEL_CLASS[level])}
+            className={clsx("w-10 shrink-0 text-center text-xs tabular-nums", LEVEL_CLASS[worst.level])}
             // The bare number is ambiguous out of context — a screen reader gets the whole thing.
-            aria-label={t("capacity.planned", { planned, limit })}
-            title={t("capacity.planned", { planned, limit })}
+            aria-label={description}
+            title={description}
         >
-            {planned}
+            {worst.planned}
         </span>
     );
 };

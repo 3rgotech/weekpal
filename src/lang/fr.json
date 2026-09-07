@@ -70,7 +70,10 @@
         "placeholder": "Nouvelle catégorie",
         "add": "Ajouter une catégorie",
         "delete": "Supprimer la catégorie",
-        "empty": "Aucune catégorie pour l'instant. Elles colorent vos tâches et alimentent le filtre."
+        "empty": "Aucune catégorie pour l'instant. Elles colorent vos tâches et alimentent le filtre.",
+        "day_limit": "Max par jour",
+        "no_limit": "Aucune",
+        "day_limit_paid": "Une limite quotidienne par catégorie fait partie de l'offre payante."
     },
     "task": {
         "title": "Titre",
@@ -234,6 +237,7 @@
         "open_share": "Ouvrir le menu de partage"
     },
     "capacity": {
-        "planned": "Prévu : {{planned}} sur {{limit}}"
+        "planned": "Prévu : {{planned}} sur {{limit}}",
+        "category": "{{name}} : {{planned}} sur {{limit}}"
     }
 }
