@@ -268,6 +268,8 @@
         "categories": "{{n}} new categories were created.",
         "skipped": "{{n}} rows had no title and were skipped.",
         "failed": "That file could not be imported. Check it has a column of task titles.",
-        "unavailable": "Importing needs an account — the demo board has nowhere to import to."
+        "unavailable": "Importing needs an account — the demo board has nowhere to import to.",
+        "unmatched": "Columns it did not recognise: {{headers}}. Send us these and we can add them.",
+        "ignored": "Columns ignored: {{headers}}."
     }
 }

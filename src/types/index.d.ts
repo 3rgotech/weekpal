@@ -266,6 +266,8 @@ export interface ImportSummary {
   undated: number;
   /** Which column of the sheet was read as which field, for the summary to explain itself. */
   columns: Record<string, number>;
+  /** Headings that matched no field, as written in the file. */
+  unmatched: string[];
 }
 
 export interface IImportAdapter {

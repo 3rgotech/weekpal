@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useData } from "../contexts/DataContext";
 import AdapterFactory from "../adapter";
+import { ImportRefused } from "../adapter/api/APIImportAdapter";
 import { ImportSummary } from "../types";
 import { classifyFailure } from "../utils/SyncService";
 import { reportSyncFailure } from "../utils/syncStatus";
@@ -33,6 +34,7 @@ const ImportPanel: React.FC = () => {
     const [busy, setBusy] = useState(false);
     const [summary, setSummary] = useState<ImportSummary | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [unmatched, setUnmatched] = useState<string[]>([]);
 
     const adapter = useMemo(() => AdapterFactory.createAdapters().importAdapter, []);
 
@@ -44,6 +46,7 @@ const ImportPanel: React.FC = () => {
         setBusy(true);
         setSummary(null);
         setError(null);
+        setUnmatched([]);
 
         try {
             const result = await adapter.upload(file);
@@ -53,8 +56,15 @@ const ImportPanel: React.FC = () => {
             // — otherwise nothing appears until the next scheduled pull and it reads as a failure.
             await reloadBoard();
         } catch (failure) {
-            reportSyncFailure(classifyFailure(failure));
-            setError(t("import.failed"));
+            // A refusal is the server's answer, not a broken connection — reporting it as a sync
+            // failure would put the board into an offline state over a bad spreadsheet.
+            if (failure instanceof ImportRefused) {
+                setError(t("import.failed"));
+                setUnmatched(failure.unmatched);
+            } else {
+                reportSyncFailure(classifyFailure(failure));
+                setError(t("import.failed"));
+            }
         } finally {
             setBusy(false);
 
@@ -104,7 +114,18 @@ const ImportPanel: React.FC = () => {
                 </p>
 
                 {error !== null && (
-                    <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                    <div className="text-sm text-red-600 dark:text-red-400">
+                        <p>{error}</p>
+
+                        {/* The headings the server did not recognise. Shown because they are the
+                            answer: they are what someone quotes in a support message, and what
+                            goes into the alias table to make the next file of that shape work. */}
+                        {unmatched.length > 0 && (
+                            <p className="mt-1 text-xs">
+                                {t("import.unmatched", { headers: unmatched.join(", ") })}
+                            </p>
+                        )}
+                    </div>
                 )}
 
                 {summary !== null && (
@@ -112,6 +133,9 @@ const ImportPanel: React.FC = () => {
                         <p>{t("import.done", { n: summary.imported })}</p>
 
                         <ul className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            {summary.unmatched.length > 0 && (
+                                <li>{t("import.ignored", { headers: summary.unmatched.join(", ") })}</li>
+                            )}
                             {summary.undated > 0 && (
                                 <li>{t("import.undated", { n: summary.undated })}</li>
                             )}

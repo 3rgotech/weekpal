@@ -3,11 +3,17 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import ImportPanel from "../ImportPanel";
 import { ImportSummary } from "../../types";
+import { ImportRefused } from "../../adapter/api/APIImportAdapter";
 
 jest.mock("react-i18next", () => ({
     useTranslation: () => ({
-        t: (key: string, options?: Record<string, unknown>) =>
-            (options?.n === undefined ? key : `${key}:${options.n}`),
+        t: (key: string, options?: Record<string, unknown>) => {
+            if (options?.n !== undefined) {
+                return `${key}:${options.n}`;
+            }
+
+            return options?.headers === undefined ? key : `${key}:${options.headers}`;
+        },
     }),
 }));
 
@@ -16,7 +22,7 @@ const data = { reloadBoard: jest.fn(async () => undefined) };
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 
 const summary: ImportSummary = {
-    imported: 12, skipped: 0, categories_created: 0, undated: 0, columns: { title: 0 },
+    imported: 12, skipped: 0, categories_created: 0, undated: 0, columns: { title: 0 }, unmatched: [],
 };
 
 const adapter = { upload: jest.fn(async (_file: File) => summary) };
@@ -68,7 +74,7 @@ describe("bringing tasks in from another app", () => {
 
     it("mentions only what actually happened", async () => {
         adapter.upload.mockImplementation(async () => ({
-            imported: 5, skipped: 2, categories_created: 1, undated: 3, columns: { title: 0 },
+            imported: 5, skipped: 2, categories_created: 1, undated: 3, columns: { title: 0 }, unmatched: [],
         }));
 
         render(<ImportPanel />);
@@ -116,5 +122,32 @@ describe("bringing tasks in from another app", () => {
 
         expect(screen.getByText("import.unavailable")).toBeTruthy();
         expect(screen.queryByLabelText("import.choose")).toBeNull();
+    });
+
+    it("names the columns a refusal did not recognise", async () => {
+        // Those words are the diagnosis: they are what someone quotes in a support message, and
+        // what goes into the alias table to make the next file of that shape work.
+        adapter.upload.mockImplementation(async () => {
+            throw new ImportRefused(["Priority", "Assignee"]);
+        });
+
+        render(<ImportPanel />);
+        chooseFile(file());
+
+        await waitFor(() => expect(screen.getByText("import.failed")).toBeTruthy());
+        expect(screen.getByText("import.unmatched:Priority, Assignee")).toBeTruthy();
+    });
+
+    it("mentions columns it ignored even when the import worked", async () => {
+        // A file whose notes column was skipped looks like a success until a task is opened and
+        // found empty.
+        adapter.upload.mockImplementation(async () => ({
+            ...summary, unmatched: ["Priority"],
+        }));
+
+        render(<ImportPanel />);
+        chooseFile(file());
+
+        await waitFor(() => expect(screen.getByText("import.ignored:Priority")).toBeTruthy());
     });
 });

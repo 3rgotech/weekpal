@@ -268,6 +268,8 @@
         "categories": "{{n}} nouvelles catégories ont été créées.",
         "skipped": "{{n}} lignes sans titre ont été ignorées.",
         "failed": "Ce fichier n'a pas pu être importé. Vérifiez qu'il contient une colonne de titres.",
-        "unavailable": "L'importation nécessite un compte — le mode démo n'a nulle part où importer."
+        "unavailable": "L'importation nécessite un compte — le mode démo n'a nulle part où importer.",
+        "unmatched": "Colonnes non reconnues : {{headers}}. Envoyez-les nous et nous pourrons les ajouter.",
+        "ignored": "Colonnes ignorées : {{headers}}."
     }
 }
