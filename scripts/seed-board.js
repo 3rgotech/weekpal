@@ -9,10 +9,17 @@
  * exactly what was added and leaves your own tasks alone. Nothing here clears a table, and
  * nothing touches localStorage.
  *
+ *   await boards()              // which boards exist, and what is in them
+ *   useBoard('WeekpalDB_test')  // pick one, if there is more than one
  *   await seedSomeday(120)      // 120 undated tasks, enough to cross VIRTUALISE_ABOVE (60)
  *   await seedDay(1, 80)        // 80 tasks on Monday of the current week
  *   await clearSeeded()         // remove them all again
  *   await counts()              // what is in there now
+ *
+ * The board keeps a separate database per data source — `WeekpalDB` for a real account,
+ * `WeekpalDB_test` and `WeekpalDB_demo` for the two fixture modes — so more than one usually
+ * exists, and seeding the wrong one looks exactly like seeding nothing. When there is a choice,
+ * these refuse to guess and ask you to name it.
  */
 
 const SEED_PREFIX = '01f00000-0000-7000-8000-';
@@ -28,20 +35,74 @@ function isoWeek(date = new Date()) {
     return `${d.getUTCFullYear()}w${String(week).padStart(2, '0')}`;
 }
 
-async function openBoardDb() {
-    const databases = await indexedDB.databases();
-    const name = databases.find((d) => d.name && d.name.startsWith('WeekpalDB'))?.name;
+/** Set by {@link useBoard}. Null means "work it out, and refuse if it is ambiguous". */
+let chosenBoard = null;
 
-    if (!name) {
+/** Name the database to work on, when the browser holds more than one. */
+function useBoard(name) {
+    chosenBoard = name;
+
+    return `Seeding ${name}.`;
+}
+
+async function boardNames() {
+    const databases = await indexedDB.databases();
+
+    return databases.map((d) => d.name).filter((name) => name && name.startsWith('WeekpalDB'));
+}
+
+async function resolveBoard() {
+    if (chosenBoard) {
+        return chosenBoard;
+    }
+
+    const names = await boardNames();
+
+    if (names.length === 0) {
         throw new Error('No WeekpalDB found — open the board first.');
     }
 
+    // Picking the first would be a coin toss, and a lost one looks identical to the seeder
+    // silently doing nothing: the rows land in a database the running board is not reading.
+    if (names.length > 1) {
+        throw new Error(
+            `More than one board here: ${names.join(', ')}. `
+            + `Say which — useBoard('${names[0]}') — then run this again. `
+            + 'Run boards() to see what is in each.',
+        );
+    }
+
+    return names[0];
+}
+
+/** Every board in this browser, with what is in it, so the right one can be told apart. */
+async function boards() {
+    const names = await boardNames();
+    const summary = [];
+
+    for (const name of names) {
+        const db = await openNamed(name);
+        const someday = await readAll(rows(db, 'somedayTasks'));
+        const weekly = await readAll(rows(db, 'weeklyTasks'));
+
+        db.close();
+        summary.push({ name, someday: someday.length, weekly: weekly.length });
+    }
+
+    return summary;
+}
+
+function openNamed(name) {
     const request = indexedDB.open(name);
 
     return new Promise((resolve, reject) => {
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
     });
+}
+
+async function openBoardDb() {
+    return openNamed(await resolveBoard());
 }
 
 function rows(db, table, mode = 'readonly') {
@@ -99,9 +160,11 @@ async function seedSomeday(count = 120) {
     }
 
     await new Promise((resolve) => { store.transaction.oncomplete = resolve; });
+
+    const where = db.name;
     db.close();
 
-    return `Added ${count} Some day tasks. Reload the board.`;
+    return `Added ${count} Some day tasks to ${where}. Reload the board.`;
 }
 
 /** `dayOfWeek` is ISO: 1 is Monday, 7 is Sunday. */
@@ -118,9 +181,11 @@ async function seedDay(dayOfWeek = 1, count = 80, weekCode = isoWeek()) {
     }
 
     await new Promise((resolve) => { store.transaction.oncomplete = resolve; });
+
+    const where = db.name;
     db.close();
 
-    return `Added ${count} tasks to day ${dayOfWeek} of ${weekCode}. Reload the board.`;
+    return `Added ${count} tasks to day ${dayOfWeek} of ${weekCode} in ${where}. Reload the board.`;
 }
 
 async function clearSeeded() {
@@ -151,10 +216,12 @@ async function counts() {
     const db = await openBoardDb();
     const someday = await readAll(rows(db, 'somedayTasks'));
     const weekly = await readAll(rows(db, 'weeklyTasks'));
+    const board = db.name;
 
     db.close();
 
     return {
+        board,
         someday: someday.length,
         weekly: weekly.length,
         seeded: [...someday, ...weekly].filter((t) => String(t.id).startsWith(SEED_PREFIX)).length,
@@ -162,4 +229,4 @@ async function counts() {
     };
 }
 
-console.log('Seeder ready: seedSomeday(120) · seedDay(1, 80) · clearSeeded() · counts()');
+console.log('Seeder ready: boards() · useBoard(name) · seedSomeday(120) · seedDay(1, 80) · clearSeeded() · counts()');
