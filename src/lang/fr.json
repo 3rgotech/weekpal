@@ -22,7 +22,10 @@
         "dayCapacityOff": "Sans limite",
         "dayCapacityTasks": "{{limit}} tâches",
         "countedCategories": "Comptées dans la limite",
-        "somedayLimit": "Limite Un jour"
+        "somedayLimit": "Limite Un jour",
+        "tab_appearance": "Apparence",
+        "tab_week": "Semaine",
+        "tab_limits": "Limites"
     },
     "main": {
         "this_week": "Cette semaine",
