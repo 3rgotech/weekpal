@@ -32,6 +32,14 @@ export type RescueDestination = 'sameDay' | 'thisWeek' | 'someday';
 
 interface DataContextProps {
   tasks: Array<Task>;
+  /**
+   * The same week, before the category filter.
+   *
+   * A capacity warning is about the list, not the view: narrowing the board to one category must
+   * not make a day look emptier than it is. Everything that *renders* tasks wants `tasks`; only
+   * the counting wants this.
+   */
+  allTasks: Array<Task>;
   findTask: (taskId: string) => Task | null;
   addTask: (task: WeeklyTask | SomedayTask) => void;
   updateTask: (task: Task) => void;
@@ -723,6 +731,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
     <DataContext.Provider
       value={{
         tasks: memoizedTasks,
+        allTasks: tasks,
         findTask,
         addTask,
         updateTask,

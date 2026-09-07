@@ -28,7 +28,7 @@ const MobileBoard: React.FC = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
-  const { tasks, events } = useData();
+  const { tasks, allTasks, events } = useData();
   const { dateOf, layout } = useCalendar();
 
   // Opens on today, unless today is a day this user has hidden — then on the first bucket the
@@ -61,7 +61,9 @@ const MobileBoard: React.FC = () => {
   const isSomeday = visibleDay === "someday";
   const limit = isSomeday ? settings.somedayLimit : settings.dayCapacity;
   const counted = date || isSomeday
-    ? dayTasks.filter((task) => !task.completed && !task.belongsToProject).length
+    ? allTasks.filter((task) => (
+      task.dayOfWeek === visibleDay && !task.completed && !task.belongsToProject
+    )).length
     : undefined;
 
   // The day header format is one string carrying two lines, split on a pipe — the same contract

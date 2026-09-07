@@ -19,6 +19,7 @@ const notToday = `${(now.isoWeekday() % 7) + 1}`;
 
 const data = {
     tasks: [] as unknown[],
+    allTasks: [] as unknown[],
     events: [] as unknown[],
     categories: [] as unknown[],
     leftovers: [] as unknown[],
@@ -50,12 +51,14 @@ beforeEach(() => {
     jest.clearAllMocks();
     Object.assign(settings, DEFAULT_SETTINGS);
     data.tasks = [];
+    data.allTasks = [];
 });
 
 describe("the board on a phone", () => {
     it("opens on today, not on Monday", () => {
         data.tasks = [weekly("Today's task", today), weekly("Another day's task", notToday)];
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
         expect(screen.getByText("Today's task")).toBeInTheDocument();
@@ -65,6 +68,7 @@ describe("the board on a phone", () => {
     it("shows one bucket at a time, and switches on a pill", () => {
         data.tasks = [weekly("Today's task", today), new SomedayTask({ title: "Flip mattress" })];
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
         expect(screen.queryByText("Flip mattress")).not.toBeInTheDocument();
 
@@ -77,6 +81,7 @@ describe("the board on a phone", () => {
     it("gives every task its three controls, with no hover to find them", () => {
         data.tasks = [weekly("Today's task", today)];
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
         // The wide board hides the tick until the pointer is over the row; there is no pointer
@@ -92,6 +97,7 @@ describe("the board on a phone", () => {
         const task = weekly("Today's task", today);
         data.tasks = [task];
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
         fireEvent.click(screen.getByLabelText("actions.edit_task"));
 
@@ -101,6 +107,7 @@ describe("the board on a phone", () => {
     it("gives a pill to every bucket the board draws, in the user's week order", () => {
         settings.weekStartsOn = 7;
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
         const pills = screen.getAllByRole("button")
@@ -116,6 +123,7 @@ describe("the board on a phone", () => {
     it("drops the pills for days that are hidden", () => {
         settings.showNonWorkingDays = false;
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
         const saturday = now.startOf("isoWeek").add(5, "day").format("dd");
@@ -131,6 +139,7 @@ describe("the board on a phone", () => {
         settings.showNonWorkingDays = false;
         data.tasks = [weekly("Today's task", today)];
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
         expect(screen.queryByText("Today's task")).not.toBeInTheDocument();
@@ -140,6 +149,7 @@ describe("the board on a phone", () => {
     it("says how full a day is once a limit is set, and stays quiet until then", () => {
         data.tasks = [weekly("One", today), weekly("Two", today), weekly("Three", today)];
 
+        data.allTasks = data.tasks;
         const { rerender } = render(<MobileBoard />);
         expect(screen.queryByText("3")).not.toBeInTheDocument();
 
@@ -160,6 +170,7 @@ describe("the board on a phone", () => {
         ];
         settings.dayCapacity = 2;
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
         expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
@@ -173,6 +184,7 @@ describe("the board on a phone", () => {
         settings.dayCapacity = 10;
         settings.somedayLimit = 2;
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
         fireEvent.click(screen.getByText("main.some_day_short"));
 
@@ -191,16 +203,33 @@ describe("the board on a phone", () => {
         ];
         settings.somedayLimit = 5;
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
         fireEvent.click(screen.getByText("main.some_day_short"));
 
         expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
     });
 
+    it("counts the whole list, not the filtered view", () => {
+        // Narrowing the board to one category must not make a day look emptier than it is: the
+        // warning is about what you have planned, not about what you are looking at.
+        const shown = weekly("Work task", today);
+        data.tasks = [shown];
+        data.allTasks = [shown, weekly("Hobby task", today), weekly("Another", today)];
+        settings.dayCapacity = 3;
+
+        render(<MobileBoard />);
+
+        const count = screen.getByLabelText("capacity.planned");
+        expect(count.textContent).toBe("3");
+        expect(count.className).toContain("amber");
+    });
+
     it("moves a task through the menu, since there is nothing to drag", () => {
         const task = weekly("Today's task", today);
         data.tasks = [task];
 
+        data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
         fireEvent.click(screen.getByText("task.menu.some_day"));
 

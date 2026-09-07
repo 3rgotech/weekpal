@@ -24,7 +24,7 @@ const TaskList: React.FC<TaskProps> = ({
 }) => {
   const { currentWeek, firstDayOfWeek } = useCalendar();
   const { settings } = useSettings();
-  const { tasks, events } = useData();
+  const { tasks, allTasks, events } = useData();
 
   const { setNodeRef, isOver } = useDroppable({
     id: `${dayOfWeek}-droppable`,
@@ -49,9 +49,10 @@ const TaskList: React.FC<TaskProps> = ({
     (event) => event.dayOfWeek === dayOfWeek
   );
 
-  // Counted off what is still to do, not off what is on screen: hiding completed tasks must not
-  // change how full a column says it is, and a day you have finished should stop warning rather
-  // than stay red for the rest of it.
+  // Counted off what is still to do, and off the whole list rather than what is on screen: neither
+  // hiding completed tasks nor filtering to one category may change how full a column says it is.
+  // A day you have finished should stop warning; a day you have narrowed should not look emptier
+  // than it is.
   //
   // Some day is counted too, against its own number. `belongsToProject` is excluded because a
   // project's backlog is not the shortlist the limit is about — those tasks live in the drawer
@@ -62,7 +63,7 @@ const TaskList: React.FC<TaskProps> = ({
 
   const limit = isSomeday ? settings.somedayLimit : settings.dayCapacity;
   const planned = isDay || isSomeday
-    ? tasks.filter((task) => (
+    ? allTasks.filter((task) => (
       task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
     )).length
     : undefined;
