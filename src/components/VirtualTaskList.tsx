@@ -1,6 +1,7 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import Task from "../data/task";
+import { useShortcuts } from "../contexts/ShortcutsContext";
 
 interface VirtualTaskListProps {
     tasks: Task[];
@@ -28,6 +29,12 @@ interface VirtualTaskListProps {
  * The ids handed to `SortableContext` are still the *whole* column, deliberately: it needs the
  * full ordering to work out where a drop lands, and an unmounted row simply has no rectangle to
  * collide with — which is correct, since nobody can drop onto a row they cannot see.
+ *
+ * Keyboard selection has to be brought back into view from here too. `j` and `k` walk every task
+ * in the column, not the handful on screen, and a row that is not mounted has no element of its
+ * own to scroll to — so pressing `j` down a long column used to move the selection somewhere
+ * invisible and leave it there. The row's own `scrollIntoView` still handles the mounted case and
+ * every column below the threshold; this covers the rest.
  */
 const VirtualTaskList: React.FC<VirtualTaskListProps> = ({
     tasks,
@@ -36,6 +43,13 @@ const VirtualTaskList: React.FC<VirtualTaskListProps> = ({
     estimate = 52,
 }) => {
     const measured = useRef<Map<string, number>>(new Map());
+    const { activeTaskId } = useShortcuts();
+
+    // Read through a ref rather than a dependency: `tasks` is rebuilt on every render of the
+    // column, so depending on it would re-run this on every render and yank the list back under
+    // anyone scrolling it by hand.
+    const latest = useRef(tasks);
+    latest.current = tasks;
 
     const virtualiser = useVirtualizer({
         count: tasks.length,
@@ -48,6 +62,23 @@ const VirtualTaskList: React.FC<VirtualTaskListProps> = ({
         // the neighbours of a dragged row mounted so it has something to sort against.
         overscan: 8,
     });
+
+    useEffect(() => {
+        if (activeTaskId === null) {
+            return;
+        }
+
+        const index = latest.current.findIndex((task) => task.id === activeTaskId);
+
+        if (index >= 0) {
+            // `auto` leaves an already-visible row alone, so this only moves the list when the
+            // selection has genuinely gone off screen.
+            virtualiser.scrollToIndex(index, { align: "auto" });
+        }
+        // Only when the selection moves. The virtualiser is deliberately not a dependency: it is
+        // a fresh object each render, and listing it would make this fire continuously.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeTaskId]);
 
     return (
         <div
