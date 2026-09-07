@@ -29,7 +29,7 @@ import {
   withDefaults,
 } from "../utils/settings";
 import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
-import { DAY_CAPACITIES } from "../utils/capacity";
+import { DAY_CAPACITIES, SOMEDAY_LIMITS } from "../utils/capacity";
 import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
@@ -388,6 +388,39 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
                       return (
                         <ListBox.Item key={capacity} id={`${capacity}`} textValue={label}>
+                          <Label>{label}</Label>
+                        </ListBox.Item>
+                      );
+                    })}
+                  </ListBox>
+                </Select.Popover>
+              </Select>
+              <h3 className="text-base dark:text-white">
+                {t("settings.somedayLimit")}
+              </h3>
+              <Select
+                value={`${settings.somedayLimit}`}
+                onChange={(key: Key | null) =>
+                  key !== null && updateSettings({
+                    somedayLimit: parseInt(`${key}`, 10),
+                  })
+                }
+                className="col-span-2"
+                isRequired
+              >
+                <Select.Trigger>
+                  <Select.Value />
+                  <Select.Indicator />
+                </Select.Trigger>
+                <Select.Popover>
+                  <ListBox>
+                    {SOMEDAY_LIMITS.map((limit) => {
+                      const label = limit === 0
+                        ? t("settings.dayCapacityOff")
+                        : t("settings.dayCapacityTasks", { limit });
+
+                      return (
+                        <ListBox.Item key={limit} id={`${limit}`} textValue={label}>
                           <Label>{label}</Label>
                         </ListBox.Item>
                       );

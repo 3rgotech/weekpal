@@ -12,6 +12,8 @@ interface TaskListHeaderProps {
   isToday: boolean;
   /** Unfinished tasks in this column, for the capacity warning. */
   planned?: number;
+  /** What that count is measured against, or 0 for no limit. */
+  limit?: number;
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -20,6 +22,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   weekCode,
   isToday,
   planned,
+  limit = 0,
 }) => {
   const { openNewTask } = useTaskModal();
 
@@ -34,7 +37,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
     >
       {/* Balanced against the menu button on the other side, so the heading stays centred
           whether or not a limit is set. */}
-      <CapacityCount planned={planned} />
+      <CapacityCount planned={planned} limit={limit} />
       {/* Both lines truncate rather than wrap. A tablet-width column turned "26 AUGUST 2026" into
           three lines, and three-line headers pushed the day's own tasks out of a grid row whose
           height is fixed — the list under Sunday was clipped mid-sentence. */}

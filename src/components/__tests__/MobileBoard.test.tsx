@@ -165,6 +165,38 @@ describe("the board on a phone", () => {
         expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
     });
 
+    it("counts Some day against its own limit, not the day one", () => {
+        data.tasks = [
+            new SomedayTask({ title: "Learn the cello" }),
+            new SomedayTask({ title: "Fix the bike lamp" }),
+        ];
+        settings.dayCapacity = 10;
+        settings.somedayLimit = 2;
+
+        render(<MobileBoard />);
+        fireEvent.click(screen.getByText("main.some_day_short"));
+
+        const count = screen.getByLabelText("capacity.planned");
+        expect(count.textContent).toBe("2");
+        // Two of two is full, and would have been well under the day's ten.
+        expect(count.className).toContain("amber");
+    });
+
+    it("leaves a project's backlog out of the Some day count", () => {
+        // Backlog tasks live in the drawer and have somewhere to be — they are not the shortlist
+        // the limit exists to keep short.
+        data.tasks = [
+            new SomedayTask({ title: "Learn the cello" }),
+            new SomedayTask({ title: "Order the doors", projectId: "01930000-0000-7000-8000-000000000001" }),
+        ];
+        settings.somedayLimit = 5;
+
+        render(<MobileBoard />);
+        fireEvent.click(screen.getByText("main.some_day_short"));
+
+        expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
+    });
+
     it("moves a task through the menu, since there is nothing to drag", () => {
         const task = weekly("Today's task", today);
         data.tasks = [task];

@@ -21,6 +21,7 @@ describe("DEFAULT_SETTINGS", () => {
     "showNonWorkingDays",
     "weekStartsOn",
     "dayCapacity",
+    "somedayLimit",
     "subtaskDisplay",
   ];
 
@@ -93,6 +94,13 @@ describe("withDefaults", () => {
     expect(withDefaults({}).dayCapacity).toBe(0);
     expect(withDefaults({ dayCapacity: 6 }).dayCapacity).toBe(6);
     expect(withDefaults({ dayCapacity: -1 }).dayCapacity).toBe(0);
+  });
+
+  it("keeps the Some day limit separate from the per-day one", () => {
+    expect(DEFAULT_SETTINGS.somedayLimit).toBe(0);
+    expect(withDefaults({ dayCapacity: 6 }).somedayLimit).toBe(0);
+    expect(withDefaults({ somedayLimit: 20 }).dayCapacity).toBe(0);
+    expect(withDefaults({ somedayLimit: -4 }).somedayLimit).toBe(0);
   });
 
   it("repairs a week start that is not a day", () => {

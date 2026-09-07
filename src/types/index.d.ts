@@ -45,6 +45,13 @@ export interface Settings {
    * Soft throughout: nothing is refused or moved when a day goes past it.
    */
   dayCapacity: number;
+  /**
+   * How many unfinished tasks Some day is expected to hold before it warns, or 0 for no limit.
+   *
+   * Its own number rather than {@link Settings.dayCapacity}: a shortlist you are not working
+   * from yet holds a different amount than a Tuesday.
+   */
+  somedayLimit: number;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

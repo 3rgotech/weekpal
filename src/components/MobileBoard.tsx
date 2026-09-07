@@ -56,6 +56,14 @@ const MobileBoard: React.FC = () => {
 
   const isToday = date?.isSame(dayjs(), "day") ?? false;
 
+  // The same rule the wide board follows: days against `dayCapacity`, Some day against its own
+  // number, and the "this week" bucket uncounted.
+  const isSomeday = visibleDay === "someday";
+  const limit = isSomeday ? settings.somedayLimit : settings.dayCapacity;
+  const counted = date || isSomeday
+    ? dayTasks.filter((task) => !task.completed && !task.belongsToProject).length
+    : undefined;
+
   // The day header format is one string carrying two lines, split on a pipe — the same contract
   // `TaskListHeader` reads on the wide board.
   const [dayName, dayDate] = date
@@ -73,7 +81,7 @@ const MobileBoard: React.FC = () => {
         <h2 className="text-lg font-semibold">{dayName}</h2>
         {dayDate && <span className="text-sm uppercase opacity-80">{dayDate}</span>}
         <span className="ml-auto">
-          <CapacityCount planned={date ? dayTasks.filter((task) => !task.completed).length : undefined} />
+          <CapacityCount planned={counted} limit={limit} />
         </span>
       </header>
 

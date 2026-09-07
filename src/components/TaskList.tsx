@@ -50,12 +50,21 @@ const TaskList: React.FC<TaskProps> = ({
   );
 
   // Counted off what is still to do, not off what is on screen: hiding completed tasks must not
-  // change how full the day says it is, and a day you have finished should stop warning rather
-  // than stay red for the rest of it. The undated buckets get no count — a limit on Some day is
-  // its own feature, with its own number.
+  // change how full a column says it is, and a day you have finished should stop warning rather
+  // than stay red for the rest of it.
+  //
+  // Some day is counted too, against its own number. `belongsToProject` is excluded because a
+  // project's backlog is not the shortlist the limit is about — those tasks live in the drawer
+  // and have somewhere to be. The "this week" bucket is deliberately uncounted: it is the
+  // overflow the other columns drain into, and a limit there would have nowhere to point.
   const isDay = dayOfWeek !== "0" && dayOfWeek !== "someday";
-  const planned = isDay
-    ? tasks.filter((task) => task.dayOfWeek === dayOfWeek && !task.completed).length
+  const isSomeday = dayOfWeek === "someday";
+
+  const limit = isSomeday ? settings.somedayLimit : settings.dayCapacity;
+  const planned = isDay || isSomeday
+    ? tasks.filter((task) => (
+      task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
+    )).length
     : undefined;
 
   return (
@@ -66,6 +75,7 @@ const TaskList: React.FC<TaskProps> = ({
         weekCode={currentWeek}
         isToday={isToday}
         planned={planned}
+        limit={limit}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul className={clsx("flex-1 overflow-y-auto py-1 space-y-2")}>

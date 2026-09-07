@@ -20,7 +20,8 @@
         "nonWorkingDays": "Non-working days",
         "dayCapacity": "Tasks per day",
         "dayCapacityOff": "No limit",
-        "dayCapacityTasks": "{{limit}} tasks"
+        "dayCapacityTasks": "{{limit}} tasks",
+        "somedayLimit": "Some day limit"
     },
     "main": {
         "this_week": "This week",

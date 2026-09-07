@@ -6,8 +6,16 @@
  */
 export type CapacityLevel = "ok" | "at" | "over";
 
-/** What the settings modal offers. 0 is the setting turned off, and is the default. */
+/** What the settings modal offers for a day. 0 is the setting turned off, and is the default. */
 export const DAY_CAPACITIES = [0, 3, 4, 5, 6, 7, 8, 10, 12];
+
+/**
+ * What it offers for Some day — the same scale, carried further.
+ *
+ * A shortlist holds more than a Tuesday does before it stops being a shortlist, and the number
+ * people reach for here is a round one rather than a considered one.
+ */
+export const SOMEDAY_LIMITS = [0, 5, 10, 15, 20, 25, 30, 40, 50];
 
 /**
  * The warning a day column should carry.
