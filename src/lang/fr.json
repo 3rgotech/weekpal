@@ -60,11 +60,12 @@
         "hide": "Masquer"
     },
     "category": {
-        "help": "Choisissez une ou plusieurs catégories pour n'afficher que celles-ci",
+        "help": "Tout est affiché. Cliquez sur une catégorie pour la masquer, ou isolez-en une.",
         "all": "Toutes",
         "none": "Aucune",
         "show_all": "Voir toutes",
         "focus": "Se concentrer sur {{name}}",
+        "focus_only": "Afficher uniquement {{name}}",
         "focus_exit": "Quitter le focus",
         "focused": "Focus sur {{name}} — toutes les autres catégories sont masquées",
         "selected": "{{count}} catégories",

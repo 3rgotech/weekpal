@@ -2,6 +2,9 @@ import { describe, expect, it } from "@jest/globals";
 import {
     NO_CATEGORY_FILTER,
     NO_CATEGORY_KEY,
+    activeCategories,
+    allCategoryKeys,
+    toggleCategory,
     focusCategory,
     forgetCategory,
     leaveFocus,
@@ -135,5 +138,42 @@ describe("forgetCategory", () => {
 
     it("copes with the unfiltered board", () => {
         expect(forgetCategory(NO_CATEGORY_FILTER, "hobby")).toEqual(NO_CATEGORY_FILTER);
+    });
+});
+
+describe("the filter read as switches", () => {
+    const all = allCategoryKeys(["work", "hobby"]);
+
+    it("draws an unfiltered board as everything on, not everything off", () => {
+        // The bug this inverts: an empty filter shows every task, and the old list drew every
+        // row unticked while doing it.
+        expect(activeCategories([], all)).toEqual(["work", "hobby", NO_CATEGORY_KEY]);
+    });
+
+    it("shows a narrowed filter as exactly what it holds", () => {
+        expect(activeCategories(["work"], all)).toEqual(["work"]);
+    });
+
+    it("expands from 'everything' on the first untick", () => {
+        expect(toggleCategory([], "hobby", all)).toEqual(["work", NO_CATEGORY_KEY]);
+    });
+
+    it("collapses back to empty when the last row is turned on again", () => {
+        // Stored as a list, it would stop matching the day a new category is created.
+        expect(toggleCategory(["work", NO_CATEGORY_KEY], "hobby", all)).toEqual([]);
+    });
+
+    it("turns one back on without clearing the rest", () => {
+        expect(toggleCategory(["work"], "hobby", all)).toEqual(["work", "hobby"]);
+    });
+
+    it("refuses to turn the last row off", () => {
+        // A board showing nothing is not a filter — and empty already means the opposite.
+        expect(toggleCategory(["work"], "work", all)).toEqual(["work"]);
+    });
+
+    it("counts the no-category row as one of everything", () => {
+        // Miss it and "all on" never equals the full set, so the filter never collapses to empty.
+        expect(toggleCategory([], NO_CATEGORY_KEY, all)).toEqual(["work", "hobby"]);
     });
 });

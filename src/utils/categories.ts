@@ -91,6 +91,56 @@ export function leaveFocus(current: CategoryFilterState): CategoryFilterState {
 }
 
 /**
+ * Every key the filter can hold: the categories, plus the entry standing in for tasks with none.
+ *
+ * The order the dropdown lists them in, and the set "everything" has to match in size for the
+ * filter to be stored as empty.
+ */
+export function allCategoryKeys(categoryIds: string[]): string[] {
+    return [...categoryIds, NO_CATEGORY_KEY];
+}
+
+/**
+ * Which rows the dropdown should draw as on.
+ *
+ * The stored filter is a list of what to *show*, and empty means everything — so an unfiltered
+ * board has to render as every row ticked rather than as none, which is what the list used to do.
+ */
+export function activeCategories(selected: string[], all: string[]): string[] {
+    return selected.length === 0 ? all : selected;
+}
+
+/**
+ * Tick or untick one row.
+ *
+ * Reads as a set of things being shown, which is the way round people expect a filter to work:
+ * everything is on until you turn something off. That inverts the stored value's meaning at both
+ * ends — the first untick has to expand "empty means all" into the real list before removing
+ * from it, and ticking the last one back on collapses to empty again rather than leaving a list
+ * that stops matching the day a new category is created.
+ *
+ * Unticking the last row is refused. A board showing nothing at all is not a filter anybody
+ * wants, and it cannot be stored: empty already means the opposite.
+ */
+export function toggleCategory(selected: string[], id: string, all: string[]): string[] {
+    const active = activeCategories(selected, all);
+
+    if (!active.includes(id)) {
+        const next = [...active, id];
+
+        return next.length === all.length ? [] : next;
+    }
+
+    if (active.length === 1) {
+        return selected;
+    }
+
+    const next = active.filter((held) => held !== id);
+
+    return next.length === all.length ? [] : next;
+}
+
+/**
  * Drop a deleted category out of the filter, wherever it was hiding.
  *
  * Three places to look, and missing any one of them strands the board: it may be in the

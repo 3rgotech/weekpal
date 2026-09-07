@@ -1,46 +1,63 @@
 import React, { useState } from "react";
 import { useData } from "../contexts/DataContext";
-import { Header, Label, ListBox, Select } from "@heroui/react";
-import type { Key } from "react-aria-components";
+import { Dropdown } from "@heroui/react";
 import clsx from "clsx";
-import { CircleSlash2, Pencil, RotateCcw, Tag } from "lucide-react";
+import { CircleSlash2, Crosshair, Pencil, RotateCcw, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { CLEAR_SELECTION_KEY, NO_CATEGORY_KEY } from "../utils/categories";
+import {
+  NO_CATEGORY_KEY,
+  activeCategories,
+  allCategoryKeys,
+  toggleCategory,
+} from "../utils/categories";
 import { MENU_ITEM_CLASS } from "../utils/color";
 import CategoryModal from "./CategoryModal";
 
+/**
+ * Which categories the board is showing.
+ *
+ * Reads as a set of switches rather than as a selection: every row starts on, and clicking one
+ * turns it **off**. That is the way round people expect a filter to work — you take things away
+ * from a full board — and it is the opposite of what this did, where an empty filter drew every
+ * row unticked while showing everything.
+ *
+ * Built from plain rows rather than a `ListBox`. Each row carries a Focus button of its own, and
+ * a listbox item swallows every click inside it for its own selection — so the two controls could
+ * not be told apart. Here they are siblings, and the row's own handler never sees the Focus
+ * button's clicks.
+ */
 const CategoryFilter: React.FC = () => {
   const { t } = useTranslation();
-  const { categories, selectedCategories, setSelectedCategories } = useData();
+  const {
+    categories,
+    selectedCategories,
+    setSelectedCategories,
+    focusCategory,
+  } = useData();
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const items: Array<{
-    key: string;
-    label: string;
-    startContent?: React.JSX.Element;
-  }> = [
-      { key: CLEAR_SELECTION_KEY, label: t("category.show_all"), startContent: <RotateCcw className={MENU_ITEM_CLASS} /> },
-      ...categories.map((category) => ({
-        key: category.id,
-        label: category.name,
-        startContent: (
-          <div
-            className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}
-          ></div>
-        ),
-      })),
-      { key: NO_CATEGORY_KEY, label: t("category.none"), startContent: <CircleSlash2 className={MENU_ITEM_CLASS} /> },
-    ];
+  const all = allCategoryKeys(categories.map((category) => category.id));
+  const active = activeCategories(selectedCategories, all);
 
-  /**
-   * What the trigger says, on one line.
-   *
-   * `Select.Value` renders each selected item's own content, so a multiple selection stacked the
-   * colour swatch above its label and then stacked every chosen category below the last — a
-   * two-category filter was taller than the bar it sits in. The trigger states the selection
-   * itself instead: the colours, and a name or a count.
-   */
+  const rows = [
+    ...categories.map((category) => ({
+      key: category.id,
+      label: category.name,
+      swatch: (
+        <span
+          className={clsx("w-4 h-4 rounded-full shrink-0", category.getColorClass("bg"))}
+          aria-hidden="true"
+        />
+      ),
+    })),
+    {
+      key: NO_CATEGORY_KEY,
+      label: t("category.none"),
+      swatch: <CircleSlash2 size={16} className={clsx("shrink-0", MENU_ITEM_CLASS)} />,
+    },
+  ];
+
   const selected = selectedCategories
     .map((id) => categories.find((category) => category.id === id) ?? null);
 
@@ -50,88 +67,137 @@ const CategoryFilter: React.FC = () => {
       ? (selected[0]?.name ?? t("category.none"))
       : t("category.selected", { count: selectedCategories.length });
 
+  const focus = (key: string) => {
+    focusCategory(key);
+    setIsOpen(false);
+  };
+
   return (
     <>
-    <Select
-      aria-label="Category selection"
-      selectionMode="multiple"
-      className="max-w-lg w-56 flex-1"
-      placeholder={t("category.all")}
-      value={selectedCategories.map(String)}
-      onChange={(keys: Key[]) => {
-        // Category ids are UUID strings, so the selection is kept as strings. Coercing with
-        // Number() turned every id into NaN and the filter matched nothing.
-        let selectedKeys = keys.map(String);
-        if (selectedKeys.includes(CLEAR_SELECTION_KEY)) {
-          selectedKeys = [];
-          setTimeout(() => {
-            setIsOpen(false);
-          }, 100);
-        }
-        setSelectedCategories(selectedKeys);
-      }}
-      isOpen={isOpen}
-      onOpenChange={(open) => open !== isOpen && setIsOpen(open)}
-    >
-      {/* No `Select.Indicator`. v2 hid the chevron with a `selectorIcon: "hidden"` slot
-          override; in v3 the indicator is a component, so leaving it out is the whole of it.
-          The trigger keeps its transparent, full-height styling as plain classes. */}
-      <Select.Trigger className="h-full flex grow items-center justify-center gap-2 bg-transparent shadow-none data-[hovered]:bg-transparent overflow-hidden">
-        <Tag className="shrink-0 text-sky-950 dark:text-white" />
+      <Dropdown isOpen={isOpen} onOpenChange={setIsOpen}>
+        <Dropdown.Trigger
+          aria-label={t("actions.category_filter")}
+          className="h-full flex grow items-center justify-center gap-2 max-w-lg w-56 flex-1 bg-transparent cursor-pointer overflow-hidden"
+        >
+          <Tag className="shrink-0 text-sky-950 dark:text-white" />
 
-        <span className="flex items-center gap-1 min-w-0" data-testid="category-summary">
-          {/* Three swatches at most: past that the count is the useful part, and the row has to
-              stay inside a bar that is one line tall. */}
-          {selected.slice(0, 3).map((category, index) => (
-            <span
-              key={selectedCategories[index]}
-              className={clsx(
-                "w-3 h-3 rounded-full shrink-0",
-                category ? category.getColorClass("bg") : "bg-slate-400",
-              )}
-              aria-hidden="true"
-            />
-          ))}
-          <span className="truncate text-sky-950 dark:text-white">{summary}</span>
-        </span>
-      </Select.Trigger>
-      <Select.Popover>
-        <ListBox className="max-h-128 overflow-auto">
-          <ListBox.Section>
-            <Header className={clsx("pl-0", MENU_ITEM_CLASS)}>{t("category.help")}</Header>
-            {items.map((item) => (
-              <ListBox.Item key={item.key} id={item.key} textValue={item.label}>
-                {item.startContent}
-                <Label className={MENU_ITEM_CLASS}>{item.label}</Label>
-              </ListBox.Item>
+          <span className="flex items-center gap-1 min-w-0" data-testid="category-summary">
+            {/* Three swatches at most: past that the count is the useful part, and the row has to
+                stay inside a bar that is one line tall. */}
+            {selected.slice(0, 3).map((category, index) => (
+              <span
+                key={selectedCategories[index]}
+                className={clsx(
+                  "w-3 h-3 rounded-full shrink-0",
+                  category ? category.getColorClass("bg") : "bg-slate-400",
+                )}
+                aria-hidden="true"
+              />
             ))}
-          </ListBox.Section>
-        </ListBox>
+            <span className="truncate text-sky-950 dark:text-white">{summary}</span>
+          </span>
+        </Dropdown.Trigger>
 
-        {/* Outside the ListBox on purpose: this opens an editor, it does not select a category,
-            and a row inside the list would join the multi-select and be toggled by the keyboard
-            along with the filters. The divider is what says the two are different kinds of thing. */}
-        <div className="border-t border-slate-200 dark:border-slate-600 mt-1 pt-1">
+        {/* No `Dropdown.Menu`: its items swallow every click inside them for their own
+            selection, which is exactly what a per-row Focus button cannot survive. The popover
+            takes ordinary children. */}
+        <Dropdown.Popover className="p-1 w-64">
+          <p className={clsx("px-2 py-1 text-xs", MENU_ITEM_CLASS)}>{t("category.help")}</p>
+
           <button
             type="button"
+            onClick={() => {
+              setSelectedCategories([]);
+              setIsOpen(false);
+            }}
+            disabled={selectedCategories.length === 0}
             className={clsx(
-              "w-full flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-left",
-              "hover:bg-slate-100 dark:hover:bg-slate-700",
+              "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left cursor-pointer",
+              "hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-default",
               MENU_ITEM_CLASS,
             )}
-            onClick={() => {
-              setIsOpen(false);
-              setEditing(true);
-            }}
           >
-            <Pencil size={16} className={MENU_ITEM_CLASS} />
-            {t("category.edit_categories")}
+            <RotateCcw size={16} className="shrink-0" />
+            {t("category.show_all")}
           </button>
-        </div>
-      </Select.Popover>
-    </Select>
 
-    <CategoryModal isOpen={editing} onOpenChange={setEditing} />
+          <ul className="max-h-96 overflow-auto">
+            {rows.map((row) => {
+              const on = active.includes(row.key);
+
+              return (
+                /* The row and its Focus button are siblings, not nested — a button inside a
+                   button is invalid, and the inner one's clicks would bubble into the outer's
+                   handler and toggle the row on the way past. */
+                <li key={row.key} className="flex items-stretch gap-0.5">
+                  <button
+                    type="button"
+                    aria-pressed={on}
+                    onClick={(event) => {
+                      // Shift is the shortcut for the Focus button beside it, so the common case
+                      // stays one click and the quick one needs no aiming.
+                      if (event.shiftKey) {
+                        focus(row.key);
+
+                        return;
+                      }
+
+                      setSelectedCategories(toggleCategory(selectedCategories, row.key, all));
+                    }}
+                    className={clsx(
+                      "flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-md text-left cursor-pointer",
+                      "hover:bg-slate-100 dark:hover:bg-slate-700",
+                      MENU_ITEM_CLASS,
+                      // Off is stated twice over — the colour drains out of the swatch and the
+                      // label goes italic — because a muted label alone is easy to read as
+                      // "disabled" rather than as "switched off".
+                      !on && "opacity-45 italic",
+                    )}
+                  >
+                    {row.swatch}
+                    <span className="truncate">{row.label}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-label={t("category.focus_only", { name: row.label })}
+                    title={t("category.focus_only", { name: row.label })}
+                    onClick={() => focus(row.key)}
+                    className={clsx(
+                      "shrink-0 px-2 rounded-md cursor-pointer",
+                      "hover:bg-slate-100 dark:hover:bg-slate-700",
+                      MENU_ITEM_CLASS,
+                    )}
+                  >
+                    <Crosshair size={14} />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Outside the list on purpose: this opens an editor, it does not filter anything. */}
+          <div className="border-t border-slate-200 dark:border-slate-600 mt-1 pt-1">
+            <button
+              type="button"
+              className={clsx(
+                "w-full flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-left",
+                "hover:bg-slate-100 dark:hover:bg-slate-700",
+                MENU_ITEM_CLASS,
+              )}
+              onClick={() => {
+                setIsOpen(false);
+                setEditing(true);
+              }}
+            >
+              <Pencil size={16} className="shrink-0" />
+              {t("category.edit_categories")}
+            </button>
+          </div>
+        </Dropdown.Popover>
+      </Dropdown>
+
+      <CategoryModal isOpen={editing} onOpenChange={setEditing} />
     </>
   );
 };
