@@ -6,7 +6,7 @@ import { useData } from "../contexts/DataContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
-import { Gauge } from "../utils/capacity";
+import { Gauge, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import useDayJs from "../utils/dayjs";
 import DayNav from "./DayNav";
@@ -60,29 +60,24 @@ const MobileBoard: React.FC = () => {
 
   const isToday = date?.isSame(dayjs(), "day") ?? false;
 
-  // The same rule the wide board follows: days against `dayCapacity`, Some day against its own
-  // number, the "this week" bucket uncounted, and a paid account measured per category too.
-  const isSomeday = visibleDay === "someday";
-  const counted = date || isSomeday
-    ? allTasks.filter((task) => (
-      task.dayOfWeek === visibleDay && !task.completed && !task.belongsToProject
-    ))
-    : [];
+  // The same rule the wide board follows: each kind of column against its own number, and a paid
+  // account measured per category on the weekdays too.
+  const counted = allTasks.filter((task) => (
+    task.dayOfWeek === visibleDay && !task.completed && !task.belongsToProject
+  ));
 
-  const gauges: Gauge[] = date || isSomeday
-    ? [{
-      key: "column",
-      label: null,
-      // Some day counts everything in it; a day counts only the categories chosen for it, which
-      // is how a limit can be about work without an evening's hobbies pushing it over.
-      planned: isSomeday
-        ? counted.length
-        : counted.filter(
-          (task) => matchesCategorySelection(task.categoryId, settings.dayCapacityCategories),
-        ).length,
-      limit: isSomeday ? settings.somedayLimit : settings.dayCapacity,
-    }]
-    : [];
+  const gauges: Gauge[] = [{
+    key: "column",
+    label: null,
+    // Only a weekday counts a chosen set of categories — that setting is about a day's work.
+    // The two undated buckets count everything in them.
+    planned: date
+      ? counted.filter(
+        (task) => matchesCategorySelection(task.categoryId, settings.dayCapacityCategories),
+      ).length
+      : counted.length,
+    limit: columnLimit(visibleDay, settings),
+  }];
 
   if (date && subscribed) {
     for (const category of categories) {

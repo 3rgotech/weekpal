@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
     dayCapacity: 0,
     dayCapacityCategories: [],
     somedayLimit: 0,
+    thisWeekLimit: 0,
     subtaskDisplay: "percentage",
 }
 
@@ -51,6 +52,7 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
             ? stored.dayCapacityCategories.filter((id): id is string => typeof id === "string")
             : [],
         somedayLimit: normaliseDayCapacity(stored?.somedayLimit),
+        thisWeekLimit: normaliseDayCapacity(stored?.thisWeekLimit),
     };
 }
 

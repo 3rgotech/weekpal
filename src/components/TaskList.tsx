@@ -11,7 +11,7 @@ import clsx from "clsx";
 import EventList from "./EventList";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
-import { Gauge } from "../utils/capacity";
+import { Gauge, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 
 interface TaskProps {
@@ -63,30 +63,23 @@ const TaskList: React.FC<TaskProps> = ({
   // and have somewhere to be. The "this week" bucket is deliberately uncounted: it is the
   // overflow the other columns drain into, and a limit there would have nowhere to point.
   const isDay = dayOfWeek !== "0" && dayOfWeek !== "someday";
-  const isSomeday = dayOfWeek === "someday";
+  const counted = allTasks.filter((task) => (
+    task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
+  ));
 
-  const counted = isDay || isSomeday
-    ? allTasks.filter((task) => (
-      task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
-    ))
-    : [];
-
-  const gauges: Gauge[] = [];
-
-  if (isDay || isSomeday) {
-    gauges.push({
-      key: "column",
-      label: null,
-      // Some day counts everything in it; a day counts only the categories chosen for it, which
-      // is how a limit can be about work without an evening's hobbies pushing it over.
-      planned: isSomeday
-        ? counted.length
-        : counted.filter(
-          (task) => matchesCategorySelection(task.categoryId, settings.dayCapacityCategories),
-        ).length,
-      limit: isSomeday ? settings.somedayLimit : settings.dayCapacity,
-    });
-  }
+  const gauges: Gauge[] = [{
+    key: "column",
+    label: null,
+    // Only a weekday counts a chosen set of categories — that setting is about a day's work.
+    // The two undated buckets count everything in them, because what they are for is the whole
+    // of what is waiting.
+    planned: isDay
+      ? counted.filter(
+        (task) => matchesCategorySelection(task.categoryId, settings.dayCapacityCategories),
+      ).length
+      : counted.length,
+    limit: columnLimit(dayOfWeek, settings),
+  }];
 
   // A category's own limit is a paid feature, so a lapsed account stops being measured against
   // one without losing it: the numbers stay on the categories, and start applying again the

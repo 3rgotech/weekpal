@@ -261,6 +261,36 @@ describe("the board on a phone", () => {
         expect(screen.getByLabelText("capacity.planned").textContent).toBe("2");
     });
 
+    it("counts the undated bucket against its own number", () => {
+        const undated = [weekly("Claimed", "0"), weekly("Also claimed", "0")];
+        data.tasks = undated;
+        data.allTasks = undated;
+        settings.dayCapacity = 10;
+        settings.thisWeekLimit = 2;
+
+        render(<MobileBoard />);
+        fireEvent.click(screen.getByText("main.this_week_short"));
+
+        const count = screen.getByLabelText("capacity.planned");
+        expect(count.textContent).toBe("2");
+        // Two of two is full, and would have been well under the day's ten.
+        expect(count.className).toContain("amber");
+    });
+
+    it("leaves the undated bucket uncounted until it is given a limit", () => {
+        const undated = [weekly("Claimed", "0")];
+        data.tasks = undated;
+        data.allTasks = undated;
+        settings.dayCapacity = 1;
+        settings.thisWeekLimit = 0;
+
+        render(<MobileBoard />);
+        fireEvent.click(screen.getByText("main.this_week_short"));
+
+        // The day's limit must not leak into a bucket that is not a day.
+        expect(screen.queryByLabelText("capacity.planned")).toBeNull();
+    });
+
     it("moves a task through the menu, since there is nothing to drag", () => {
         const task = weekly("Today's task", today);
         data.tasks = [task];

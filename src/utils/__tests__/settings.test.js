@@ -23,6 +23,7 @@ describe("DEFAULT_SETTINGS", () => {
     "dayCapacity",
     "dayCapacityCategories",
     "somedayLimit",
+    "thisWeekLimit",
     "subtaskDisplay",
   ];
 

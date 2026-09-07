@@ -18,6 +18,15 @@ export const DAY_CAPACITIES = [0, 3, 4, 5, 6, 7, 8, 10, 12];
 export const SOMEDAY_LIMITS = [0, 5, 10, 15, 20, 25, 30, 40, 50];
 
 /**
+ * What it offers for "this week".
+ *
+ * Between the two: more than a single day holds, well short of a shortlist. Tasks sit here when
+ * they belong to the week but have not been given a day, and a pile of them means the week has
+ * been claimed rather than planned.
+ */
+export const THIS_WEEK_LIMITS = [0, 3, 5, 8, 10, 15, 20, 25, 30];
+
+/**
  * The warning a day column should carry.
  *
  * Deliberately soft: nothing is refused, nothing is moved, and the count is not a quota. A day
@@ -49,6 +58,25 @@ export function normaliseDayCapacity(value: unknown): number {
     const limit = Number(value);
 
     return Number.isInteger(limit) && limit > 0 ? limit : 0;
+}
+
+/**
+ * The limit a column is measured against.
+ *
+ * Three numbers rather than one, because the three kinds of column mean different things: a
+ * weekday is a day's work, "this week" is what has been claimed for the week without being given
+ * a day yet, and Some day is a shortlist. One number across all three would be wrong for two of
+ * them.
+ */
+export function columnLimit(
+    dayOfWeek: string,
+    limits: { dayCapacity: number; thisWeekLimit: number; somedayLimit: number },
+): number {
+    if (dayOfWeek === "someday") {
+        return limits.somedayLimit;
+    }
+
+    return dayOfWeek === "0" ? limits.thisWeekLimit : limits.dayCapacity;
 }
 
 /**

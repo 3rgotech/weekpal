@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { capacityLevel, normaliseDayCapacity, readGauges, showsCapacity, toggleCountedCategory, worstGauge } from "../capacity";
+import { capacityLevel, columnLimit, normaliseDayCapacity, readGauges, showsCapacity, toggleCountedCategory, worstGauge } from "../capacity";
 
 describe("capacityLevel", () => {
     it("says nothing while a day is under its limit", () => {
@@ -118,5 +118,27 @@ describe("choosing which categories count toward the day", () => {
         // Counting nothing is a limit that can never be reached — and once stored it cannot be
         // told apart from counting everything.
         expect(toggleCountedCategory(["work"], "work", all)).toEqual(["work"]);
+    });
+});
+
+describe("columnLimit", () => {
+    const limits = { dayCapacity: 6, thisWeekLimit: 10, somedayLimit: 20 };
+
+    it("measures each kind of column against its own number", () => {
+        // One number across all three would be wrong for two of them: a weekday is a day's work,
+        // "this week" is what has been claimed without being given a day, Some day is a shortlist.
+        expect(columnLimit("3", limits)).toBe(6);
+        expect(columnLimit("0", limits)).toBe(10);
+        expect(columnLimit("someday", limits)).toBe(20);
+    });
+
+    it("treats every weekday alike", () => {
+        for (const day of ["1", "2", "3", "4", "5", "6", "7"]) {
+            expect(columnLimit(day, limits)).toBe(6);
+        }
+    });
+
+    it("passes a switched-off limit straight through", () => {
+        expect(columnLimit("0", { ...limits, thisWeekLimit: 0 })).toBe(0);
     });
 });

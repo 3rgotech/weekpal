@@ -61,6 +61,12 @@ export interface Settings {
    * from yet holds a different amount than a Tuesday.
    */
   somedayLimit: number;
+  /**
+   * How many unfinished tasks the undated "this week" bucket holds before it warns, or 0 for no
+   * limit. Its own number: what is claimed for the week but not yet given a day is neither a
+   * day's work nor a shortlist.
+   */
+  thisWeekLimit: number;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

@@ -24,7 +24,7 @@ import {
     WEEK_HEADER_FORMATS,
 } from "../utils/settings";
 import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
-import { DAY_CAPACITIES, SOMEDAY_LIMITS, toggleCountedCategory } from "../utils/capacity";
+import { DAY_CAPACITIES, SOMEDAY_LIMITS, THIS_WEEK_LIMITS, toggleCountedCategory } from "../utils/capacity";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 
 /**
@@ -389,6 +389,39 @@ const SettingsModal: React.FC = () => {
                       </div>
                     </>
                   )}
+                  <h3 className="text-base dark:text-white">
+                      {t("settings.thisWeekLimit")}
+                  </h3>
+                  <Select
+                      value={`${settings.thisWeekLimit}`}
+                      onChange={(key: Key | null) =>
+                          key !== null && updateSettings({
+                              thisWeekLimit: parseInt(`${key}`, 10),
+                          })
+                      }
+                      className="col-span-2"
+                      isRequired
+                  >
+                      <Select.Trigger>
+                          <Select.Value />
+                          <Select.Indicator />
+                      </Select.Trigger>
+                      <Select.Popover>
+                          <ListBox>
+                              {THIS_WEEK_LIMITS.map((limit) => {
+                                  const label = limit === 0
+                                      ? t("settings.dayCapacityOff")
+                                      : t("settings.dayCapacityTasks", { limit });
+
+                                  return (
+                                      <ListBox.Item key={limit} id={`${limit}`} textValue={label}>
+                                          <Label>{label}</Label>
+                                      </ListBox.Item>
+                                  );
+                              })}
+                          </ListBox>
+                      </Select.Popover>
+                  </Select>
                   <h3 className="text-base dark:text-white">
                     {t("settings.somedayLimit")}
                   </h3>
