@@ -1,18 +1,18 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { SortableContext } from "@dnd-kit/sortable";
 import { useData } from "../contexts/DataContext";
 import { DayOfWeek } from "../types";
 import DraggableTask from "./DraggableTask";
 import { useDroppable, useDndContext } from "@dnd-kit/core";
 import TaskListHeader from "./TaskListHeader";
+import VirtualTaskList from "./VirtualTaskList";
 import NewTask from "./NewTask";
 import { useCalendar } from "../contexts/CalendarContext";
 import clsx from "clsx";
 import EventList from "./EventList";
 import { useSettings } from "../contexts/SettingsContext";
-import { useTranslation } from "react-i18next";
 import { useAccount } from "../contexts/AccountContext";
-import { Gauge, COLUMN_RENDER_CAP, columnLimit } from "../utils/capacity";
+import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 
 interface TaskProps {
@@ -26,7 +26,6 @@ const TaskList: React.FC<TaskProps> = ({
   dayOfWeek,
   isToday = false,
 }) => {
-  const { t } = useTranslation();
   const { currentWeek, firstDayOfWeek } = useCalendar();
   const { settings } = useSettings();
   const { subscribed } = useAccount();
@@ -46,14 +45,14 @@ const TaskList: React.FC<TaskProps> = ({
       (settings.showCompletedTasks || !task.completed)
   );
 
-  // What is actually drawn. A column past the cap keeps the rest one click away rather than
-  // rendering them: they are unreachable on screen either way, and rendering them is what makes
-  // the board stop responding.
-  const [limitRendering, setLimitRendering] = useState(true);
-  const capped = limitRendering && filteredTasks.length > COLUMN_RENDER_CAP;
-  const visibleTasks = capped ? filteredTasks.slice(0, COLUMN_RENDER_CAP) : filteredTasks;
+  // Long columns render only what is near the viewport. Short ones — every column on an ordinary
+  // board — are left exactly as they were, since windowing is not free while a drag is running.
+  const virtualise = filteredTasks.length > VIRTUALISE_ABOVE;
+  const scrollRef = useRef<HTMLUListElement>(null);
 
-  const taskIds = visibleTasks
+  // The whole column either way: `SortableContext` needs the full ordering to place a drop, and
+  // a row that is not mounted simply has no rectangle to collide with.
+  const taskIds = filteredTasks
     .map((task) => task.id)
     .filter((id) => id !== null && id !== undefined)
     .map((id) => `task-${id}`);
@@ -124,27 +123,20 @@ const TaskList: React.FC<TaskProps> = ({
         gauges={gauges}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
-      <ul className={clsx("flex-1 overflow-y-auto py-1 space-y-2")}>
+      <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>
         <SortableContext items={taskIds}>
-          {visibleTasks.map((task) => (
-            <DraggableTask key={task.id} task={task} dayOfWeek={dayOfWeek} />
-          ))}
+          {virtualise
+            ? (
+              <VirtualTaskList
+                tasks={filteredTasks}
+                scrollRef={scrollRef}
+                renderTask={(task) => <DraggableTask task={task} dayOfWeek={dayOfWeek} />}
+              />
+            )
+            : filteredTasks.map((task) => (
+              <DraggableTask key={task.id} task={task} dayOfWeek={dayOfWeek} />
+            ))}
         </SortableContext>
-
-        {capped && (
-          <li className="px-1 py-2 text-center">
-            <button
-              type="button"
-              onClick={() => setLimitRendering(false)}
-              className="text-xs underline text-slate-500 dark:text-slate-400 cursor-pointer"
-            >
-              {t("main.show_all_tasks", {
-                shown: visibleTasks.length,
-                total: filteredTasks.length,
-              })}
-            </button>
-          </li>
-        )}
 
         {!isOver && <NewTask dayOfWeek={dayOfWeek} />}
       </ul>
