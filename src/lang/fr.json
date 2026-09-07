@@ -21,6 +21,7 @@
         "dayCapacity": "Tâches par jour",
         "dayCapacityOff": "Sans limite",
         "dayCapacityTasks": "{{limit}} tâches",
+        "countedCategories": "Comptées dans la limite",
         "somedayLimit": "Limite Un jour"
     },
     "main": {

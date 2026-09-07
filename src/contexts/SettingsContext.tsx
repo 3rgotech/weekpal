@@ -6,31 +6,10 @@ import React, {
   useMemo,
   useRef,
 } from "react";
-import {
-  Button,
-  ButtonGroup,
-  Label,
-  ListBox,
-  Modal,
-  Select,
-  useOverlayState,
-} from "@heroui/react";
-import type { Key } from "react-aria-components";
-import { Language, Settings, SubtaskDisplay } from "../types";
-import clsx from "clsx";
+import { useOverlayState } from "@heroui/react";
+import { Settings } from "../types";
 import { useLocalStorage } from "usehooks-ts";
-import {
-  DAY_HEADER_FORMATS,
-  DEFAULT_SETTINGS,
-  LANGUAGES,
-  LANGUAGE_FLAGS,
-  SUBTASK_DISPLAYS,
-  WEEK_HEADER_FORMATS,
-  withDefaults,
-} from "../utils/settings";
-import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
-import { DAY_CAPACITIES, SOMEDAY_LIMITS } from "../utils/capacity";
-import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
+import { DEFAULT_SETTINGS, withDefaults } from "../utils/settings";
 import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
 import AdapterFactory from "../adapter";
@@ -42,6 +21,8 @@ interface SettingsContextProps {
   updateSettings: (newSettings: Partial<Settings>) => void;
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
+  /** The dialog's open state, for `SettingsModal` to render against. */
+  settingsOverlay: ReturnType<typeof useOverlayState>;
 }
 
 const SettingsContext = createContext<SettingsContextProps | undefined>(
@@ -134,331 +115,22 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     i18n.changeLanguage(settings.language);
   }, [settings.language]);
 
-  /** A date that falls on ISO weekday `day`, purely so the locale can name it. */
-  const nameOf = (day: Weekday, format: string) =>
-    dayjs().startOf("isoWeek").add(day - 1, "day").format(format);
-
   const providedValues = {
     settings,
     updateSettings,
     openSettingsModal: overlay.open,
     closeSettingsModal: overlay.close,
+    // Handed out rather than used here: the modal lists the user's categories, and this provider
+    // sits above the one that holds them — `SettingsProvider` wraps `CalendarProvider`, which
+    // wraps `DataProvider`, and that order is fixed because each reads the one above it. So the
+    // dialog is rendered by `SettingsModal` further down the tree, and only its open state
+    // belongs here.
+    settingsOverlay: overlay,
   };
 
   return (
     <SettingsContext.Provider value={providedValues}>
       {children}
-      <Modal state={overlay}>
-        <Modal.Backdrop variant="blur">
-          <Modal.Container size="lg">
-            <Modal.Dialog>
-              <Modal.Header className="flex flex-col gap-1">
-                <Modal.Heading>{t("settings.settings")}</Modal.Heading>
-              </Modal.Header>
-              <Modal.Body>
-            <div className="grid grid-cols-3 gap-x-4 gap-y-8 items-center mb-4">
-              <h3 className="text-base dark:text-white">Theme</h3>
-              <ButtonGroup size="sm" className="col-span-2 justify-start">
-                <Button
-                  variant="secondary"
-                  className={clsx({ "bg-sky-500 text-white": settings.theme === "light" })}
-                  onPress={() => updateSettings({ theme: "light" })}
-                >
-                  <SunIcon />
-                  {t("theme.light")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className={clsx({ "bg-sky-500 text-white": settings.theme === "dark" })}
-                  onPress={() => updateSettings({ theme: "dark" })}
-                >
-                  <MoonIcon />
-                  {t("theme.dark")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className={clsx({
-                    "bg-sky-500 text-white": settings.theme === "system",
-                  })}
-                  onPress={() => updateSettings({ theme: "system" })}
-                >
-                  <MonitorIcon />
-                  {t("theme.system")}
-                </Button>
-              </ButtonGroup>
-              <h3 className="text-base dark:text-white">
-                {t("settings.language")}
-              </h3>
-              <Select
-                value={settings.language}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({ language: String(key) as Language })
-                }
-                className="col-span-2"
-              >
-                <Select.Trigger>
-                  {/* No separate flag here: `Select.Value` renders the chosen item's own
-                      contents, flag included, and a second one beside it would be two. */}
-                  <Select.Value className="flex items-center gap-2" />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {LANGUAGES.map((language) => (
-                      <ListBox.Item
-                        key={language}
-                        id={language}
-                        textValue={t(`language.${language}`)}
-                      >
-                        <span className={`fi fi-${LANGUAGE_FLAGS[language]}`} />
-                        <Label>{t(`language.${language}`)}</Label>
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <h3 className="text-base dark:text-white">
-                {t("settings.subtaskDisplay")}
-              </h3>
-              <Select
-                value={settings.subtaskDisplay}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({
-                    subtaskDisplay: String(key) as SubtaskDisplay,
-                  })
-                }
-                className="col-span-2"
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {SUBTASK_DISPLAYS.map((display) => (
-                      <ListBox.Item
-                        key={display}
-                        id={display}
-                        textValue={t(`subtaskDisplay.${display}`)}
-                      >
-                        <Label>{t(`subtaskDisplay.${display}`)}</Label>
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <h3 className="text-base dark:text-white">
-                {t("settings.weekHeaderFormat")}
-              </h3>
-              <Select
-                value={settings.weekHeaderFormat}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({ weekHeaderFormat: `${key}` })
-                }
-                className="col-span-2"
-                isRequired
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {WEEK_HEADER_FORMATS.map((format) => {
-                      const label = dayjs()
-                        .format(format)
-                        .replace("[WEEK]", t("misc.week"))
-                        .replace("[OF]", t("misc.of"));
-
-                      return (
-                        <ListBox.Item key={format} id={format} textValue={label}>
-                          <Label>{label}</Label>
-                        </ListBox.Item>
-                      );
-                    })}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <h3 className="text-base dark:text-white">
-                {t("settings.weekStartsOn")}
-              </h3>
-              <Select
-                value={`${settings.weekStartsOn}`}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({
-                    weekStartsOn: parseInt(`${key}`, 10) as Weekday,
-                  })
-                }
-                className="col-span-2"
-                isRequired
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {WEEKDAYS.map((day) => (
-                      <ListBox.Item
-                        key={day}
-                        id={`${day}`}
-                        textValue={nameOf(day, "dddd")}
-                      >
-                        <Label>{nameOf(day, "dddd")}</Label>
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <h3 className="text-base dark:text-white">
-                {t("settings.workingDays")}
-              </h3>
-              {/* Listed in this user's own week order, so the row reads the way the board does.
-                  Buttons rather than a multi-select: seven options that are all on screen at once
-                  are quicker to set than a popover, and this is the setting people revisit. */}
-              <div className="col-span-2 flex gap-1">
-                {orderedWeekdays(settings.weekStartsOn).map((day) => {
-                  const isWorking = settings.workingDays.includes(day);
-
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      aria-pressed={isWorking}
-                      aria-label={nameOf(day, "dddd")}
-                      onClick={() => updateSettings({
-                        workingDays: toggleWorkingDay(settings.workingDays, day),
-                      })}
-                      className={clsx(
-                        "flex-1 py-1.5 rounded-md text-xs font-semibold uppercase transition-colors",
-                        isWorking
-                          ? "bg-sky-500 text-white"
-                          : "bg-slate-200 text-slate-600 dark:bg-sky-900 dark:text-slate-300",
-                      )}
-                    >
-                      {nameOf(day, "dd")}
-                    </button>
-                  );
-                })}
-              </div>
-              <h3 className="text-base dark:text-white">
-                {t("settings.nonWorkingDays")}
-              </h3>
-              <ButtonGroup size="sm" className="col-span-2 justify-start">
-                <Button
-                  variant="secondary"
-                  className={clsx({ "bg-sky-500 text-white": settings.showNonWorkingDays })}
-                  onPress={() => updateSettings({ showNonWorkingDays: true })}
-                >
-                  <Eye />
-                  {t("actions.show")}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className={clsx({ "bg-sky-500 text-white": !settings.showNonWorkingDays })}
-                  onPress={() => updateSettings({ showNonWorkingDays: false })}
-                >
-                  <EyeOff />
-                  {t("actions.hide")}
-                </Button>
-              </ButtonGroup>
-              <h3 className="text-base dark:text-white">
-                {t("settings.dayCapacity")}
-              </h3>
-              <Select
-                value={`${settings.dayCapacity}`}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({
-                    dayCapacity: parseInt(`${key}`, 10),
-                  })
-                }
-                className="col-span-2"
-                isRequired
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {DAY_CAPACITIES.map((capacity) => {
-                      const label = capacity === 0
-                        ? t("settings.dayCapacityOff")
-                        : t("settings.dayCapacityTasks", { limit: capacity });
-
-                      return (
-                        <ListBox.Item key={capacity} id={`${capacity}`} textValue={label}>
-                          <Label>{label}</Label>
-                        </ListBox.Item>
-                      );
-                    })}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <h3 className="text-base dark:text-white">
-                {t("settings.somedayLimit")}
-              </h3>
-              <Select
-                value={`${settings.somedayLimit}`}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({
-                    somedayLimit: parseInt(`${key}`, 10),
-                  })
-                }
-                className="col-span-2"
-                isRequired
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {SOMEDAY_LIMITS.map((limit) => {
-                      const label = limit === 0
-                        ? t("settings.dayCapacityOff")
-                        : t("settings.dayCapacityTasks", { limit });
-
-                      return (
-                        <ListBox.Item key={limit} id={`${limit}`} textValue={label}>
-                          <Label>{label}</Label>
-                        </ListBox.Item>
-                      );
-                    })}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              <h3 className="text-base dark:text-white">
-                {t("settings.dayHeaderFormat")}
-              </h3>
-              <Select
-                value={settings.dayHeaderFormat}
-                onChange={(key: Key | null) =>
-                  key !== null && updateSettings({ dayHeaderFormat: `${key}` })
-                }
-                className="col-span-2"
-                isRequired
-              >
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    {DAY_HEADER_FORMATS.map((format) => (
-                      <ListBox.Item key={format} id={format} textValue={dayjs().format(format)}>
-                        <Label>{dayjs().format(format)}</Label>
-                      </ListBox.Item>
-                    ))}
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-              </div>
-            </Modal.Body>
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-      </Modal>
     </SettingsContext.Provider>
   );
 };

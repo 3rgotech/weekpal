@@ -52,6 +52,37 @@ export function normaliseDayCapacity(value: unknown): number {
 }
 
 /**
+ * Tick or untick one category in the set counted toward the day's limit.
+ *
+ * The set is stored the way the board's filter stores its own: **empty means every category**.
+ * That keeps the default honest — a limit nobody has narrowed counts everything — but it means
+ * the first untick has to expand to the full set before removing one, or the change would read
+ * as its own opposite.
+ *
+ * Unticking the last one is refused. Counting nothing is a limit that can never be reached, and
+ * it is also indistinguishable from counting everything once stored.
+ */
+export function toggleCountedCategory(counted: string[], id: string, all: string[]): string[] {
+    const current = counted.length === 0 ? all : counted;
+
+    if (current.includes(id)) {
+        if (current.length === 1) {
+            return counted;
+        }
+
+        const next = current.filter((held) => held !== id);
+
+        return next.length === all.length ? [] : next;
+    }
+
+    const next = [...current, id];
+
+    // Everything ticked is no restriction, and is stored as such rather than as a list that
+    // silently stops matching the day a new category is created.
+    return next.length === all.length ? [] : next;
+}
+
+/**
  * One thing being counted against one number: the whole day, or a single category within it.
  *
  * `label` is null for the day as a whole, and the category's name otherwise — which is what the

@@ -27,6 +27,7 @@ export const DEFAULT_SETTINGS: Settings = {
     showNonWorkingDays: true,
     weekStartsOn: DEFAULT_WEEK_STARTS_ON,
     dayCapacity: 0,
+    dayCapacityCategories: [],
     somedayLimit: 0,
     subtaskDisplay: "percentage",
 }
@@ -46,6 +47,9 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
         workingDays: normaliseWorkingDays(stored?.workingDays),
         weekStartsOn: normaliseWeekStart(stored?.weekStartsOn),
         dayCapacity: normaliseDayCapacity(stored?.dayCapacity),
+        dayCapacityCategories: Array.isArray(stored?.dayCapacityCategories)
+            ? stored.dayCapacityCategories.filter((id): id is string => typeof id === "string")
+            : [],
         somedayLimit: normaliseDayCapacity(stored?.somedayLimit),
     };
 }

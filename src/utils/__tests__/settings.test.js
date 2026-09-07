@@ -21,6 +21,7 @@ describe("DEFAULT_SETTINGS", () => {
     "showNonWorkingDays",
     "weekStartsOn",
     "dayCapacity",
+    "dayCapacityCategories",
     "somedayLimit",
     "subtaskDisplay",
   ];
@@ -101,6 +102,15 @@ describe("withDefaults", () => {
     expect(withDefaults({ dayCapacity: 6 }).somedayLimit).toBe(0);
     expect(withDefaults({ somedayLimit: 20 }).dayCapacity).toBe(0);
     expect(withDefaults({ somedayLimit: -4 }).somedayLimit).toBe(0);
+  });
+
+  it("counts every category toward the day limit until told otherwise", () => {
+    // Empty is "everything", matching how the board's own filter stores a selection — so a
+    // limit nobody has narrowed counts the whole day.
+    expect(DEFAULT_SETTINGS.dayCapacityCategories).toEqual([]);
+    expect(withDefaults({ dayCapacityCategories: "work" }).dayCapacityCategories).toEqual([]);
+    expect(withDefaults({ dayCapacityCategories: ["work", 4] }).dayCapacityCategories)
+      .toEqual(["work"]);
   });
 
   it("repairs a week start that is not a day", () => {

@@ -230,6 +230,37 @@ describe("the board on a phone", () => {
         expect(count.className).toContain("amber");
     });
 
+    it("counts only the categories chosen for the day limit", () => {
+        // The free tier's answer to "six work tasks, but don't count my hobbies".
+        const work = weekly("Work task", today, { categoryId: "work" });
+        const hobby = weekly("Hobby task", today, { categoryId: "hobby" });
+        data.tasks = [work, hobby];
+        data.allTasks = [work, hobby, weekly("More hobby", today, { categoryId: "hobby" })];
+        settings.dayCapacity = 1;
+        settings.dayCapacityCategories = ["work"];
+
+        render(<MobileBoard />);
+
+        const count = screen.getByLabelText("capacity.planned");
+        expect(count.textContent).toBe("1");
+        expect(count.className).toContain("amber");
+    });
+
+    it("counts every category when none has been singled out", () => {
+        const tasks = [
+            weekly("Work task", today, { categoryId: "work" }),
+            weekly("Hobby task", today, { categoryId: "hobby" }),
+        ];
+        data.tasks = tasks;
+        data.allTasks = tasks;
+        settings.dayCapacity = 2;
+        settings.dayCapacityCategories = [];
+
+        render(<MobileBoard />);
+
+        expect(screen.getByLabelText("capacity.planned").textContent).toBe("2");
+    });
+
     it("moves a task through the menu, since there is nothing to drag", () => {
         const task = weekly("Today's task", today);
         data.tasks = [task];

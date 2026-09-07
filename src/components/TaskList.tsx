@@ -12,6 +12,7 @@ import EventList from "./EventList";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
 import { Gauge } from "../utils/capacity";
+import { matchesCategorySelection } from "../utils/categories";
 
 interface TaskProps {
   title: string;
@@ -76,7 +77,13 @@ const TaskList: React.FC<TaskProps> = ({
     gauges.push({
       key: "column",
       label: null,
-      planned: counted.length,
+      // Some day counts everything in it; a day counts only the categories chosen for it, which
+      // is how a limit can be about work without an evening's hobbies pushing it over.
+      planned: isSomeday
+        ? counted.length
+        : counted.filter(
+          (task) => matchesCategorySelection(task.categoryId, settings.dayCapacityCategories),
+        ).length,
       limit: isSomeday ? settings.somedayLimit : settings.dayCapacity,
     });
   }

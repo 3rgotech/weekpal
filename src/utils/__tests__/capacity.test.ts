@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { capacityLevel, normaliseDayCapacity, readGauges, showsCapacity, worstGauge } from "../capacity";
+import { capacityLevel, normaliseDayCapacity, readGauges, showsCapacity, toggleCountedCategory, worstGauge } from "../capacity";
 
 describe("capacityLevel", () => {
     it("says nothing while a day is under its limit", () => {
@@ -92,5 +92,31 @@ describe("choosing what a column says", () => {
     it("says nothing when nothing is limited", () => {
         expect(worstGauge([gauge("day", 12, 0)])).toBeNull();
         expect(worstGauge([])).toBeNull();
+    });
+});
+
+describe("choosing which categories count toward the day", () => {
+    const all = ["work", "hobby", "study"];
+
+    it("expands from 'everything' before removing one", () => {
+        // Stored empty, the first untick has to name the survivors, or the change would read as
+        // its own opposite.
+        expect(toggleCountedCategory([], "hobby", all)).toEqual(["work", "study"]);
+    });
+
+    it("stores everything ticked as the empty set", () => {
+        // Not as a list, which would silently stop matching the day a new category is created.
+        expect(toggleCountedCategory(["work", "study"], "hobby", all)).toEqual([]);
+    });
+
+    it("adds and removes within a narrowed set", () => {
+        expect(toggleCountedCategory(["work"], "study", all)).toEqual(["work", "study"]);
+        expect(toggleCountedCategory(["work", "study"], "study", all)).toEqual(["work"]);
+    });
+
+    it("refuses to untick the last one", () => {
+        // Counting nothing is a limit that can never be reached — and once stored it cannot be
+        // told apart from counting everything.
+        expect(toggleCountedCategory(["work"], "work", all)).toEqual(["work"]);
     });
 });

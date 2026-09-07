@@ -8,6 +8,7 @@ import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { AccountProvider } from "./contexts/AccountContext";
+import SettingsModal from "./components/SettingsModal";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
@@ -132,6 +133,7 @@ function App() {
                 {/* Inside the task modal's provider: the keys stand down while it is open, and
                     `n` is what opens it. */}
                 <ShortcutsProvider>
+                  <SettingsModal />
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (

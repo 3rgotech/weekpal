@@ -46,6 +46,15 @@ export interface Settings {
    */
   dayCapacity: number;
   /**
+   * Which categories count toward {@link Settings.dayCapacity}.
+   *
+   * Empty is every category, which is the default and what the limit meant before this existed.
+   * Otherwise only these are counted — so a day can be capped at six work tasks without the
+   * evening's hobbies pushing it over. `NO_CATEGORY_KEY` stands in for tasks with no category,
+   * exactly as it does in the board's filter.
+   */
+  dayCapacityCategories: string[];
+  /**
    * How many unfinished tasks Some day is expected to hold before it warns, or 0 for no limit.
    *
    * Its own number rather than {@link Settings.dayCapacity}: a shortlist you are not working
