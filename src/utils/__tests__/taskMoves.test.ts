@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { availableMoves, moveTarget } from "../taskMoves";
+import { availableMoves, moveTarget, relieveTarget } from "../taskMoves";
 import { getDayJs } from "../dayjs";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 
@@ -78,5 +78,24 @@ describe("which moves are worth offering", () => {
         expect(availableMoves(weekly("2026w35", "0"), NOW)).not.toContain("thisWeek");
         // The same bucket a week ago is a real move, so it stays.
         expect(availableMoves(weekly("2026w34", "0"), NOW)).toContain("thisWeek");
+    });
+});
+
+describe("making room in a column that is over its limit", () => {
+    it("hands a weekday's task to the undated bucket, keeping its week", () => {
+        // Out of the day, not out of the week: the day columns drain into "this week".
+        expect(relieveTarget(weekly("2026w35", "3"), "2026w35"))
+            .toEqual({ weekCode: "2026w35", dayOfWeek: "0" });
+    });
+
+    it("hands the undated bucket's task to Some day, which is the next thing out", () => {
+        expect(relieveTarget(weekly("2026w35", "0"), "2026w35"))
+            .toEqual({ weekCode: null, dayOfWeek: null });
+    });
+
+    it("promotes a Some day task inwards, since nothing is further out", () => {
+        // What makes a shortlist a shortlist rather than a pile.
+        expect(relieveTarget(new SomedayTask({ title: "Learn the cello" }), "2026w35"))
+            .toEqual({ weekCode: "2026w35", dayOfWeek: "0" });
     });
 });

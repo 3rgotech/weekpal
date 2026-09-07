@@ -317,6 +317,25 @@ const SettingsModal: React.FC = () => {
                 <Tabs.Panel id="limits">
                     <div className="grid grid-cols-3 gap-x-4 gap-y-6 items-center py-2">
                   <h3 className="text-base dark:text-white">
+                      {t("settings.hardLimits")}
+                  </h3>
+                  <ButtonGroup size="sm" className="col-span-2 justify-start">
+                      <Button
+                          variant="secondary"
+                          className={clsx({ "bg-sky-500 text-white": !settings.hardLimits })}
+                          onPress={() => updateSettings({ hardLimits: false })}
+                      >
+                          {t("settings.limitsSoft")}
+                      </Button>
+                      <Button
+                          variant="secondary"
+                          className={clsx({ "bg-sky-500 text-white": settings.hardLimits })}
+                          onPress={() => updateSettings({ hardLimits: true })}
+                      >
+                          {t("settings.limitsHard")}
+                      </Button>
+                  </ButtonGroup>
+                  <h3 className="text-base dark:text-white">
                     {t("settings.dayCapacity")}
                   </h3>
                   <Select

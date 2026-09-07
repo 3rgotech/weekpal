@@ -61,6 +61,16 @@ export function normaliseDayCapacity(value: unknown): number {
 }
 
 /**
+ * Whether a column has gone past its limit, rather than merely reached it.
+ *
+ * The distinction the hard limit turns on: being *at* the number is a full column and warns, and
+ * one more than the number is the column being over, which is what has to be resolved.
+ */
+export function exceedsLimit(planned: number, limit: number): boolean {
+    return showsCapacity(limit) && planned > limit;
+}
+
+/**
  * The limit a column is measured against.
  *
  * Three numbers rather than one, because the three kinds of column mean different things: a

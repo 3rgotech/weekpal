@@ -26,7 +26,10 @@
         "thisWeekLimit": "This week limit",
         "tab_appearance": "Appearance",
         "tab_week": "Week",
-        "tab_limits": "Limits"
+        "tab_limits": "Limits",
+        "hardLimits": "When a limit is passed",
+        "limitsSoft": "Warn me",
+        "limitsHard": "Make me choose"
     },
     "main": {
         "this_week": "This week",
@@ -245,5 +248,13 @@
     "capacity": {
         "planned": "Planned: {{planned}} of {{limit}}",
         "category": "{{name}}: {{planned}} of {{limit}}"
+    },
+    "limits": {
+        "full": "That column is full",
+        "explain": "It now holds {{planned}} of {{limit}}. Make room, or let something go — your task is already saved either way.",
+        "promote": "Plan it this week",
+        "to_this_week": "Move to this week",
+        "to_someday": "Move to Some day",
+        "delete": "Delete"
     }
 }

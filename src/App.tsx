@@ -9,6 +9,7 @@ import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import SettingsModal from "./components/SettingsModal";
+import LimitReachedModal from "./components/LimitReachedModal";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
@@ -134,6 +135,7 @@ function App() {
                     `n` is what opens it. */}
                 <ShortcutsProvider>
                   <SettingsModal />
+                  <LimitReachedModal />
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (

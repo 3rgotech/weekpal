@@ -67,6 +67,14 @@ export interface Settings {
    * day's work nor a shortlist.
    */
   thisWeekLimit: number;
+  /**
+   * Whether going past a limit has to be resolved, or only warns.
+   *
+   * Soft is the default and is what every limit did before this existed: the count colours and
+   * nothing else happens. Hard adds the prompt the Some day limit was named for — make room, or
+   * let something go.
+   */
+  hardLimits: boolean;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

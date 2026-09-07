@@ -24,6 +24,7 @@ describe("DEFAULT_SETTINGS", () => {
     "dayCapacityCategories",
     "somedayLimit",
     "thisWeekLimit",
+    "hardLimits",
     "subtaskDisplay",
   ];
 
@@ -112,6 +113,13 @@ describe("withDefaults", () => {
     expect(withDefaults({ dayCapacityCategories: "work" }).dayCapacityCategories).toEqual([]);
     expect(withDefaults({ dayCapacityCategories: ["work", 4] }).dayCapacityCategories)
       .toEqual(["work"]);
+  });
+
+  it("leaves limits soft unless asked otherwise", () => {
+    // Every limit warned and nothing else before the prompt existed.
+    expect(DEFAULT_SETTINGS.hardLimits).toBe(false);
+    expect(withDefaults({}).hardLimits).toBe(false);
+    expect(withDefaults({ hardLimits: true }).hardLimits).toBe(true);
   });
 
   it("repairs a week start that is not a day", () => {

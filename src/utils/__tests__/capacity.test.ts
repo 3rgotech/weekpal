@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { capacityLevel, columnLimit, normaliseDayCapacity, readGauges, showsCapacity, toggleCountedCategory, worstGauge } from "../capacity";
+import { capacityLevel, columnLimit, exceedsLimit, normaliseDayCapacity, readGauges, showsCapacity, toggleCountedCategory, worstGauge } from "../capacity";
 
 describe("capacityLevel", () => {
     it("says nothing while a day is under its limit", () => {
@@ -140,5 +140,18 @@ describe("columnLimit", () => {
 
     it("passes a switched-off limit straight through", () => {
         expect(columnLimit("0", { ...limits, thisWeekLimit: 0 })).toBe(0);
+    });
+});
+
+describe("exceedsLimit", () => {
+    it("separates full from over", () => {
+        // A hard limit turns on this distinction: six of six is a full day and warns; the
+        // seventh is what has to be resolved.
+        expect(exceedsLimit(6, 6)).toBe(false);
+        expect(exceedsLimit(7, 6)).toBe(true);
+    });
+
+    it("never fires without a limit", () => {
+        expect(exceedsLimit(99, 0)).toBe(false);
     });
 });

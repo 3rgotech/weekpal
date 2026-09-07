@@ -26,7 +26,10 @@
         "thisWeekLimit": "Limite Cette semaine",
         "tab_appearance": "Apparence",
         "tab_week": "Semaine",
-        "tab_limits": "Limites"
+        "tab_limits": "Limites",
+        "hardLimits": "Quand une limite est dépassée",
+        "limitsSoft": "M'avertir",
+        "limitsHard": "Me faire choisir"
     },
     "main": {
         "this_week": "Cette semaine",
@@ -245,5 +248,13 @@
     "capacity": {
         "planned": "Prévu : {{planned}} sur {{limit}}",
         "category": "{{name}} : {{planned}} sur {{limit}}"
+    },
+    "limits": {
+        "full": "Cette colonne est pleine",
+        "explain": "Elle contient {{planned}} sur {{limit}}. Faites de la place, ou renoncez à quelque chose — votre tâche est déjà enregistrée.",
+        "promote": "La planifier cette semaine",
+        "to_this_week": "Déplacer vers Cette semaine",
+        "to_someday": "Déplacer vers Un jour",
+        "delete": "Supprimer"
     }
 }

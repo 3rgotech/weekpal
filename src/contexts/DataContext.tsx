@@ -22,6 +22,8 @@ import {
   toggleFocus,
 } from "../utils/categories";
 import { newId } from "../utils/id";
+import { columnLimit, exceedsLimit } from "../utils/capacity";
+import { useSettings } from "./SettingsContext";
 
 /**
  * Where a task left behind in a past week goes next.
@@ -41,6 +43,14 @@ interface DataContextProps {
    * the counting wants this.
    */
   allTasks: Array<Task>;
+  /**
+   * The column a capture has just pushed past its limit, while hard limits are on.
+   *
+   * Set only by an add, never by what is already on the board: someone who turns a limit on, or
+   * opens a week that was already over, is not asked to tidy it up before they can work.
+   */
+  overLimitColumn: DayOfWeek | null;
+  clearOverLimit: () => void;
   findTask: (taskId: string) => Task | null;
   addTask: (task: WeeklyTask | SomedayTask) => void;
   updateTask: (task: Task) => void;
@@ -134,10 +144,12 @@ const DataProvider: React.FC<DataProviderProps> = ({
   historyAdapter = null
 }) => {
   const { currentWeek, thisWeek } = useCalendar();
+  const { settings } = useSettings();
   const dayjs = useDayJs();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [overLimitColumn, setOverLimitColumn] = useState<DayOfWeek | null>(null);
   // Selection and focus travel together — see `CategoryFilterState`, which is where the
   // transitions live so they can be reasoned about without a provider around them.
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterState>(NO_CATEGORY_FILTER);
@@ -358,6 +370,18 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const addTask = (task: WeeklyTask | SomedayTask) => {
     if (!taskStore) {
       return;
+    }
+
+    // Checked before the write, against the column as it stands, so the answer does not depend on
+    // the store having caught up. One more than the limit is over; being level with it is full.
+    const column: DayOfWeek = task instanceof WeeklyTask ? (task.dayOfWeek ?? "0") : "someday";
+    const before = tasks.filter((held) => (
+      `${held.dayOfWeek}` === column && !held.completed && !held.belongsToProject
+    )).length;
+
+    if (settings.hardLimits && !task.belongsToProject
+      && exceedsLimit(before + 1, columnLimit(column, settings))) {
+      setOverLimitColumn(column);
     }
 
     // Set default properties
@@ -771,6 +795,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
       value={{
         tasks: memoizedTasks,
         allTasks: tasks,
+        overLimitColumn,
+        clearOverLimit: () => setOverLimitColumn(null),
         findTask,
         addTask,
         updateTask,

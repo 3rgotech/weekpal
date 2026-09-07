@@ -89,6 +89,34 @@ export function moveTarget(
 }
 
 /**
+ * Where a task goes to make room in a column that is over its limit.
+ *
+ * One step further out, never further in, so resolving one column cannot be what fills the one
+ * beside it forever:
+ *
+ * - a **weekday** hands its task to the undated "this week" bucket, which is what the day columns
+ *   drain into — the task keeps its week, it just stops claiming a day;
+ * - **this week** hands it to Some day, which is the next thing out;
+ * - **Some day** is already as far out as a task goes, so the only direction left is in — it is
+ *   *promoted* into this week, which is what makes a shortlist a shortlist rather than a pile.
+ *
+ * Promoting out of Some day can put "this week" over its own limit in turn. That is allowed: the
+ * next prompt arrives on the next capture, and refusing the move would leave someone stuck
+ * between two full columns with nothing to do about it.
+ */
+export function relieveTarget(task: Task, weekCode: string): TaskLocation {
+    if (task.taskType === 'someday') {
+        return { weekCode, dayOfWeek: '0' };
+    }
+
+    const weekly = task as WeeklyTask;
+
+    return `${weekly.dayOfWeek}` === '0'
+        ? { weekCode: null, dayOfWeek: null }
+        : { weekCode: weekly.weekCode, dayOfWeek: '0' };
+}
+
+/**
  * Which moves are worth offering for this task.
  *
  * A move that would leave the task exactly where it is gets left out rather than shown and

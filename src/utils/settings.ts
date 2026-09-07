@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS: Settings = {
     dayCapacityCategories: [],
     somedayLimit: 0,
     thisWeekLimit: 0,
+    hardLimits: false,
     subtaskDisplay: "percentage",
 }
 
