@@ -187,4 +187,26 @@ describe("the printable week", () => {
 
         expect(someday?.textContent).toBe("main.some_day");
     });
+
+    it("stops a long column and says how many it left", () => {
+        // The sheet is a page to pin up, so a column has to stop somewhere. What matters is that
+        // the paper says so — an imported list of 122 printed 10 and looked complete.
+        data.tasks = Array.from({ length: 40 }, (_, i) => new SomedayTask({
+            id: `s${i}`, title: `Later ${i}`,
+        }));
+
+        printed();
+
+        expect(screen.getByText("print.and_more")).toBeInTheDocument();
+        expect(screen.queryByText("Later 39")).not.toBeInTheDocument();
+        expect(screen.getByText("Later 0")).toBeInTheDocument();
+    });
+
+    it("says nothing when the whole column fitted", () => {
+        data.tasks = [new SomedayTask({ id: "s1", title: "Later one" })];
+
+        printed();
+
+        expect(screen.queryByText("print.and_more")).toBeNull();
+    });
 });

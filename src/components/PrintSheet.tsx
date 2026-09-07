@@ -14,6 +14,16 @@ import { Weekday, dateOfDay } from "../utils/week";
 import iconDark from "../assets/icon_dark.svg";
 
 /**
+ * How many tasks one column puts on the paper.
+ *
+ * The sheet is a week to pin up, laid out to fit a page — so a column has to stop somewhere, and
+ * the only question is whether it says so. It used to stop wherever the page ran out, with
+ * nothing printed to suggest anything was missing: an imported Some day list of a hundred and
+ * twenty showed ten and looked complete. Past this it prints how many it left.
+ */
+const PRINT_COLUMN_LIMIT = 18;
+
+/**
  * The week as a sheet of A4, landscape.
  *
  * Built when printing begins, not on every page load.
@@ -118,15 +128,29 @@ const PrintSheet: React.FC = () => {
      * cell should be depends on how many are stacked, and a class name built at runtime is one
      * Tailwind never sees and so never generates.
      */
-    const column = (heading: React.ReactNode, day: DayOfWeek, minHeight: string) => (
-        <section className="flex flex-col" style={{ minHeight }}>
-            {heading}
-            <ul className="mt-1">
-                {eventsOf(day).map(eventLine)}
-                {tasksOf(day).map(taskLine)}
-            </ul>
-        </section>
-    );
+    const column = (heading: React.ReactNode, day: DayOfWeek, minHeight: string) => {
+        const all = tasksOf(day);
+        const shown = all.slice(0, PRINT_COLUMN_LIMIT);
+        const hidden = all.length - shown.length;
+
+        return (
+            <section className="flex flex-col" style={{ minHeight }}>
+                {heading}
+                <ul className="mt-1">
+                    {eventsOf(day).map(eventLine)}
+                    {shown.map(taskLine)}
+
+                    {/* Said out loud rather than left to the page edge. A printed list that stops
+                        silently cannot be told from a complete one. */}
+                    {hidden > 0 && (
+                        <li className="py-[3px] text-[10px] italic text-neutral-500">
+                            {t("print.and_more", { n: hidden })}
+                        </li>
+                    )}
+                </ul>
+            </section>
+        );
+    };
 
     const dayHeading = (date: ReturnType<typeof dayjs>) => (
         <header
@@ -203,11 +227,7 @@ const PrintSheet: React.FC = () => {
                 ))}
             </div>
 
-            {/* Block, not a grid, and `break-inside: auto`: a CSS grid does not fragment across
-                printed pages in any browser worth relying on, so a long Some day list was simply
-                cut off at the page boundary with nothing to show for the rest. Laid out as two
-                floated blocks the content flows onto further pages the way text does. */}
-            <div className="mt-6 print-buckets">
+            <div className="grid grid-cols-2 gap-x-5 mt-6">
                 {column(bucketHeading(t("main.this_week"), "0"), "0", "42mm")}
                 {column(bucketHeading(t("main.some_day"), "someday"), "someday", "42mm")}
             </div>

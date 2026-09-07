@@ -104,24 +104,6 @@
         color: #000 !important;
     }
 
-    /*
-     * The two undated buckets, side by side but able to run onto another page.
-     *
-     * They were a CSS grid, and no browser fragments a grid container across printed pages
-     * dependably — a Some day list of a hundred tasks was cut off at the first page boundary with
-     * nothing on the paper to say the rest existed. Columns fragment properly, so the buckets use
-     * those instead, and the individual rows are kept whole.
-     */
-    .print-buckets {
-        columns: 2;
-        column-gap: 1.25rem;
-        break-inside: auto;
-    }
-
-    .print-buckets > section {
-        break-inside: auto;
-    }
-
     /* HeroUI renders modals and menu popovers into portals appended to `body`, outside the React
        tree — so a print fired with the task menu open would put the menu on the paper. They are
        siblings of `#root`, which is what this reaches. */

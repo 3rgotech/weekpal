@@ -276,5 +276,8 @@
         "will_be_undated": "{{n}} n'ont pas de date exploitable et iront toutes dans Un jour.",
         "will_create": "{{n}} nouvelles catégories seront créées.",
         "confirm": "Importer"
+    },
+    "print": {
+        "and_more": "…et {{n}} de plus"
     }
 }

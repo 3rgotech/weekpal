@@ -276,5 +276,8 @@
         "will_be_undated": "{{n}} have no usable date and will all land in Some day.",
         "will_create": "{{n}} new categories will be created.",
         "confirm": "Import them"
+    },
+    "print": {
+        "and_more": "…and {{n}} more"
     }
 }
