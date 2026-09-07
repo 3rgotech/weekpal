@@ -30,6 +30,25 @@
  * What is left here is everything that variant cannot reach — the page box, the colours the theme
  * puts on `body`, and the portals HeroUI attaches outside `#root`.
  */
+/**
+ * The widest dialog HeroUI 3 offers is not wide enough for this board's.
+ *
+ * Its scale stops at `lg` — `max-w-lg`, 512px — and then jumps straight to `cover` and `full`.
+ * Before the v3 migration the settings dialog was `size="2xl"`, 672px on the old scale, and the
+ * migration had nowhere to map it: it became `lg` and the settings lost 160px of the width they
+ * were laid out for. The category editor, written since, has three columns and never had it.
+ *
+ * Done here rather than with a utility class because the v3 `Modal` parts do not forward
+ * `className` at all — `Modal.Container`, `Modal.Dialog` and `Modal.Header` each drop it, so
+ * nothing passed from a component reaches the DOM. This is the only place the cap can be lifted.
+ *
+ * Deliberately only `--lg`, which the three content-heavy dialogs use. The small ones are small
+ * on purpose.
+ */
+.modal__dialog--lg {
+    max-width: 42rem;
+}
+
 @media print {
     @page {
         size: A4 landscape;
