@@ -26,8 +26,12 @@ const SignupCallToAction: React.FC<SignupCallToActionProps> = ({ signupUrl, logi
     return (
         <div className="flex items-center gap-3 px-4 border-l border-slate-300 dark:border-sky-900">
             <span className="relative inline-flex">
+                {/* `pointer-events-none` is load-bearing: `animate-ping` scales this layer to
+                    twice the button's size, so without it the halo reaches across the toolbar and
+                    swallows clicks on whatever sits beside it — the settings button, in practice.
+                    It is decoration, and decoration should not be clickable. */}
                 <span
-                    className="absolute inset-0 rounded-full opacity-75 bg-sky-400 animate-ping motion-reduce:hidden"
+                    className="absolute inset-0 rounded-full opacity-75 bg-sky-400 animate-ping motion-reduce:hidden pointer-events-none"
                     aria-hidden="true"
                 />
                 <a

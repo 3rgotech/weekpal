@@ -38,4 +38,14 @@ describe("SignupCallToAction", () => {
         expect(screen.getByRole("link", { name: /sign_up/ })).toBeInTheDocument();
         expect(screen.queryAllByRole("presentation")).toHaveLength(0);
     });
+
+    it("does not let its halo swallow clicks on whatever sits beside it", () => {
+        // `animate-ping` scales the halo to twice the button, so a halo that accepts pointer
+        // events covers its neighbours in the toolbar — the settings button, on staging.
+        const { container } = render(<SignupCallToAction signupUrl="/register" loginUrl="/login" />);
+        const halo = container.querySelector(".animate-ping") as HTMLElement;
+
+        expect(halo).not.toBeNull();
+        expect(halo.className).toContain("pointer-events-none");
+    });
 });
