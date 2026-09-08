@@ -25,6 +25,8 @@ interface Draft {
     color: CategoryColor;
     /** Tasks in this category one day may hold before the column warns. Null for no limit. */
     dayLimit: number | null;
+    /** Never included in a shared week. Free on every plan — a privacy control behind a paywall is not one. */
+    isPrivate: boolean;
     /** True for a row added here that has never been saved. */
     isNew: boolean;
 }
@@ -34,6 +36,7 @@ const toDraft = (category: Category): Draft => ({
     name: category.name,
     color: category.color,
     dayLimit: category.dayLimit,
+    isPrivate: category.isPrivate,
     isNew: false,
 });
 
@@ -82,6 +85,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                 name: "",
                 color: COLOR_NAMES[current.length % COLOR_NAMES.length],
                 dayLimit: null,
+                isPrivate: false,
                 isNew: true,
             },
         ]);
@@ -131,11 +135,14 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
             if (before
                 && before.name === name
                 && before.color === draft.color
-                && before.dayLimit === dayLimit) {
+                && before.dayLimit === dayLimit
+                && before.isPrivate === draft.isPrivate) {
                 continue;
             }
 
-            await saveCategory(new Category({ id: draft.id, name, color: draft.color, dayLimit }));
+            await saveCategory(new Category({
+                id: draft.id, name, color: draft.color, dayLimit, isPrivate: draft.isPrivate,
+            }));
         }
 
         setBusy(false);
@@ -157,6 +164,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                     <span className="w-40 shrink-0">{t("category.color")}</span>
                                     <span className="flex-1 min-w-0">{t("category.name")}</span>
                                     <span className="w-24 shrink-0">{t("category.day_limit")}</span>
+                                    <span className="w-16 shrink-0 text-center">{t("category.private")}</span>
                                     {/* Matches the delete button's width, so the headings sit over
                                         the columns they name. */}
                                     <span className="w-8 shrink-0" aria-hidden="true" />
@@ -238,6 +246,21 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                             title={subscribed ? undefined : t("category.day_limit_paid")}
                                         />
                                     </TextField>
+
+                                    {/* Free on every plan, unlike the limit beside it. A privacy
+                                        control behind a paywall is not a privacy control — and
+                                        this one is the whole reason someone can share a week
+                                        without reading it through first. */}
+                                    <div className="w-16 shrink-0 flex justify-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={draft.isPrivate}
+                                            onChange={(event) => edit(draft.id, { isPrivate: event.target.checked })}
+                                            aria-label={`${t("category.private")}: ${draft.name}`}
+                                            title={t("category.private_hint")}
+                                            className="size-4 accent-sky-950 dark:accent-sky-400"
+                                        />
+                                    </div>
 
                                     <IconButton
                                         icon="trash"

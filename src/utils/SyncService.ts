@@ -62,7 +62,19 @@ const MAX_ATTEMPTS = 5;
 export class SyncService {
     private static instance: SyncService | null = null;
 
-    private isSyncing = false;
+    /**
+     * Drains run one at a time, and every caller waits for its own turn.
+     *
+     * A plain `isSyncing` boolean was wrong in both directions. Set *after* the connectivity
+     * probe, two callers arriving in the same tick both slipped past it and sent every queued
+     * entry twice. Set *before* it, the second caller returned immediately — which made
+     * `enqueue`'s `await` a lie, because a write queued while an unrelated drain was in flight
+     * was never attempted and then waited for whatever trigger happened to come next.
+     *
+     * A promise chain is both answers at once: no two drains overlap, and awaiting this is
+     * awaiting the moment *your* write has had its turn.
+     */
+    private chain: Promise<void> = Promise.resolve();
     private readonly onlineListener: () => void;
 
     private readonly unsubscribeFromTabs: () => void;
@@ -220,106 +232,105 @@ export class SyncService {
      * follows it — which is why only *permanent* failures are allowed to skip ahead.
      */
     async syncPendingChanges(): Promise<void> {
-        if (this.isSyncing) {
-            return;
-        }
-
         // The guard that makes the whole thing work. Every tab still calls this — on `online`,
         // on a store write, on a nudge from a sibling — and every tab but one returns here.
         if (!isLeaderTab()) {
             return;
         }
 
-        // Re-check before spending requests on a queue that cannot be delivered. Only when the
-        // cached answer has aged out, so a burst of writes does not probe once per write.
+        // Caught rather than propagated: a rejection left on the chain would poison every drain
+        // after it. Failures inside a drain are already classified and recorded per entry.
+        this.chain = this.chain.then(() => this.drain()).catch(() => undefined);
+
+        return this.chain;
+    }
+
+    /** One pass over the queue. Never called directly — {@see syncPendingChanges} serialises it. */
+    private async drain(): Promise<void> {
+        // Re-check before spending requests on a queue that cannot be delivered. Only when
+        // the cached answer has aged out, so a burst of writes does not probe once per write.
         if (!await probeIfStale()) {
             return;
         }
 
-        this.isSyncing = true;
+        const queue = await this.db.pendingChanges
+            .orderBy('timestamp')
+            .filter((change) => !change.deadLettered)
+            .toArray();
 
-        try {
-            const queue = await this.db.pendingChanges
-                .orderBy('timestamp')
-                .filter((change) => !change.deadLettered)
-                .toArray();
+        let applied = 0;
 
-            let applied = 0;
+        for (const change of queue) {
+            try {
+                await this.processChange(change);
+                await this.db.pendingChanges.delete(change.id);
+                applied++;
 
-            for (const change of queue) {
-                try {
-                    await this.processChange(change);
-                    await this.db.pendingChanges.delete(change.id);
-                    applied++;
+                // A write got through, so whatever was refusing us has stopped.
+                reportSyncHealth('ok');
+            } catch (error) {
+                const kind = classifyFailure(error);
 
-                    // A write got through, so whatever was refusing us has stopped.
-                    reportSyncHealth('ok');
-                } catch (error) {
-                    const kind = classifyFailure(error);
-
-                    /*
-                     * "We disagree about what exists" rather than "this write is wrong".
-                     *
-                     * Handled before the conflict branch below, which would otherwise dead-letter
-                     * the entry — and this entry is fine. It is the local *cache* that is
-                     * unusable, so the cache is thrown away and the write stays queued to be
-                     * resolved against the server's own rows on the next attempt.
-                     */
-                    if (kind === 'conflict' && await this.handleResync(error)) {
-                        break;
-                    }
-
-                    reportSyncFailure(kind);
-
-                    if (kind === 'permanent' || kind === 'conflict') {
-                        // Nothing about retrying this will change the outcome. Set it aside so
-                        // the rest of the queue can move.
-                        await this.db.pendingChanges.update(change.id, {
-                            deadLettered: true,
-                            attempts: change.attempts + 1,
-                            lastError: String(error),
-                        });
-                        continue;
-                    }
-
-                    if (kind === 'unauthorized' || kind === 'forbidden') {
-                        // Not the write's fault, and not something retrying fixes — the user
-                        // needs to sign in again, or the week is outside their plan. Keep the
-                        // entry untouched (no attempt counted, so it cannot age into a dead
-                        // letter) and stop until the situation changes.
-                        await this.db.pendingChanges.update(change.id, { lastError: String(error) });
-                        break;
-                    }
-
-                    const attempts = change.attempts + 1;
-                    await this.db.pendingChanges.update(change.id, {
-                        attempts,
-                        lastError: String(error),
-                        deadLettered: attempts >= MAX_ATTEMPTS,
-                    });
-
-                    // Transient: keep the entry and stop, so ordering survives. Re-probe too —
-                    // this is usually the first sign the API has gone away underneath us, and
-                    // without it the indicator keeps claiming everything is fine until the
-                    // cached answer expires.
-                    void probe();
+                /*
+                 * "We disagree about what exists" rather than "this write is wrong".
+                 *
+                 * Handled before the conflict branch below, which would otherwise dead-letter
+                 * the entry — and this entry is fine. It is the local *cache* that is
+                 * unusable, so the cache is thrown away and the write stays queued to be
+                 * resolved against the server's own rows on the next attempt.
+                 */
+                if (kind === 'conflict' && await this.handleResync(error)) {
                     break;
                 }
-            }
 
-            if (applied > 0) {
-                // Only after something actually reached the server. Stamping on every attempt
-                // would let a board that has been failing for a month claim it synced a moment
-                // ago, which is precisely the lie the resync fence exists to catch.
-                markSynced();
+                reportSyncFailure(kind);
 
-                // Write-back has moved rows underneath the other tabs. They re-read Dexie rather
-                // than being handed a copy — the database is the message, and shipping the row
-                // alongside it is how the two versions start to disagree.
-                broadcastToTabs({ kind: 'changed' });
+                if (kind === 'permanent' || kind === 'conflict') {
+                    // Nothing about retrying this will change the outcome. Set it aside so
+                    // the rest of the queue can move.
+                    await this.db.pendingChanges.update(change.id, {
+                        deadLettered: true,
+                        attempts: change.attempts + 1,
+                        lastError: String(error),
+                    });
+                    continue;
+                }
+
+                if (kind === 'unauthorized' || kind === 'forbidden') {
+                    // Not the write's fault, and not something retrying fixes — the user
+                    // needs to sign in again, or the week is outside their plan. Keep the
+                    // entry untouched (no attempt counted, so it cannot age into a dead
+                    // letter) and stop until the situation changes.
+                    await this.db.pendingChanges.update(change.id, { lastError: String(error) });
+                    break;
+                }
+
+                const attempts = change.attempts + 1;
+                await this.db.pendingChanges.update(change.id, {
+                    attempts,
+                    lastError: String(error),
+                    deadLettered: attempts >= MAX_ATTEMPTS,
+                });
+
+                // Transient: keep the entry and stop, so ordering survives. Re-probe too —
+                // this is usually the first sign the API has gone away underneath us, and
+                // without it the indicator keeps claiming everything is fine until the
+                // cached answer expires.
+                void probe();
+                break;
             }
-        } finally {
-            this.isSyncing = false;
+        }
+
+        if (applied > 0) {
+            // Only after something actually reached the server. Stamping on every attempt
+            // would let a board that has been failing for a month claim it synced a moment
+            // ago, which is precisely the lie the resync fence exists to catch.
+            markSynced();
+
+            // Write-back has moved rows underneath the other tabs. They re-read Dexie rather
+            // than being handed a copy — the database is the message, and shipping the row
+            // alongside it is how the two versions start to disagree.
+        broadcastToTabs({ kind: 'changed' });
         }
     }
 

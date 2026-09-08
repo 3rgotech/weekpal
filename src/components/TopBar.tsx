@@ -16,15 +16,17 @@ import { useData } from "../contexts/DataContext";
 import { leftoverBadge } from "../utils/settings";
 import { useInstallPrompt } from "../utils/install";
 import InstallModal from "./InstallModal";
+import ShareWeekModal from "./ShareWeekModal";
 import { useShortcuts } from "../contexts/ShortcutsContext";
 
 const TopBar: React.FC = () => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
-  const { leftovers } = useData();
+  const { leftovers, shareAdapter } = useData();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
   const { openHelp, setLeftoversOpen } = useShortcuts();
   const [installSteps, setInstallSteps] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   // Closing the review hides it until next week, so without this the board gave no sign that
   // anything was still waiting in it.
@@ -109,6 +111,22 @@ const TopBar: React.FC = () => {
             />
           </div>
         )}
+        {/* Beside Print, because they are the same intent — this week, out of the app and in
+            front of somebody else. Hidden entirely without a backend: a demo board cannot mint a
+            link, and a Share button that produced a URL nobody could open would be worse than
+            no button. */}
+        {shareAdapter && (
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+            <IconButton
+              icon="share"
+              iconClass={ICON_BUTTON_CLASS}
+              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+              tooltip={t("actions.share")}
+              onClick={() => setSharing(true)}
+              size="md"
+            />
+          </div>
+        )}
         <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
           <IconButton
             icon="print"
@@ -174,6 +192,7 @@ const TopBar: React.FC = () => {
       </div>
 
       <InstallModal isOpen={installSteps} onOpenChange={setInstallSteps} />
+      <ShareWeekModal isOpen={sharing} onOpenChange={setSharing} />
     </div>
   );
 };

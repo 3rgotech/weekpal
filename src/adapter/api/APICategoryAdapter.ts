@@ -11,6 +11,7 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
             name: row.name,
             color: row.color,
             dayLimit: row.day_limit ?? null,
+            isPrivate: row.is_private ?? false,
         }));
     }
 
@@ -30,6 +31,10 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
                     name: category.name,
                     color: category.color,
                     ...(category.dayLimit === null ? {} : { day_limit: category.dayLimit }),
+                    // Always sent, unlike `day_limit`: privacy is free on every plan, so there
+                    // is no tier for the server to refuse it on, and omitting it would make
+                    // "turn this back off again" impossible to express.
+                    is_private: category.isPrivate,
                 },
             })
             .json<{ data: any }>();
@@ -39,6 +44,7 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
             name: response.data.name,
             color: response.data.color,
             dayLimit: response.data.day_limit ?? null,
+            isPrivate: response.data.is_private ?? false,
         });
     }
 

@@ -6,9 +6,10 @@ import APIAccountAdapter from './api/APIAccountAdapter';
 import APIImportAdapter from './api/APIImportAdapter';
 import APITaskNoteAdapter from './api/APITaskNoteAdapter';
 import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
+import APIShareAdapter from './api/APIShareAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -26,6 +27,7 @@ interface AdapterFactoryResult {
     historyAdapter: IHistoryAdapter | null;
     accountAdapter: IAccountAdapter | null;
     importAdapter: IImportAdapter | null;
+    shareAdapter: IShareAdapter | null;
 }
 
 class AdapterFactory {
@@ -53,6 +55,7 @@ class AdapterFactory {
             historyAdapter: factory.createHistoryAdapter(),
             accountAdapter: factory.createAccountAdapter(),
             importAdapter: factory.createImportAdapter(),
+            shareAdapter: factory.createShareAdapter(),
         };
     }
 
@@ -75,6 +78,17 @@ class AdapterFactory {
         }
 
         return this.usesApi ? new APICategoryAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test or demo double.
+     *
+     * A share link has to be minted by a server — there is nothing a local board could hand out
+     * that would work — so the demo simply has no Share control rather than one that produces a
+     * URL nobody can open.
+     */
+    createShareAdapter(): IShareAdapter | null {
+        return this.usesApi ? new APIShareAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     /**

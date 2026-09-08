@@ -21,6 +21,13 @@ jest.mock("../tabLeader", () => ({
     isLeaderTab: () => true,
     broadcastToTabs: () => undefined,
     subscribeToTabMessages: () => () => undefined,
+    // Fires immediately with the current answer, which is what `SyncService` relies on to
+    // drain a queue that accumulated before the lock was granted.
+    subscribeToLeadership: (listener: (leader: boolean) => void) => {
+        listener(true);
+
+        return () => undefined;
+    },
 }));
 
 const TASK_ID = "01930000-0000-7000-8000-00000000aaaa";
@@ -165,6 +172,42 @@ describe("acting on what the server answered", () => {
 
         // The user is about to see something they did not type. That is worth saying out loud.
         expect(getSupersededCount()).toBe(2);
+    });
+
+    it("sends a queued write even while another drain is in flight", async () => {
+        // The regression that motivated serialising drains. A plain `isSyncing` boolean was
+        // wrong whichever side of the connectivity probe it was set: before it, a second caller
+        // returned immediately and its write was simply never attempted; after it, both callers
+        // slipped past and every entry was sent twice.
+        const { db, service } = await load();
+        await db.somedayTasks.put({ id: TASK_ID, title: "Queued mid-drain", order: 0 } as never);
+
+        // Two callers in the same tick, which is exactly what the leadership subscription and a
+        // store write together produce on a page that has just loaded.
+        await Promise.all([
+            service.syncPendingChanges(),
+            service.enqueue({ entityType: "task", entityId: TASK_ID, type: "upsert", dirty: {} }),
+        ]);
+
+        expect(adapter.upsert).toHaveBeenCalledTimes(1);
+        expect(await db.pendingChanges.count()).toBe(0);
+    });
+
+    it("does not send the same entry twice when drains overlap", async () => {
+        const { db, service } = await load();
+        await db.somedayTasks.put({ id: TASK_ID, title: "Only once", order: 0 } as never);
+        await db.pendingChanges.put({
+            id: "queued", entityType: "task", entityId: TASK_ID,
+            type: "upsert", timestamp: Date.now(), attempts: 0, dirty: {},
+        } as never);
+
+        await Promise.all([
+            service.syncPendingChanges(),
+            service.syncPendingChanges(),
+            service.syncPendingChanges(),
+        ]);
+
+        expect(adapter.upsert).toHaveBeenCalledTimes(1);
     });
 
     it("sends the claims it was given, keyed by task", async () => {

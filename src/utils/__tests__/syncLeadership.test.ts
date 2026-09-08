@@ -28,6 +28,13 @@ jest.mock("../tabLeader", () => ({
         broadcasts.push(message);
     },
     subscribeToTabMessages: () => () => undefined,
+    // Fires immediately with the current answer, which is what `SyncService` relies on to
+    // drain a queue that accumulated before the lock was granted.
+    subscribeToLeadership: (listener: (leader: boolean) => void) => {
+        listener(leading);
+
+        return () => undefined;
+    },
 }));
 
 const upsert = jest.fn(async (task: unknown) => task);

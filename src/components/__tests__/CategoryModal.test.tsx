@@ -28,6 +28,42 @@ const category = (id: string, name: string, color = "sky", dayLimit: number | nu
 
 const open = () => render(<CategoryModal isOpen onOpenChange={() => { }} />);
 
+describe("marking a category private", () => {
+    it("saves the flag", async () => {
+        // Free on every plan, unlike the day limit beside it: a privacy control behind a paywall
+        // is not a privacy control.
+        data.categories = [category("a", "Therapy")];
+        open();
+
+        fireEvent.click(screen.getByLabelText("category.private: Therapy"));
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalled());
+        expect(data.saveCategory.mock.calls[0][0].isPrivate).toBe(true);
+    });
+
+    it("stays available without a plan", async () => {
+        account.subscribed = false;
+        data.categories = [category("a", "Therapy")];
+        open();
+
+        expect(screen.getByLabelText("category.private: Therapy").hasAttribute("disabled")).toBe(false);
+        account.subscribed = true;
+    });
+
+    it("can be turned back off", async () => {
+        const existing = new Category({ id: "a", name: "Therapy", color: "sky", isPrivate: true });
+        data.categories = [existing];
+        open();
+
+        fireEvent.click(screen.getByLabelText("category.private: Therapy"));
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalled());
+        expect(data.saveCategory.mock.calls[0][0].isPrivate).toBe(false);
+    });
+});
+
 const nameFields = () => screen.getAllByLabelText("category.name") as HTMLInputElement[];
 
 beforeEach(() => {

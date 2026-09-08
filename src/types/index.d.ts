@@ -283,6 +283,34 @@ export interface IEventAdapter {
   getWeek(weekCode: string): Promise<Event[]>;
 }
 
+/**
+ * A link handed out for one week.
+ *
+ * `unavailable_reason` is `revoked` | `expired` | `exhausted`, or null while the link works. The
+ * public page deliberately cannot say which — telling a stranger apart would make the URL an
+ * oracle — but the owner is signed in, so here it can.
+ */
+export interface WeekShare {
+  id: string;
+  week_number: string;
+  url: string;
+  has_password: boolean;
+  expires_at: string | null;
+  max_views: number | null;
+  view_count: number;
+  last_viewed_at: string | null;
+  revoked_at: string | null;
+  is_viewable: boolean;
+  unavailable_reason: 'revoked' | 'expired' | 'exhausted' | null;
+  created_at: string | null;
+}
+
+export interface IShareAdapter {
+  list(): Promise<WeekShare[]>;
+  share(weekCode: string, options: { password?: string; expiresAt?: string; maxViews?: number }): Promise<WeekShare>;
+  revoke(weekCode: string): Promise<void>;
+}
+
 export interface ICategoryAdapter {
   list(): Promise<Category[]>;
   upsert(category: Category): Promise<Category>;

@@ -13,6 +13,15 @@ class Category extends Base {
      */
     public dayLimit: number | null;
 
+    /**
+     * Never leaves the account through a shared week.
+     *
+     * The category is the unit because it is the label already on every task: marking one
+     * private is a single decision covering everything filed under it now and later, where a
+     * per-task toggle would be a decision made forty times a week and forgotten once.
+     */
+    public isPrivate: boolean;
+
     constructor(data: Record<string, any>) {
         super(data);
         this.name = data.name;
@@ -20,6 +29,7 @@ class Category extends Base {
         // Both spellings: the API speaks snake_case, the board camelCase, and this object is
         // built from either side depending on whether it came from the server or from Dexie.
         this.dayLimit = data.dayLimit ?? data.day_limit ?? null;
+        this.isPrivate = Boolean(data.isPrivate ?? data.is_private ?? false);
     }
 
     getColorClasses() {

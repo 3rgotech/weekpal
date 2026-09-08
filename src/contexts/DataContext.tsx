@@ -1,6 +1,6 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
 import { subscribeToTabMessages } from "../utils/tabLeader";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, TaskLocation } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import BaseStore from "../store/BaseStore";
@@ -126,6 +126,14 @@ interface DataContextProps {
    * there is no local table for a store to sit in front of.
    */
   historyAdapter: IHistoryAdapter | null;
+
+  /**
+   * Passed through for the same reason as history, and one more: a share link has to be minted
+   * by a server, so there is nothing an offline queue could usefully do with it. Null on a demo
+   * or test board, which is what hides the Share control rather than offering a URL nobody could
+   * open.
+   */
+  shareAdapter: IShareAdapter | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -137,6 +145,7 @@ interface DataProviderProps {
   noteAdapter?: INoteAdapter | null;
   projectAdapter?: IProjectAdapter | null;
   historyAdapter?: IHistoryAdapter | null;
+  shareAdapter?: IShareAdapter | null;
 }
 
 const DataProvider: React.FC<DataProviderProps> = ({
@@ -145,7 +154,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
   categoryAdapter = null,
   noteAdapter = null,
   projectAdapter = null,
-  historyAdapter = null
+  historyAdapter = null,
+  shareAdapter = null
 }) => {
   const { currentWeek, thisWeek } = useCalendar();
   const { settings } = useSettings();
@@ -867,6 +877,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         deleteCategory,
         noteStore,
         historyAdapter,
+        shareAdapter,
         projectStore,
         projects,
         saveProject,
