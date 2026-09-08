@@ -13,8 +13,9 @@ import {
 import { newId } from "./id";
 import { reportSuperseded, reportSyncFailure, reportSyncHealth } from "./syncStatus";
 import { mergeDirty } from "./taskDirty";
+import { isResyncRequired, markSynced, resyncFromServer } from "./resyncFence";
 import { isReachable, probe, probeIfStale } from "./connectivity";
-import { broadcastToTabs, isLeaderTab, subscribeToTabMessages } from "./tabLeader";
+import { broadcastToTabs, isLeaderTab, subscribeToLeadership, subscribeToTabMessages } from "./tabLeader";
 
 interface SyncAdapters {
     task?: ITaskAdapter | null;
@@ -66,6 +67,8 @@ export class SyncService {
 
     private readonly unsubscribeFromTabs: () => void;
 
+    private readonly unsubscribeFromLeadership: () => void;
+
     private constructor(private db: WeekpalDB, private adapters: SyncAdapters) {
         // The browser saying "online" is the prompt to check, not the answer: coming back on a
         // captive portal fires this event too. Confirm with the API before draining the queue.
@@ -77,6 +80,24 @@ export class SyncService {
         // "the next time the user does something in that other tab" — possibly never.
         this.unsubscribeFromTabs = subscribeToTabMessages((message) => {
             if (message.kind === 'flush') {
+                void this.syncPendingChanges();
+            }
+        });
+
+        /*
+         * Drain on promotion — and this covers the first moments of every page load.
+         *
+         * Claiming the Web Lock is asynchronous, so a tab is *not* the leader for the first tick
+         * or two of its life. Writes made in that window queue correctly and then sit there,
+         * because the only things that trigger a drain are a new write, coming back online, and
+         * a nudge from another tab — and a single-tab board may do none of those again for
+         * hours. The queue was not lost, but it was silent, which is the same thing to a user.
+         *
+         * Fires on the initial subscribe too, which is what makes the ordinary case work: by the
+         * time this runs the lock is usually already held.
+         */
+        this.unsubscribeFromLeadership = subscribeToLeadership((leader) => {
+            if (leader) {
                 void this.syncPendingChanges();
             }
         });
@@ -108,6 +129,7 @@ export class SyncService {
     dispose(): void {
         window.removeEventListener('online', this.onlineListener);
         this.unsubscribeFromTabs();
+        this.unsubscribeFromLeadership();
     }
 
     /**
@@ -234,6 +256,19 @@ export class SyncService {
                     reportSyncHealth('ok');
                 } catch (error) {
                     const kind = classifyFailure(error);
+
+                    /*
+                     * "We disagree about what exists" rather than "this write is wrong".
+                     *
+                     * Handled before the conflict branch below, which would otherwise dead-letter
+                     * the entry — and this entry is fine. It is the local *cache* that is
+                     * unusable, so the cache is thrown away and the write stays queued to be
+                     * resolved against the server's own rows on the next attempt.
+                     */
+                    if (kind === 'conflict' && await this.handleResync(error)) {
+                        break;
+                    }
+
                     reportSyncFailure(kind);
 
                     if (kind === 'permanent' || kind === 'conflict') {
@@ -273,6 +308,11 @@ export class SyncService {
             }
 
             if (applied > 0) {
+                // Only after something actually reached the server. Stamping on every attempt
+                // would let a board that has been failing for a month claim it synced a moment
+                // ago, which is precisely the lie the resync fence exists to catch.
+                markSynced();
+
                 // Write-back has moved rows underneath the other tabs. They re-read Dexie rather
                 // than being handed a copy — the database is the message, and shipping the row
                 // alongside it is how the two versions start to disagree.
@@ -390,6 +430,41 @@ export class SyncService {
 
         const stored = await adapter.upsert(note);
         await this.db.taskNotes.put(stored as any);
+    }
+
+    /**
+     * Throw the cached copy away when the server says it is beyond reconciling.
+     *
+     * Returns whether this was that case, so the caller can stop the drain: every remaining
+     * entry would get the same answer, and the tables they read from have just been emptied.
+     * The queue itself survives — see `resyncFromServer`, which never touches it.
+     */
+    private async handleResync(error: unknown): Promise<boolean> {
+        const body = await this.responseBody(error);
+
+        if (!isResyncRequired(body)) {
+            return false;
+        }
+
+        await resyncFromServer(this.db);
+        broadcastToTabs({ kind: 'changed' });
+
+        return true;
+    }
+
+    /** The JSON body of a failed request, or undefined if there is not one to read. */
+    private async responseBody(error: unknown): Promise<unknown> {
+        const response = (error as { response?: { json?: () => Promise<unknown> } })?.response;
+
+        if (!response?.json) {
+            return undefined;
+        }
+
+        try {
+            return await response.json();
+        } catch {
+            return undefined;
+        }
     }
 
     /**

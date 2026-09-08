@@ -26,6 +26,7 @@ import { getEnvConfig } from "./utils/env";
 import { configureConnectivity } from "./utils/connectivity";
 import { startTabLeadership } from "./utils/tabLeader";
 import { configureBoardToken } from "./utils/boardToken";
+import { configureBuildFence } from "./utils/buildFence";
 
 // Extend Window interface to include API_URL
 declare global {
@@ -49,6 +50,7 @@ function App() {
     // Before any adapter is built: the adapters read the token per request rather than baking it
     // in, and the first read happens as soon as a store pulls.
     configureBoardToken(env.apiKey, env.tokenUrl);
+    configureBuildFence(env.buildId);
 
     // Claim the sync lock here too, and for the same reason: `SyncService` is built by the first
     // store a child creates, and a tab that has not decided whether it leads by then would flush

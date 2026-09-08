@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { subscribeToBuildMismatch } from "./buildFence";
 
 /** How often a board nobody has closed goes looking for a new version. */
 const CHECK_EVERY = 60 * 60 * 1000;
@@ -27,6 +28,17 @@ interface AppUpdate {
  */
 export function useAppUpdate(): AppUpdate {
     const [updateReady, setUpdateReady] = useState(false);
+
+    /*
+     * The other way of finding out, and the one that matters when the worker cannot.
+     *
+     * Its own effect, deliberately: the service-worker effect below returns early on a browser
+     * that has none, and those are precisely the browsers where this is the only signal there is.
+     * A build mismatch reported by the API means the server has already moved on, whatever the
+     * worker has managed to fetch — same bar, same wording, because from the user's side it is
+     * the same fact.
+     */
+    useEffect(() => subscribeToBuildMismatch(() => setUpdateReady(true)), []);
 
     useEffect(() => {
         const worker = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;

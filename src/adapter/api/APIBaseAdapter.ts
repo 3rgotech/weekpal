@@ -1,5 +1,7 @@
 import ky from 'ky';
 import { boardToken, refreshBoardToken } from '../../utils/boardToken';
+import { checkBuildFence } from '../../utils/buildFence';
+import { lastSyncedAt } from '../../utils/resyncFence';
 
 export abstract class APIBaseAdapter {
     protected apiUrl: string;
@@ -30,6 +32,15 @@ export abstract class APIBaseAdapter {
                         if (token) {
                             request.headers.set('Authorization', `Bearer ${token}`);
                         }
+
+                        // How far behind this device is, so the server can refuse a write it
+                        // could not sensibly reconcile. Omitted when unknown — a device that
+                        // cannot remember when it synced is not evidence that it is stale.
+                        const synced = lastSyncedAt();
+
+                        if (synced) {
+                            request.headers.set('X-WeekPal-Last-Sync', synced);
+                        }
                     },
                 ],
                 /*
@@ -43,6 +54,10 @@ export abstract class APIBaseAdapter {
                  */
                 afterResponse: [
                     async ({ request, response }) => {
+                        // On every response, including the ones that fail: a stale tab's
+                        // requests are exactly the ones most likely to be rejected.
+                        checkBuildFence(response);
+
                         if (response.status !== 401 || request.headers.get('X-WeekPal-Retried')) {
                             return response;
                         }

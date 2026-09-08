@@ -31,6 +31,14 @@ declare global {
          * when its token runs out, which is what happens today.
          */
         TOKEN_URL?: string;
+        /**
+         * Which build of the board this page loaded.
+         *
+         * Compared against the build every API response reports. Absent in demo and dev, which
+         * disables the fence — a developer running the SPA off Vite against a built backend
+         * would otherwise be told to reload continuously.
+         */
+        BUILD_ID?: string;
     }
 }
 
@@ -42,6 +50,7 @@ export interface EnvConfig {
     signupUrl: Url;
     loginUrl: Url;
     tokenUrl: Url;
+    buildId: string | undefined;
 }
 
 export function getEnvConfig(): EnvConfig {
@@ -52,6 +61,7 @@ export function getEnvConfig(): EnvConfig {
     let signupUrl: Url;
     let loginUrl: Url;
     let tokenUrl: Url;
+    let buildId: string | undefined;
 
     // Try to get values from window context first (takes precedence)
     try {
@@ -76,6 +86,10 @@ export function getEnvConfig(): EnvConfig {
 
         if (window.TOKEN_URL) {
             tokenUrl = window.TOKEN_URL;
+        }
+
+        if (window.BUILD_ID) {
+            buildId = window.BUILD_ID;
         }
 
         // Check for DATA_SOURCE independently
@@ -116,5 +130,5 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, tokenUrl };
+    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, tokenUrl, buildId };
 }
