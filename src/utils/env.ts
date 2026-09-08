@@ -23,6 +23,14 @@ declare global {
          */
         SIGNUP_URL?: string;
         LOGIN_URL?: string;
+        /**
+         * Where the board asks for a new bearer token when its own expires.
+         *
+         * Set by the Blade view that embeds the board, and absent in demo and test mode, which
+         * have no session to authenticate the ask with. A board without it simply stops writing
+         * when its token runs out, which is what happens today.
+         */
+        TOKEN_URL?: string;
     }
 }
 
@@ -33,6 +41,7 @@ export interface EnvConfig {
     accountUrl: Url;
     signupUrl: Url;
     loginUrl: Url;
+    tokenUrl: Url;
 }
 
 export function getEnvConfig(): EnvConfig {
@@ -42,6 +51,7 @@ export function getEnvConfig(): EnvConfig {
     let accountUrl: Url;
     let signupUrl: Url;
     let loginUrl: Url;
+    let tokenUrl: Url;
 
     // Try to get values from window context first (takes precedence)
     try {
@@ -62,6 +72,10 @@ export function getEnvConfig(): EnvConfig {
 
         if (window.LOGIN_URL) {
             loginUrl = window.LOGIN_URL;
+        }
+
+        if (window.TOKEN_URL) {
+            tokenUrl = window.TOKEN_URL;
         }
 
         // Check for DATA_SOURCE independently
@@ -102,5 +116,5 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl };
+    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, tokenUrl };
 }

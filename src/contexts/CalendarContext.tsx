@@ -12,6 +12,7 @@ import {
   weekLayout,
   weekStart,
 } from "../utils/week";
+import { startDayWatch, subscribeToDayChange } from "../utils/dayWatch";
 
 interface CalendarContextProps {
   currentDate: Dayjs;
@@ -36,6 +37,16 @@ const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
   const [currentDate, setCurrentDate] = useState(dayjs());
+
+  /*
+   * Bumped when the calendar day changes underneath an idle tab.
+   *
+   * `thisWeek` below is computed during render, so without something to force a render it keeps
+   * whatever answer it gave when the tab was opened — and a board left open from Thursday to
+   * Sunday goes on presenting last week as this week. The value itself is never read; it exists
+   * to make React recompute.
+   */
+  const [, setDayTick] = useState(0);
 
   const { workingDays, showNonWorkingDays, weekStartsOn } = settings;
 
@@ -74,6 +85,28 @@ const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     setCurrentDate(cd => cd.locale(settings.language));
   }, [settings.language]);
+
+  useEffect(() => {
+    startDayWatch();
+
+    return subscribeToDayChange(() => {
+      setDayTick((tick) => tick + 1);
+
+      /*
+       * Follow the rollover, but only for someone who was looking at the present.
+       *
+       * A user who deliberately navigated to another week is *reading* it, and yanking them to
+       * today because midnight passed would be the board taking the page away mid-sentence. But
+       * a board sitting on the current week and left overnight should still be on the current
+       * week in the morning — that is the whole promise of furniture.
+       */
+      setCurrentDate((cd) =>
+        weekCodeOf(cd, weekStartsOn) === weekCodeOf(dayjs(), weekStartsOn) ? cd : dayjs()
+      );
+    });
+    // `weekStartsOn` is read inside the callback; re-subscribing when it changes keeps the
+    // comparison honest for someone who switches their week start while the tab is open.
+  }, [weekStartsOn, dayjs]);
 
   return (
     <CalendarContext.Provider
