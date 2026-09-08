@@ -1,4 +1,5 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
+import { subscribeToTabMessages } from "../utils/tabLeader";
 import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
@@ -310,6 +311,30 @@ const DataProvider: React.FC<DataProviderProps> = ({
       });
     }
   }, [taskStore, categoryStore, eventStore, currentWeek, selectedCategories]);
+
+  /*
+   * Another tab's leader has just synced, so what is on screen here is older than the database
+   * underneath it.
+   *
+   * A local re-read, deliberately — no `resetThrottle`, no pull. The leader has already been to
+   * the server; a follower going too would be a second request for an answer the shared database
+   * already holds, from the tab that was specifically told not to talk to the server.
+   */
+  useEffect(() => {
+    return subscribeToTabMessages((message) => {
+      if (message.kind !== "changed") {
+        return;
+      }
+
+      if (taskStore) {
+        void taskStore.list(currentWeek).then(setTasks);
+      }
+
+      if (categoryStore) {
+        void categoryStore.list().then(setCategories);
+      }
+    });
+  }, [taskStore, categoryStore, currentWeek]);
 
   const findTask = (taskId: string) => {
     return tasks.find((task) => task.id === taskId)

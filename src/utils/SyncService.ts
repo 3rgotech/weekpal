@@ -11,6 +11,7 @@ import {
 import { newId } from "./id";
 import { reportSyncFailure, reportSyncHealth } from "./syncStatus";
 import { isReachable, probe, probeIfStale } from "./connectivity";
+import { broadcastToTabs, isLeaderTab, subscribeToTabMessages } from "./tabLeader";
 
 interface SyncAdapters {
     task?: ITaskAdapter | null;
@@ -48,6 +49,11 @@ const MAX_ATTEMPTS = 5;
  * 4. A permanently-failing entry blocked the queue forever, because failures were not
  *    distinguished. A 422 is never going to succeed, so it is dead-lettered; a 500 or a network
  *    error is, so it stays and blocks — which is what preserves ordering.
+ *
+ * A fifth followed from the first, and is why {@see tabLeader} exists: one instance per
+ * application is not one instance per *machine*. An always-open board becomes several tabs, each
+ * with its own singleton draining the same shared Dexie queue, racing on the same rows. Only the
+ * tab holding the `weekpal-sync` lock sends anything now; the rest queue and say so.
  */
 export class SyncService {
     private static instance: SyncService | null = null;
@@ -55,11 +61,22 @@ export class SyncService {
     private isSyncing = false;
     private readonly onlineListener: () => void;
 
+    private readonly unsubscribeFromTabs: () => void;
+
     private constructor(private db: WeekpalDB, private adapters: SyncAdapters) {
         // The browser saying "online" is the prompt to check, not the answer: coming back on a
         // captive portal fires this event too. Confirm with the API before draining the queue.
         this.onlineListener = () => { void probe().then(() => this.syncPendingChanges()); };
         window.addEventListener('online', this.onlineListener);
+
+        // A follower has queued something and cannot send it itself. Without this the write sits
+        // until whatever the leader's next trigger happens to be, which on a board left open is
+        // "the next time the user does something in that other tab" — possibly never.
+        this.unsubscribeFromTabs = subscribeToTabMessages((message) => {
+            if (message.kind === 'flush') {
+                void this.syncPendingChanges();
+            }
+        });
     }
 
     /**
@@ -87,6 +104,7 @@ export class SyncService {
 
     dispose(): void {
         window.removeEventListener('online', this.onlineListener);
+        this.unsubscribeFromTabs();
     }
 
     /**
@@ -105,9 +123,19 @@ export class SyncService {
             attempts: 0,
         });
 
-        if (this.isOnline) {
-            await this.syncPendingChanges();
+        if (!this.isOnline) {
+            return;
         }
+
+        if (isLeaderTab()) {
+            await this.syncPendingChanges();
+
+            return;
+        }
+
+        // Not our queue to drain. The row is already in Dexie, which every tab shares, so the
+        // leader has everything it needs — it just has to be told to look now.
+        broadcastToTabs({ kind: 'flush' });
     }
 
     /**
@@ -118,6 +146,12 @@ export class SyncService {
      */
     async syncPendingChanges(): Promise<void> {
         if (this.isSyncing) {
+            return;
+        }
+
+        // The guard that makes the whole thing work. Every tab still calls this — on `online`,
+        // on a store write, on a nudge from a sibling — and every tab but one returns here.
+        if (!isLeaderTab()) {
             return;
         }
 
@@ -135,10 +169,13 @@ export class SyncService {
                 .filter((change) => !change.deadLettered)
                 .toArray();
 
+            let applied = 0;
+
             for (const change of queue) {
                 try {
                     await this.processChange(change);
                     await this.db.pendingChanges.delete(change.id);
+                    applied++;
 
                     // A write got through, so whatever was refusing us has stopped.
                     reportSyncHealth('ok');
@@ -180,6 +217,13 @@ export class SyncService {
                     void probe();
                     break;
                 }
+            }
+
+            if (applied > 0) {
+                // Write-back has moved rows underneath the other tabs. They re-read Dexie rather
+                // than being handed a copy — the database is the message, and shipping the row
+                // alongside it is how the two versions start to disagree.
+                broadcastToTabs({ kind: 'changed' });
             }
         } finally {
             this.isSyncing = false;

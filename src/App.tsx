@@ -24,6 +24,7 @@ import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
 import { configureConnectivity } from "./utils/connectivity";
+import { startTabLeadership } from "./utils/tabLeader";
 
 // Extend Window interface to include API_URL
 declare global {
@@ -43,6 +44,11 @@ function App() {
   useMemo(() => {
     const env = getEnvConfig();
     configureConnectivity({ baseApiUrl: env.baseApiUrl, dataSource: env.dataSource });
+
+    // Claim the sync lock here too, and for the same reason: `SyncService` is built by the first
+    // store a child creates, and a tab that has not decided whether it leads by then would flush
+    // its opening writes regardless of how many other tabs are already open.
+    startTabLeadership();
   }, []);
 
   const [indexedDBAvailable, setIndexedDBAvailable] = useState(true);
