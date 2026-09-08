@@ -5,6 +5,9 @@ import { getDayJs, weekCodeToDate } from "../utils/dayjs";
 import { classifyFailure } from "../utils/SyncService";
 import { reportSyncFailure, reportSyncHealth } from "../utils/syncStatus";
 import BaseStore from "./BaseStore";
+import { deviceId } from "../utils/deviceId";
+import { newId } from "../utils/id";
+import { claimPosition, dirtyBetween } from "../utils/taskDirty";
 
 class TaskStore extends BaseStore implements ITaskStore {
 
@@ -271,6 +274,13 @@ class TaskStore extends BaseStore implements ITaskStore {
      * ids that produced duplicate rows on the server.
      */
     private async put(task: Task): Promise<Task> {
+        // Read *before* the write, and diffed against it. This is the gesture, so this is where
+        // the claims are stamped — at flush the row would already have been overwritten and
+        // there would be nothing left to compare, and the timestamp would be the moment the
+        // network returned rather than the moment the user acted.
+        const previous = await this.findLocal(task.id);
+        const dirty = dirtyBetween(previous, task);
+
         await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
             // A move changes which table the task belongs in while keeping its id.
             if (task.taskType === 'weekly') {
@@ -286,9 +296,17 @@ class TaskStore extends BaseStore implements ITaskStore {
             entityType: 'task',
             entityId: task.id,
             type: 'upsert',
+            dirty,
+            mutationId: newId(),
+            deviceId: deviceId(),
         });
 
         return (await this.reload(task)) ?? task;
+    }
+
+    /** The stored copy, from whichever table currently holds it. */
+    private async findLocal(id: string): Promise<Task | undefined> {
+        return (await this.db.weeklyTasks.get(id)) ?? (await this.db.somedayTasks.get(id));
     }
 
     async create(task: Task): Promise<Task> {
@@ -309,6 +327,8 @@ class TaskStore extends BaseStore implements ITaskStore {
             entityType: 'task',
             entityId: task.id,
             type: 'delete',
+            mutationId: newId(),
+            deviceId: deviceId(),
         });
     }
 
@@ -346,6 +366,12 @@ class TaskStore extends BaseStore implements ITaskStore {
             entityId: tasks[0].id,
             entityIds: tasks.map((task) => task.id),
             type: 'upsert',
+            // A reorder is one gesture claiming one thing about every row it touched. Nothing
+            // else about these tasks changed, and claiming otherwise would let a drag overwrite
+            // a title edited on another device a moment earlier.
+            dirty: claimPosition(),
+            mutationId: newId(),
+            deviceId: deviceId(),
         });
     }
 }

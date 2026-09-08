@@ -7,9 +7,12 @@ import {
     ITaskAdapter,
     PendingChange,
     SyncFailureKind,
+    TaskWriteResult,
+    WriteIntent,
 } from "../types";
 import { newId } from "./id";
-import { reportSyncFailure, reportSyncHealth } from "./syncStatus";
+import { reportSuperseded, reportSyncFailure, reportSyncHealth } from "./syncStatus";
+import { mergeDirty } from "./taskDirty";
 import { isReachable, probe, probeIfStale } from "./connectivity";
 import { broadcastToTabs, isLeaderTab, subscribeToTabMessages } from "./tabLeader";
 
@@ -116,12 +119,16 @@ export class SyncService {
     }
 
     async enqueue(change: Omit<PendingChange, 'id' | 'timestamp' | 'attempts'>): Promise<void> {
-        await this.db.pendingChanges.put({
-            ...change,
-            id: newId(),
-            timestamp: Date.now(),
-            attempts: 0,
-        });
+        const merged = await this.coalesce(change);
+
+        if (!merged) {
+            await this.db.pendingChanges.put({
+                ...change,
+                id: newId(),
+                timestamp: Date.now(),
+                attempts: 0,
+            });
+        }
 
         if (!this.isOnline) {
             return;
@@ -136,6 +143,52 @@ export class SyncService {
         // Not our queue to drain. The row is already in Dexie, which every tab shares, so the
         // leader has everything it needs — it just has to be told to look now.
         broadcastToTabs({ kind: 'flush' });
+    }
+
+    /**
+     * Fold a new write into one already queued for the same rows, if there is one.
+     *
+     * Typing a title, then dragging the card, then ticking it produces three entries for one
+     * task — and since the payload is read from the database at flush time, all three would send
+     * byte-identical bodies. Only the claims differ, so only the claims need keeping.
+     *
+     * The union takes the **later stamp per field**, never the later entry. "Newest entry wins"
+     * would drop claims on fields the newest gesture did not touch, which is precisely the loss
+     * the map exists to prevent.
+     *
+     * Deletes are never folded into an upsert, and vice versa: they are different verbs and the
+     * order between them is the whole meaning.
+     */
+    private async coalesce(change: Omit<PendingChange, 'id' | 'timestamp' | 'attempts'>): Promise<boolean> {
+        if (change.type !== 'upsert' || change.entityType !== 'task') {
+            return false;
+        }
+
+        const signature = [...(change.entityIds ?? [change.entityId])].sort().join(',');
+
+        const existing = (await this.db.pendingChanges
+            .filter((queued) => queued.entityType === 'task'
+                && queued.type === 'upsert'
+                && !queued.deadLettered
+                && [...(queued.entityIds ?? [queued.entityId])].sort().join(',') === signature)
+            .toArray())
+            // The oldest matching entry keeps its place in the queue, so a write that has been
+            // waiting does not lose its ordering to one made just now.
+            .sort((a, b) => a.timestamp - b.timestamp)[0];
+
+        if (!existing) {
+            return false;
+        }
+
+        await this.db.pendingChanges.update(existing.id, {
+            dirty: mergeDirty(existing.dirty, change.dirty ?? {}),
+            // The gesture id follows the claims: whichever mutation the merged entry ends up
+            // representing, it must be one the server has not already seen.
+            mutationId: change.mutationId ?? existing.mutationId,
+            deviceId: change.deviceId ?? existing.deviceId,
+        });
+
+        return true;
     }
 
     /**
@@ -253,6 +306,7 @@ export class SyncService {
 
         if (entityType === 'task') {
             const ids = change.entityIds ?? [entityId];
+            const intent = this.intentFor(change);
 
             if (ids.length > 1) {
                 // A reorder. One request, so the board cannot settle half-applied if the
@@ -264,10 +318,7 @@ export class SyncService {
                     throw new SyncError('None of the reordered tasks are in the local database.', 'permanent');
                 }
 
-                const stored = await this.taskAdapter().upsertMany(tasks);
-                for (const task of stored) {
-                    await this.writeBackTask(task);
-                }
+                await this.applyResults(await this.taskAdapter().upsertMany(tasks, intent));
                 return;
             }
 
@@ -276,8 +327,7 @@ export class SyncService {
                 throw new SyncError(`Task ${entityId} is no longer in the local database.`, 'permanent');
             }
 
-            const stored = await this.taskAdapter().upsert(task);
-            await this.writeBackTask(stored);
+            await this.applyResults([await this.taskAdapter().upsert(task, intent)]);
             return;
         }
 
@@ -340,6 +390,56 @@ export class SyncService {
 
         const stored = await adapter.upsert(note);
         await this.db.taskNotes.put(stored as any);
+    }
+
+    /**
+     * What the queue entry asserts, shaped for the adapter.
+     *
+     * The dirty map is stored flat on the entry because a single-task write has only one set of
+     * claims; the adapter wants it keyed by task, so a reorder can carry a different claim per
+     * row. For a multi-row entry every task shares the same claim — they were all moved by one
+     * gesture, which is what a reorder is.
+     */
+    private intentFor(change: PendingChange): WriteIntent {
+        const ids = change.entityIds ?? [change.entityId];
+        const dirty = change.dirty ?? {};
+
+        return {
+            dirty: Object.fromEntries(ids.map((id) => [id, dirty])),
+            mutationId: change.mutationId,
+            deviceId: change.deviceId,
+        };
+    }
+
+    /**
+     * Take the server at its word, row by row.
+     *
+     * Three outcomes need doing something about. A `gone` row is deleted locally — the task was
+     * purged, and recreating it is exactly what the husk exists to prevent. A row that came back
+     * is written over the local copy, which is what makes the two converge. And anything
+     * superseded is counted, so the user can be told their screen changed for a reason instead
+     * of watching it repaint on its own.
+     */
+    private async applyResults(results: TaskWriteResult[]): Promise<void> {
+        let superseded = 0;
+
+        for (const result of results) {
+            if (result.status === 'gone') {
+                await this.db.weeklyTasks.delete(result.id);
+                await this.db.somedayTasks.delete(result.id);
+                continue;
+            }
+
+            superseded += Object.keys(result.superseded ?? {}).length;
+
+            const task = result.task ? Task.createFromApiData(result.task) : null;
+
+            if (task) {
+                await this.writeBackTask(task);
+            }
+        }
+
+        reportSuperseded(superseded);
     }
 
     /**

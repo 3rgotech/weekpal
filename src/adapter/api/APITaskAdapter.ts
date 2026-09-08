@@ -1,7 +1,8 @@
 import Task, { WeeklyTask, SomedayTask } from '../../data/task';
 import Event from '../../data/event';
-import { ITaskAdapter, LeftoverPayload, WeekPayload } from '../../types';
+import { ITaskAdapter, LeftoverPayload, TaskWriteResult, WeekPayload, WriteIntent } from '../../types';
 import { APIBaseAdapter } from './APIBaseAdapter';
+import { recordServerTime } from '../../utils/syncClock';
 
 /**
  * Talks to the Laravel backend.
@@ -54,30 +55,51 @@ class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
     /**
      * Create or update — the server decides which, keyed by the id the client minted.
      *
-     * The stored row comes back and is written to IndexedDB by the caller, which is what makes
-     * last-writer-wins actually converge. The old `update()` returned void, so the server's
-     * version of the row was discarded and the two copies could drift apart unnoticed.
+     * The whole representation goes up, but `dirty` is what the server treats as a *claim*.
+     * Everything outside it is this client reporting what it last saw, which is what makes the
+     * payload self-healing without letting a stale tab overwrite work it never knew about.
+     *
+     * The answer is a result, not a row: "some of what you sent did not land" is the only
+     * interesting outcome and a bare row cannot express it.
      */
-    async upsert(task: Task): Promise<Task> {
+    async upsert(task: Task, intent?: WriteIntent): Promise<TaskWriteResult> {
         const response = await this.getClient()
-            .put(`tasks/${task.id}`, { json: task.toApiPayload() })
-            .json<{ data: any }>();
+            .put(`tasks/${task.id}`, {
+                json: {
+                    ...task.toApiPayload(),
+                    dirty: intent?.dirty?.[task.id] ?? {},
+                    ...this.envelope(intent),
+                },
+            })
+            .json<{ data: TaskWriteResult; meta?: { server_time?: string } }>();
 
-        return this.parseOrThrow(response.data, task.id);
+        recordServerTime(response.meta?.server_time);
+
+        return response.data;
     }
 
-    async upsertMany(tasks: Task[]): Promise<Task[]> {
+    async upsertMany(tasks: Task[], intent?: WriteIntent): Promise<TaskWriteResult[]> {
         if (tasks.length === 0) {
             return [];
         }
 
         const response = await this.getClient()
-            .put('tasks', { json: { tasks: tasks.map((task) => task.toApiPayload()) } })
-            .json<{ data: any[] }>();
+            .put('tasks', {
+                json: {
+                    tasks: tasks.map((task) => ({
+                        ...task.toApiPayload(),
+                        // Per row: a reorder touches a dozen tasks and each one's claim is about
+                        // its own position at its own moment.
+                        dirty: intent?.dirty?.[task.id] ?? {},
+                    })),
+                    ...this.envelope(intent),
+                },
+            })
+            .json<{ data: TaskWriteResult[]; meta?: { server_time?: string } }>();
 
-        return (response.data ?? [])
-            .map((row) => Task.createFromApiData(row))
-            .filter((task): task is WeeklyTask | SomedayTask => task !== null);
+        recordServerTime(response.meta?.server_time);
+
+        return response.data ?? [];
     }
 
     /** Idempotent: the backend answers 204 whether or not the task was still there. */
@@ -85,14 +107,17 @@ class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
         await this.getClient().delete(`tasks/${id}`);
     }
 
-    private parseOrThrow(row: any, id: string): Task {
-        const task = Task.createFromApiData(row);
-
-        if (task === null) {
-            throw new Error(`The API returned an unreadable task for ${id}.`);
-        }
-
-        return task;
+    /**
+     * The parts that describe the gesture rather than any one row.
+     *
+     * Keys are omitted rather than sent as null: the server treats a missing `mutation_id` as
+     * "do not dedupe this", which is the correct reading of a client that has none.
+     */
+    private envelope(intent?: WriteIntent): Record<string, string> {
+        return {
+            ...(intent?.mutationId ? { mutation_id: intent.mutationId } : {}),
+            ...(intent?.deviceId ? { device_id: intent.deviceId } : {}),
+        };
     }
 }
 

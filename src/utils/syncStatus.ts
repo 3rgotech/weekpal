@@ -57,4 +57,54 @@ export function subscribeToSyncHealth(listener: Listener): () => void {
 export function resetSyncHealth(): void {
     current = 'ok';
     listeners.clear();
+    supersededCount = 0;
+    supersededListeners.clear();
+}
+
+/*
+|------------------------------------------------------------------------------
+| Superseded writes
+|------------------------------------------------------------------------------
+|
+| A change the user made that another device had already overruled.
+|
+| Not a failure — the sync worked exactly as designed — but it is the one outcome the user has
+| a right to be told about, because their screen is about to show something they did not type.
+| Silently repainting is what makes an offline app feel haunted.
+|
+| Counted rather than described here; naming the fields is a UI decision and belongs with
+| whatever eventually surfaces it. See PROGRESS.md R27.
+*/
+
+type SupersededListener = (count: number) => void;
+
+let supersededCount = 0;
+const supersededListeners = new Set<SupersededListener>();
+
+export function reportSuperseded(count: number): void {
+    if (count <= 0) {
+        return;
+    }
+
+    supersededCount += count;
+    supersededListeners.forEach((listener) => listener(supersededCount));
+}
+
+export function getSupersededCount(): number {
+    return supersededCount;
+}
+
+/** Called once the user has been shown the tally. */
+export function clearSuperseded(): void {
+    supersededCount = 0;
+    supersededListeners.forEach((listener) => listener(0));
+}
+
+export function subscribeToSuperseded(listener: SupersededListener): () => void {
+    listener(supersededCount);
+    supersededListeners.add(listener);
+
+    return () => {
+        supersededListeners.delete(listener);
+    };
 }

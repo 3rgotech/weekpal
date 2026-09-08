@@ -145,11 +145,47 @@ export interface PendingChange {
   type: 'upsert' | 'delete';
   /** Snapshot needed to replay a delete after the local row is gone. */
   data?: Record<string, any>;
+  /**
+   * What this write claims to have changed, stamped when the user acted.
+   *
+   * The payload itself is read from the database at flush time — that is deliberate, and makes
+   * the send self-healing — but the *claims* have to be stamped at the gesture. Stamping at
+   * flush would date a fortnight of offline decisions to the moment the network came back,
+   * which is the same instant for all of them and is nobody's idea of when they happened.
+   *
+   * Keys are logical fields, not columns: `position` covers week, day and order together.
+   */
+  dirty?: Record<string, string>;
+  /**
+   * The id of this gesture, so a retry cannot apply it twice.
+   *
+   * Minted when the entry is queued, not when it is sent, or a resend would carry a new id and
+   * the dedupe would have nothing to recognise.
+   */
+  mutationId?: string;
+  /** Which browser made the change — for conflict recovery, and for tie-breaks. */
+  deviceId?: string;
   timestamp: number;
   attempts: number;
   lastError?: string;
   /** Set when the failure is permanent; the entry stops being retried. */
   deadLettered?: boolean;
+}
+
+/**
+ * What the server did with one row of a write.
+ *
+ * `applied` — every claim landed. `partial` — some did, some lost to a newer write.
+ * `rejected` — none did; the local copy is the stale one. `gone` — the task was purged, and the
+ * client must delete its copy rather than helpfully recreating it.
+ */
+export interface TaskWriteResult {
+  id: string;
+  status: 'applied' | 'partial' | 'rejected' | 'gone';
+  task: Record<string, any> | null;
+  field_updated_at?: Record<string, string>;
+  /** Fields that lost, each with the value that beat it. */
+  superseded?: Record<string, { field: string; winner: any; at: string }>;
 }
 
 /** How the client should react to a failed request (API-CONTRACT.md §6). */
@@ -221,13 +257,25 @@ export interface WeekPayload { tasks: Task[]; events: Event[] }
  */
 export interface LeftoverPayload { tasks: Task[]; since: string }
 
+/**
+ * What a write asserts, alongside the rows it carries.
+ *
+ * Separate from the tasks themselves because it describes the *gesture*: one device, one
+ * mutation id, however many rows it happened to touch.
+ */
+export interface WriteIntent {
+  dirty: Record<string, Record<string, string>>;
+  mutationId?: string;
+  deviceId?: string;
+}
+
 export interface ITaskAdapter {
   getWeek(weekCode: string): Promise<WeekPayload>;
   /** Everything still outstanding from weeks that have already ended. */
   leftovers(): Promise<LeftoverPayload>;
-  upsert(task: Task): Promise<Task>;
+  upsert(task: Task, intent?: WriteIntent): Promise<TaskWriteResult>;
   /** Moves and reorders: the whole affected set in one request. */
-  upsertMany(tasks: Task[]): Promise<Task[]>;
+  upsertMany(tasks: Task[], intent?: WriteIntent): Promise<TaskWriteResult[]>;
   delete(id: string): Promise<void>;
 }
 
