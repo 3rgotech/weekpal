@@ -33,7 +33,9 @@
     "tab_import": "Importer",
     "completionResort": "Quand une tâche est cochée",
     "completionStay": "La laisser sur place",
-    "completionMove": "La descendre en bas"
+    "completionMove": "La descendre en bas",
+    "workingDayHours": "Journée de travail",
+    "off": "Désactivé"
   },
   "main": {
     "this_week": "Cette semaine",
@@ -337,6 +339,9 @@
     "custom": "Minutes",
     "planned": "prévu",
     "unestimated_one": "{{count}} sans estimation",
-    "unestimated_other": "{{count}} sans estimation"
+    "unestimated_other": "{{count}} sans estimation",
+    "free": "{{time}} libre",
+    "no_time": "aucun temps libre",
+    "booked": "{{booked}} déjà réservé"
   }
 }

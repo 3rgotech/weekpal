@@ -32,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
     thisWeekLimit: 0,
     hardLimits: false,
     completionResort: false,
+    workingDayHours: 0,
     subtaskDisplay: "percentage",
 }
 

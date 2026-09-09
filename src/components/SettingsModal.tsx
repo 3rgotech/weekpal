@@ -25,6 +25,7 @@ import {
 } from "../utils/settings";
 import { Weekday, WEEKDAYS, orderedWeekdays, toggleWorkingDay } from "../utils/week";
 import { DAY_CAPACITIES, SOMEDAY_LIMITS, THIS_WEEK_LIMITS, toggleCountedCategory } from "../utils/capacity";
+import { WORKING_DAY_CHOICES } from "../utils/hours";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 import ImportPanel from "./ImportPanel";
 
@@ -361,6 +362,33 @@ const SettingsModal: React.FC = () => {
                           {t("settings.limitsHard")}
                       </Button>
                   </ButtonGroup>
+                  {/* *(rt §5)* The denominator for measuring a day in hours instead of tasks.
+                      0 is off and is the default — it says nothing until tasks carry estimates,
+                      and nobody should have to answer this before seeing the board. */}
+                  <h3 className="text-base dark:text-white">
+                    {t("settings.workingDayHours")}
+                  </h3>
+                  <Select
+                    value={`${settings.workingDayHours}`}
+                    onChange={(key: Key | null) =>
+                      key !== null && updateSettings({
+                        workingDayHours: parseInt(`${key}`, 10),
+                      })
+                    }
+                    className="col-span-2"
+                  >
+                    <Select.Trigger />
+                    <Select.Popover>
+                      <ListBox>
+                        {WORKING_DAY_CHOICES.map((choice) => (
+                          <ListBox.Item key={choice} id={`${choice}`} textValue={choice === 0 ? t("settings.off") : `${choice}h`}>
+                            <Label>{choice === 0 ? t("settings.off") : `${choice}h`}</Label>
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
+                  </Select>
+
                   <h3 className="text-base dark:text-white">
                     {t("settings.dayCapacity")}
                   </h3>

@@ -83,6 +83,13 @@ export interface Settings {
    * preference, which is why this exists at all.
    */
   completionResort: boolean;
+  /**
+   * How long a working day is, in hours, before anything is booked into it.
+   *
+   * 0 is the feature off. It is the denominator for measuring a day in hours rather than in
+   * tasks — and it says nothing at all until tasks carry estimates.
+   */
+  workingDayHours: number;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

@@ -6,6 +6,8 @@ import clsx from "clsx";
 import CapacityCount from "./CapacityCount";
 import PastDayRecovery from "./PastDayRecovery";
 import DayEstimate from "./DayEstimate";
+import DayHoursGauge from "./DayHoursGauge";
+import { DayHours } from "../utils/hours";
 import Task from "../data/task";
 import { Gauge } from "../utils/capacity";
 
@@ -25,6 +27,8 @@ interface TaskListHeaderProps {
   unfinished?: number;
   /** The day's unfinished tasks, for the planned-hours line. */
   estimateOf?: Task[];
+  /** Hours measured against what the calendar left, or null when the day cannot honestly be measured. */
+  hours?: DayHours | null;
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -35,6 +39,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   gauges = [],
   unfinished = 0,
   estimateOf = [],
+  hours = null,
 }) => {
   const { openNewTask } = useTaskModal();
 
@@ -54,7 +59,13 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
           than about the day's name, and putting one either side of the heading would pull the
           title off centre on exactly the columns that already draw the eye. */}
       <PastDayRecovery dayOfWeek={dayOfWeek} count={unfinished} />
-      <DayEstimate tasks={estimateOf} />
+      {/* One or the other, never both: they are two readings of the same fact, and a header
+          carrying "~6h+ planned · 3 unestimated" beside "~6h / ~4h free" is arithmetic homework.
+          The hours version wins where it can be computed, because it is the one that knows about
+          the calendar. */}
+      {hours !== null
+        ? <DayHoursGauge hours={hours} />
+        : <DayEstimate tasks={estimateOf} />}
       {/* Both lines truncate rather than wrap. A tablet-width column turned "26 AUGUST 2026" into
           three lines, and three-line headers pushed the day's own tasks out of a grid row whose
           height is fixed — the list under Sunday was clipped mid-sentence. */}

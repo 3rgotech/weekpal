@@ -15,6 +15,7 @@ import { useAccount } from "../contexts/AccountContext";
 import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import { isPastDay, recoverableTasks } from "../utils/recovery";
+import { dayHours } from "../utils/hours";
 import { playFlip, readPositions } from "../utils/flip";
 import { isDayDone } from "../utils/dayDone";
 import { useContentHeight } from "../utils/useContentHeight";
@@ -122,6 +123,16 @@ const TaskList: React.FC<TaskProps> = ({
   const hostRef = useRef<HTMLDivElement>(null);
   const strikeHeight = useContentHeight(hostRef, scrollRef, dayIsDone);
 
+  /*
+   * The day in hours rather than in tasks, when it can honestly be measured.
+   *
+   * Weekdays only: the undated buckets have no calendar day to subtract meetings from, and "how
+   * much of Some day is free" is not a question with an answer.
+   */
+  const hours = isDay
+    ? dayHours(counted, filteredEvents, settings.workingDayHours)
+    : null;
+
   const gauges: Gauge[] = [{
     key: "column",
     label: null,
@@ -183,6 +194,7 @@ const TaskList: React.FC<TaskProps> = ({
         // change because the board is narrowed to one category. Completed tasks are excluded —
         // the number is about what is still ahead, not what the day originally weighed.
         estimateOf={counted}
+        hours={hours}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>

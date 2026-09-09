@@ -26,6 +26,7 @@ describe("DEFAULT_SETTINGS", () => {
     "thisWeekLimit",
     "hardLimits",
     "completionResort",
+    "workingDayHours",
     "subtaskDisplay",
   ];
 
