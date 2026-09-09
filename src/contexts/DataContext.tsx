@@ -1,6 +1,8 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
 import { subscribeToTabMessages } from "../utils/tabLeader";
 import { recoverableTasks } from "../utils/recovery";
+import { dayShares } from "../utils/dayLoad";
+import { boardDayOrder } from "../utils/week";
 import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
@@ -82,6 +84,13 @@ interface DataContextProps {
    * does to the selection.
    */
   estimateTask: (task: Task, minutes: number | null) => void;
+  /**
+   * Each visible weekday's load against the heaviest of them, 0 to 1.
+   *
+   * Computed here rather than per column because it is a comparison — a column cannot know it is
+   * the heaviest without seeing the others. Empty when nothing is planned.
+   */
+  dayShare: Map<DayOfWeek, number>;
   /** Pull the board again from the server, for when something changed it behind the client. */
   reloadBoard: () => Promise<void>;
   findTask: (taskId: string) => Task | null;
@@ -192,7 +201,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   historyAdapter = null,
   shareAdapter = null
 }) => {
-  const { currentWeek, thisWeek } = useCalendar();
+  const { currentWeek, thisWeek, layout } = useCalendar();
   const { settings } = useSettings();
   const dayjs = useDayJs();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -931,6 +940,18 @@ const DataProvider: React.FC<DataProviderProps> = ({
     });
   }, [tasks, selectedCategories, settings.completionResort]);
 
+  /*
+   * One pass for the whole board, rather than the same pass in each of seven columns.
+   *
+   * Off the unfiltered list and the layout's own day order: narrowing to one category must not
+   * change which day is heaviest, and a day the user has hidden must not set a scale nobody can
+   * see the reason for.
+   */
+  const dayShare = useMemo(
+    () => dayShares(tasks, boardDayOrder(layout)),
+    [tasks, layout],
+  );
+
   const memoizedEvents = useMemo(() => {
     return events
       .filter(e => matchesCategorySelection(e.categoryId, selectedCategories))
@@ -967,6 +988,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         startEstimating: setEstimatingDay,
         stopEstimating: () => setEstimatingDay(null),
         estimateTask,
+        dayShare,
         events: memoizedEvents,
         categories,
         selectedCategories,

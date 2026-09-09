@@ -42,7 +42,7 @@ const TaskList: React.FC<TaskProps> = ({
   const { subscribed } = useAccount();
   const {
     tasks, allTasks, events, categories,
-    estimatingDay, startEstimating, stopEstimating, estimateTask,
+    estimatingDay, startEstimating, stopEstimating, estimateTask, dayShare,
   } = useData();
   const { activeTaskId, setActiveTaskId } = useShortcuts();
   const dayjs = useDayJs(settings.language);
@@ -260,6 +260,7 @@ const TaskList: React.FC<TaskProps> = ({
           startEstimating(dayOfWeek);
         } : undefined}
         estimating={estimating}
+        share={dayShare?.get(dayOfWeek) ?? null}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>

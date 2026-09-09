@@ -10,7 +10,8 @@ import DayHoursGauge from "./DayHoursGauge";
 import { DayHours } from "../utils/hours";
 import Task from "../data/task";
 import { useTranslation } from "react-i18next";
-import { Gauge } from "../utils/capacity";
+import { Gauge, worstGauge } from "../utils/capacity";
+import DayShareBar from "./DayShareBar";
 
 interface TaskListHeaderProps {
   title: string;
@@ -34,6 +35,8 @@ interface TaskListHeaderProps {
   onEstimate?: () => void;
   /** True while this column is the one being estimated. */
   estimating?: boolean;
+  /** This day's load against the heaviest day on screen, or null where there is nothing to compare. */
+  share?: number | null;
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -47,6 +50,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   hours = null,
   onEstimate,
   estimating = false,
+  share = null,
 }) => {
   const { openNewTask } = useTaskModal();
   const { t } = useTranslation();
@@ -56,10 +60,11 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   return (
     <div
       className={clsx(
-        "flex items-center pb-2 xl:pb-3 border-b-2",
+        "pb-2 xl:pb-3 border-b-2",
         isToday ? "border-sky-500 text-sky-500" : "border-slate-200"
       )}
     >
+      <div className="flex items-center">
       {/* Balanced against the menu button on the other side, so the heading stays centred
           whether or not a limit is set. */}
       <CapacityCount gauges={gauges} />
@@ -113,6 +118,11 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
         iconClass={isToday ? "text-sky-500" : "text-sky-950 dark:text-white"}
         wrapperClass={"border-0"}
       />
+      </div>
+
+      {/* Under the name rather than behind the tasks: *(rt §10)* nothing is painted behind text,
+          because a wash is a readability tax paid all day for a signal wanted for one second. */}
+      <DayShareBar share={share} level={worstGauge(gauges)?.level ?? "ok"} />
     </div>
   );
 };

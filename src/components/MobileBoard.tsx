@@ -6,7 +6,7 @@ import { useData } from "../contexts/DataContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
-import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
+import { Gauge, VIRTUALISE_ABOVE, columnLimit, worstGauge } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import useDayJs from "../utils/dayjs";
 import DayNav from "./DayNav";
@@ -16,6 +16,7 @@ import NewTask from "./NewTask";
 import VirtualTaskList from "./VirtualTaskList";
 import CapacityCount from "./CapacityCount";
 import BatchEstimateStack from "./BatchEstimateStack";
+import DayShareBar from "./DayShareBar";
 import { unestimatedIn } from "../utils/batchEstimate";
 import { boardDayOrder } from "../utils/week";
 
@@ -37,7 +38,7 @@ const MobileBoard: React.FC = () => {
   const dayjs = useDayJs(settings.language);
   const {
     tasks, allTasks, events, categories,
-    estimatingDay, startEstimating, stopEstimating, estimateTask,
+    estimatingDay, startEstimating, stopEstimating, estimateTask, dayShare,
   } = useData();
   const { dateOf, layout } = useCalendar();
 
@@ -121,10 +122,11 @@ const MobileBoard: React.FC = () => {
     <div className="h-full flex flex-col overflow-hidden pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <header
         className={clsx(
-          "flex-none flex items-baseline gap-2 px-3 py-2 border-b-2",
+          "flex-none px-3 py-2 border-b-2",
           isToday ? "border-sky-500 text-sky-500" : "border-slate-200 dark:border-slate-600 dark:text-white",
         )}
       >
+        <div className="flex items-baseline gap-2">
         <h2 className="text-lg font-semibold">{dayName}</h2>
         {dayDate && <span className="text-sm uppercase opacity-80">{dayDate}</span>}
         <span className="ml-auto flex items-center gap-2">
@@ -145,6 +147,14 @@ const MobileBoard: React.FC = () => {
           )}
           <CapacityCount gauges={gauges} />
         </span>
+        </div>
+
+        {/* The same rail as the wide board. A one-day board cannot show the week, so this is the
+            only place it can say "and this is the heavy one" — which is exactly the question the
+            glance asks and the day's own count cannot answer. */}
+        <div className="pt-1.5">
+          <DayShareBar share={dayShare?.get(visibleDay) ?? null} level={worstGauge(gauges)?.level ?? "ok"} />
+        </div>
       </header>
 
       {/* The stack replaces the list while a run is on: on a phone the column *is* the screen,
