@@ -30,7 +30,10 @@
     "hardLimits": "When a limit is passed",
     "limitsSoft": "Warn me",
     "limitsHard": "Make me choose",
-    "tab_import": "Import"
+    "tab_import": "Import",
+    "completionResort": "When a task is ticked",
+    "completionStay": "Leave it in place",
+    "completionMove": "Move it to the bottom"
   },
   "main": {
     "this_week": "This week",

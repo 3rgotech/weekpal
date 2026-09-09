@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { SortableContext } from "@dnd-kit/sortable";
 import { useData } from "../contexts/DataContext";
 import { DayOfWeek } from "../types";
@@ -15,6 +15,10 @@ import { useAccount } from "../contexts/AccountContext";
 import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import { isPastDay, recoverableTasks } from "../utils/recovery";
+import { playFlip, readPositions } from "../utils/flip";
+import { isDayDone } from "../utils/dayDone";
+import { useContentHeight } from "../utils/useContentHeight";
+import DayStrike from "./DayStrike";
 import useDayJs from "../utils/dayjs";
 
 interface TaskProps {
@@ -53,6 +57,25 @@ const TaskList: React.FC<TaskProps> = ({
   const virtualise = filteredTasks.length > VIRTUALISE_ABOVE;
   const scrollRef = useRef<HTMLUListElement>(null);
 
+  /*
+   * The travelling half of the completion ceremony.
+   *
+   * Only worth doing when a tick actually moves something — with the re-sort setting off, which
+   * is the default, nothing changes place and there is nothing to animate. Skipped entirely for
+   * a windowed column too: rows there mount and unmount as the viewport moves, so "it was here a
+   * moment ago" is not a fact the DOM can be asked about.
+   */
+  const travels = settings.completionResort && !virtualise;
+  const positionsBefore = useRef(readPositions(null));
+
+  useLayoutEffect(() => {
+    if (travels) {
+      playFlip(scrollRef.current, positionsBefore.current);
+    }
+
+    positionsBefore.current = travels ? readPositions(scrollRef.current) : readPositions(null);
+  });
+
   // The whole column either way: `SortableContext` needs the full ordering to place a drop, and
   // a row that is not mounted simply has no rectangle to collide with.
   const taskIds = filteredTasks
@@ -87,6 +110,17 @@ const TaskList: React.FC<TaskProps> = ({
   const unfinished = isPastDay(dateOf(dayOfWeek), dayjs())
     ? recoverableTasks(allTasks, dayOfWeek).length
     : 0;
+
+  /*
+   * A finished day, and where its ink should stop.
+   *
+   * Off the unfiltered list: a day is not finished because the categories you happen to be
+   * looking at are. Undated buckets are excluded — "Some day is done" is not a thing that can be
+   * true, and the mark is about a day having been got through.
+   */
+  const dayIsDone = isDay && isDayDone(allTasks, dayOfWeek);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const strikeHeight = useContentHeight(hostRef, scrollRef, dayIsDone);
 
   const gauges: Gauge[] = [{
     key: "column",
@@ -127,7 +161,17 @@ const TaskList: React.FC<TaskProps> = ({
   }
 
   return (
-    <div ref={setNodeRef} className={`h-full flex flex-col`}>
+    <div
+      ref={(node) => {
+        setNodeRef(node);
+        hostRef.current = node;
+      }}
+      // `relative` so the stroke can be laid over the column, and `day-strike__host` so hovering
+      // anywhere in the day fades the ink rather than only hovering the line itself — which is
+      // two pixels wide and diagonal.
+      className="h-full flex flex-col relative day-strike__host"
+    >
+      <DayStrike done={dayIsDone} height={strikeHeight} />
       <TaskListHeader
         title={title}
         dayOfWeek={dayOfWeek}

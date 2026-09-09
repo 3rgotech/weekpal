@@ -75,14 +75,19 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape }) => {
           longer titles mid-word. A column there has vertical room to spare and none to waste
           horizontally. `lg:max-xl:` is that band exactly: narrower than `lg` is the vertical
           layout, where a row has the full width and never needs any of this. */}
+      {/* The strike is on an inner span, not on the heading: the heading is a `-webkit-box` for
+          its line clamp, and a gradient painted on that would be one box rather than one per
+          line. Inline, it strikes every line of a wrapped title at once. */}
       <h3
         className={clsx(
           "flex-1 min-w-0 text-sm lg:max-xl:text-xs font-medium line-clamp-2 lg:max-xl:line-clamp-3 break-words",
-          task.completed && "text-slate-400 line-through dark:text-slate-400",
+          task.completed && "text-slate-400 dark:text-slate-400",
           !task.completed && category && category.getColorClass("text"),
         )}
       >
-        {task.title}
+        <span className={clsx("task-strike", task.completed && "task-strike--done")}>
+          {task.title}
+        </span>
       </h3>
 
       {/* After the title, before the subtask count: it is a fact about the task rather than

@@ -75,6 +75,14 @@ export interface Settings {
    * let something go.
    */
   hardLimits: boolean;
+  /**
+   * Whether ticking a task sends it to the bottom of its column.
+   *
+   * Off, so a finished task stays where it was written — moving it destroys spatial memory at
+   * the one moment the board should be quiet. To-do and done in separate spaces is still a real
+   * preference, which is why this exists at all.
+   */
+  completionResort: boolean;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
 }

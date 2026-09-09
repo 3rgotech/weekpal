@@ -31,6 +31,7 @@ export const DEFAULT_SETTINGS: Settings = {
     somedayLimit: 0,
     thisWeekLimit: 0,
     hardLimits: false,
+    completionResort: false,
     subtaskDisplay: "percentage",
 }
 

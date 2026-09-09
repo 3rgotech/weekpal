@@ -111,3 +111,112 @@
         display: none !important;
     }
 }
+
+/*
+|------------------------------------------------------------------------------
+| The completion ceremony
+|------------------------------------------------------------------------------
+|
+| *(rt §3)* Every animation on this board is a pen stroke. The strike draws, the rule draws, the
+| card travels. **Paper does not bounce, spring, breathe or pop** — so every timing here is
+| linear or near it, and nothing overshoots.
+|
+| Deliberately absent, and argued for: no confetti, no sound, no toast, no streak counter, no
+| modal. A one-time conversion effect fired 250 times a year is noise by day four.
+*/
+
+/*
+| The strike-through *draws*, left to right. It is a stroke, not a state, and it is the entire
+| celebration.
+|
+| A background gradient rather than `text-decoration`, because a decoration cannot be animated
+| across its own arrival — and because on `display: inline` the gradient paints into every line
+| box, so a title that wraps to three lines is struck on all three at once rather than only on
+| the first.
+*/
+.task-strike {
+    display: inline;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    /* Through the middle of the text rather than under it. */
+    background-position: 0 0.62em;
+    background-size: 0% 1.5px;
+    transition: background-size 140ms linear;
+}
+
+.task-strike--done {
+    background-size: 100% 1.5px;
+}
+
+/*
+| The diagonal for a finished day.
+|
+| `pathLength="1"` normalises the line so the dash maths does not depend on the column's pixel
+| size — the same rule that lets the endpoints be anchored while the angle is left to fall where
+| the shape puts it.
+*/
+.day-strike__line {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+
+/* Drawn once, when the day is finished. On reload the end state is simply there: it is ink. */
+.day-strike__line--drawing {
+    animation: day-strike-draw 350ms linear forwards;
+}
+
+.day-strike__line--drawn {
+    stroke-dashoffset: 0;
+}
+
+@keyframes day-strike-draw {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+/*
+| Hover fades the ink, never removes it.
+|
+| Reaching into a finished day to read it should not require undoing the mark that says it is
+| finished — and a mark that vanished would make the user wonder whether they had broken
+| something.
+*/
+.day-strike {
+    opacity: 0.55;
+    transition: opacity 200ms linear;
+}
+
+.day-strike__host:hover .day-strike {
+    opacity: 0.08;
+    transition: opacity 120ms linear;
+}
+
+/*
+| The card travels; it does not teleport.
+|
+| Only ever applied when the completion re-sort setting is on, because with it off a ticked task
+| has nowhere to travel to.
+*/
+.task-travelling {
+    transition: transform 220ms linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /*
+    | The end state, arrived at instantly.
+    |
+    | Not "no strike" — the mark is information, and someone who has asked for less motion has
+    | not asked to be told less. Only the travelling is removed outright.
+    */
+    .task-strike,
+    .day-strike,
+    .task-travelling {
+        transition: none;
+    }
+
+    .day-strike__line--drawing {
+        animation: none;
+        stroke-dashoffset: 0;
+    }
+}

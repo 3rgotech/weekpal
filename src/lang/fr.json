@@ -30,7 +30,10 @@
     "hardLimits": "Quand une limite est dépassée",
     "limitsSoft": "M'avertir",
     "limitsHard": "Me faire choisir",
-    "tab_import": "Importer"
+    "tab_import": "Importer",
+    "completionResort": "Quand une tâche est cochée",
+    "completionStay": "La laisser sur place",
+    "completionMove": "La descendre en bas"
   },
   "main": {
     "this_week": "Cette semaine",

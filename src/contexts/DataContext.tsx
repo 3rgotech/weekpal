@@ -874,22 +874,35 @@ const DataProvider: React.FC<DataProviderProps> = ({
   };
 
   const memoizedTasks = useMemo(() => {
-    return tasks
-      .filter(t => matchesCategorySelection(t.categoryId, selectedCategories))
-      .sort((a, b) => {
-        // First sort by completion status
-        if (a.completedAt === null && b.completedAt !== null) return -1;
-        if (a.completedAt !== null && b.completedAt === null) return 1;
+    const visible = tasks.filter(t => matchesCategorySelection(t.categoryId, selectedCategories));
 
-        // Then sort completed tasks by completion date
-        if (a.completedAt && b.completedAt) {
-          return dayjs(a.completedAt).isBefore(dayjs(b.completedAt)) ? -1 : 1;
-        }
+    /*
+     * *(rt §4)* Ticking a task leaves it exactly where it was written, unless the user has asked
+     * otherwise.
+     *
+     * Sending it to the bottom destroys spatial memory: the card someone has been looking at all
+     * morning jumps, and every card below it shifts up — at the one moment the board should be
+     * quiet. To-do and done in separate spaces is still a real preference, so it is a setting
+     * rather than a verdict; it simply is not the default any more.
+     */
+    if (!settings.completionResort) {
+      return visible.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
 
-        // Sort incomplete tasks by order
-        return (a.order ?? 0) > (b.order ?? 0) ? 1 : -1;
-      });
-  }, [tasks, selectedCategories]);
+    return visible.sort((a, b) => {
+      // First sort by completion status
+      if (a.completedAt === null && b.completedAt !== null) return -1;
+      if (a.completedAt !== null && b.completedAt === null) return 1;
+
+      // Then sort completed tasks by completion date
+      if (a.completedAt && b.completedAt) {
+        return dayjs(a.completedAt).isBefore(dayjs(b.completedAt)) ? -1 : 1;
+      }
+
+      // Sort incomplete tasks by order
+      return (a.order ?? 0) > (b.order ?? 0) ? 1 : -1;
+    });
+  }, [tasks, selectedCategories, settings.completionResort]);
 
   const memoizedEvents = useMemo(() => {
     return events

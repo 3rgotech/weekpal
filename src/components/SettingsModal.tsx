@@ -225,6 +225,30 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
+
+                  {/* *(rt §4)* Default off: a finished task stays where it was written, because
+                      moving it destroys spatial memory at the one moment the board should be
+                      quiet. To-do and done in separate spaces is still a real preference, which
+                      is the whole reason this control exists. */}
+                  <h3 className="text-base dark:text-white">
+                    {t("settings.completionResort")}
+                  </h3>
+                  <ButtonGroup size="sm" className="col-span-2 justify-start">
+                    <Button
+                      variant="secondary"
+                      className={clsx({ "bg-sky-500 text-white": !settings.completionResort })}
+                      onPress={() => updateSettings({ completionResort: false })}
+                    >
+                      {t("settings.completionStay")}
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className={clsx({ "bg-sky-500 text-white": settings.completionResort })}
+                      onPress={() => updateSettings({ completionResort: true })}
+                    >
+                      {t("settings.completionMove")}
+                    </Button>
+                  </ButtonGroup>
                     </div>
                 </Tabs.Panel>
 

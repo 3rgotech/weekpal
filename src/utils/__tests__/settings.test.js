@@ -25,6 +25,7 @@ describe("DEFAULT_SETTINGS", () => {
     "somedayLimit",
     "thisWeekLimit",
     "hardLimits",
+    "completionResort",
     "subtaskDisplay",
   ];
 
@@ -41,6 +42,13 @@ describe("DEFAULT_SETTINGS", () => {
   it("shows events and completed tasks by default", () => {
     expect(DEFAULT_SETTINGS.showEvents).toBe(true);
     expect(DEFAULT_SETTINGS.showCompletedTasks).toBe(true);
+  });
+
+  it("leaves a ticked task where it was written", () => {
+    // *(rt §4)* Moving it destroys spatial memory — the card someone has been looking at all
+    // morning jumps, and every card below it shifts up — at the one moment the board should be
+    // quiet. The other behaviour is a real preference, so it is offered, not assumed.
+    expect(DEFAULT_SETTINGS.completionResort).toBe(false);
   });
 
   it("draws the board it always drew: Monday to Friday, weekend beside them", () => {

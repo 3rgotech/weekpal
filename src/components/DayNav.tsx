@@ -8,6 +8,8 @@ import useDayJs from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
 import { boardDayOrder } from "../utils/week";
 import IconButton from "./IconButton";
+import { useData } from "../contexts/DataContext";
+import { isDayDone } from "../utils/dayDone";
 
 interface DayNavProps {
   visibleDay: DayOfWeek;
@@ -26,6 +28,7 @@ interface DayNavProps {
  * week is the rarer move, and putting it in the same row would have cost the days their width.
  */
 const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
+  const { allTasks } = useData();
   const { t } = useTranslation();
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
@@ -51,6 +54,13 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
 
   const isToday = (day: DayOfWeek): boolean => dateOf(day)?.isSame(today, "day") ?? false;
 
+  /*
+   * Weekdays only. "Some day is done" is not a thing that can be true, and the this-week bucket
+   * is the overflow the other columns drain into rather than a day anyone gets through.
+   */
+  const isDone = (day: DayOfWeek): boolean =>
+    day !== "0" && day !== "someday" && isDayDone(allTasks, day);
+
   const pill = (day: DayOfWeek) => (
     <button
       key={day}
@@ -67,7 +77,16 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
         visibleDay !== day && isToday(day) && "text-sky-500 dark:text-sky-400 underline",
       )}
     >
-      {label(day)}
+      {/* *(rt §3)* The mobile half of the day strike. A one-day board cannot show the week, so
+          this rail is the week — and striking the pill of a finished day turns the strip into a
+          seven-notch ledger you can read at a glance without leaving the day you are on.
+
+          `line-through` rather than the drawn diagonal: at pill size a diagonal is a smudge, and
+          the drawing is the ceremony for the day you are looking at rather than for six you are
+          not. */}
+      <span className={clsx(isDone(day) && "line-through decoration-2")}>
+        {label(day)}
+      </span>
     </button>
   );
 

@@ -83,3 +83,28 @@ describe("the category chip on a task", () => {
         expect(screen.queryByRole("button")).not.toBeInTheDocument();
     });
 });
+
+
+describe("the completion strike", () => {
+    it("draws across the title rather than decorating it", () => {
+        // A background gradient, not `text-decoration`: a decoration cannot be animated across
+        // its own arrival, and on an inline element the gradient paints into every line box, so
+        // a title wrapped to three lines is struck on all three at once.
+        data.categories = [];
+        const done = new WeeklyTask({
+            title: "Book the van", weekCode: "2026w01", dayOfWeek: "1", completedAt: new Date().toISOString(),
+        });
+        const { container } = render(<TaskContent task={done} />);
+
+        expect(container.querySelector(".task-strike--done")).not.toBeNull();
+        expect(container.innerHTML).not.toContain("line-through");
+    });
+
+    it("leaves an unfinished title unstruck", () => {
+        data.categories = [];
+        const { container } = render(<TaskContent task={task()} />);
+
+        expect(container.querySelector(".task-strike")).not.toBeNull();
+        expect(container.querySelector(".task-strike--done")).toBeNull();
+    });
+});

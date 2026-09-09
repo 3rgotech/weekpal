@@ -68,6 +68,9 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
           rowRef.current = node;
         }}
         style={style}
+        // What the FLIP reads to know where this row was a moment ago. On the `<li>` because
+        // that is the child the list actually lays out.
+        data-flip-key={task.id}
         className={clsx(
           "group flex items-center justify-between min-h-10 rounded-md transition-colors",
           isActive && "ring-2 ring-sky-500 bg-sky-50 dark:bg-sky-900/40"
@@ -89,7 +92,9 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
             <IconButton
               icon="check"
               iconClass={task.completed ? "text-white" : ""}
-              wrapperClass={task.completed ? "bg-green-500" : ""}
+              // Fills rather than switches: 120ms, the first beat of the ceremony, and the one
+              // the finger is still on.
+              wrapperClass={clsx("transition-colors duration-[120ms]", task.completed && "bg-green-500")}
               onClick={() => {
                 if (task.completed) {
                   uncompleteTask(task);
