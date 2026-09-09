@@ -12,7 +12,12 @@
     "types": ["jest", "@testing-library/jest-dom", "node"],
     "allowJs": true,
     "jsx": "react",
-    "moduleResolution": "node",
+    /*
+      TypeScript 7 removed "node" (node10). "bundler" is the correct successor here: Vite does
+      the resolving, so the compiler should model a bundler's rules — package "exports" maps
+      honoured, no mandatory file extensions — rather than Node's 2015 CommonJS lookup.
+    */
+    "moduleResolution": "bundler",
     "module": "ESNext",
     "emitDeclarationOnly": true,
     "declaration": true,

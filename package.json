@@ -83,7 +83,7 @@
     "jest-environment-jsdom": "^30.5.1",
     "tailwindcss": "^4.3.3",
     "ts-jest": "^29.4.12",
-    "typescript": "^5.7.3",
+    "typescript": "^5.9.3",
     "vite": "^8.2.2",
     "vite-plugin-env-compatible": "^2.0.1",
     "vite-tsconfig-paths": "^6.1.1",
