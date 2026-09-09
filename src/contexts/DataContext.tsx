@@ -1,5 +1,6 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
 import { subscribeToTabMessages } from "../utils/tabLeader";
+import { recoverableTasks } from "../utils/recovery";
 import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
@@ -63,6 +64,8 @@ interface DataContextProps {
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
   /** Bring a task that slipped out of a past week back into the present. */
   rescueTask: (task: Task, destination: RescueDestination) => Promise<void>;
+  /** Everything a past day is still holding, moved into today in one gesture. See R12. */
+  recoverDay: (dayOfWeek: DayOfWeek) => Promise<void>;
   /** Send a task to a week and day of your choosing, keeping its identity. */
   relocateTask: (task: Task, target: TaskLocation) => Promise<void>;
   /** Copy a task into the same place, unfinished. */
@@ -770,6 +773,45 @@ const DataProvider: React.FC<DataProviderProps> = ({
     applyTaskChanges([stored]);
   };
 
+  /**
+   * Pull everything a past day is still holding into today.
+   *
+   * One gesture, and one queued write. Doing it task by task would put a dozen entries in the
+   * outbox for what the user experienced as a single decision, and — since each would carry its
+   * own position claim — a slow connection could leave the column half-recovered.
+   *
+   * They land at the end of today's column, in the order they were sitting in. Interleaving them
+   * with today's own work would be the board rearranging a list the user wrote.
+   */
+  const recoverDay = async (dayOfWeek: DayOfWeek): Promise<void> => {
+    if (!taskStore) {
+      return;
+    }
+
+    // `tasks` is the unfiltered state — the same list exposed as `allTasks`. Recovery must not
+    // depend on what the category filter happens to be showing.
+    const stranded = recoverableTasks(tasks, dayOfWeek);
+
+    if (stranded.length === 0) {
+      return;
+    }
+
+    const todayDay = `${dayjs().isoWeekday()}` as DayOfWeek;
+    let order = await taskStore.nextOrder(thisWeek, todayDay);
+
+    const moved = stranded.map((task) => {
+      const next = new WeeklyTask({ ...task, weekCode: thisWeek, dayOfWeek: todayDay });
+      next.order = order++;
+
+      return next;
+    });
+
+    await taskStore.putMany(moved);
+
+    moved.forEach((task) => dropLeftover(task.id));
+    applyTaskChanges(moved);
+  };
+
   const rescueTask = (task: Task, destination: RescueDestination): Promise<void> => {
     if (destination === "someday") {
       return relocateTask(task, { weekCode: null, dayOfWeek: null });
@@ -878,6 +920,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         noteStore,
         historyAdapter,
         shareAdapter,
+        recoverDay,
         projectStore,
         projects,
         saveProject,

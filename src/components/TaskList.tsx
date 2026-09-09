@@ -14,6 +14,8 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
 import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
+import { isPastDay, recoverableTasks } from "../utils/recovery";
+import useDayJs from "../utils/dayjs";
 
 interface TaskProps {
   title: string;
@@ -26,10 +28,11 @@ const TaskList: React.FC<TaskProps> = ({
   dayOfWeek,
   isToday = false,
 }) => {
-  const { currentWeek, firstDayOfWeek } = useCalendar();
+  const { currentWeek, firstDayOfWeek, dateOf } = useCalendar();
   const { settings } = useSettings();
   const { subscribed } = useAccount();
   const { tasks, allTasks, events, categories } = useData();
+  const dayjs = useDayJs(settings.language);
 
   const { setNodeRef, isOver } = useDroppable({
     id: `${dayOfWeek}-droppable`,
@@ -74,6 +77,16 @@ const TaskList: React.FC<TaskProps> = ({
   const counted = allTasks.filter((task) => (
     task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
   ));
+
+  /*
+   * What this day is still holding, if it has already been.
+   *
+   * Off the unfiltered list for the same reason the capacity count is: narrowing the board to
+   * one category must not change how much a past day says it left behind.
+   */
+  const unfinished = isPastDay(dateOf(dayOfWeek), dayjs())
+    ? recoverableTasks(allTasks, dayOfWeek).length
+    : 0;
 
   const gauges: Gauge[] = [{
     key: "column",
@@ -121,6 +134,7 @@ const TaskList: React.FC<TaskProps> = ({
         weekCode={currentWeek}
         isToday={isToday}
         gauges={gauges}
+        unfinished={unfinished}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>

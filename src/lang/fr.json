@@ -309,8 +309,14 @@
     "unavailable_revoked": "Vous avez désactivé ce lien.",
     "unavailable_expired": "Ce lien a expiré.",
     "unavailable_exhausted": "Ce lien a atteint sa limite d'ouvertures.",
-    "private_note": "{{count}} catégorie n'est jamais partagée|{{count}} catégories ne sont jamais partagées",
     "error": "Cela n'a pas fonctionné. Réessayez dans un instant.",
-    "offline": "Le partage nécessite une connexion."
+    "offline": "Le partage nécessite une connexion.",
+    "private_note_one": "{{count}} catégorie n'est jamais partagée",
+    "private_note_other": "{{count}} catégories ne sont jamais partagées"
+  },
+  "recovery": {
+    "pull_hint": "Déplacer vers aujourd'hui",
+    "unfinished_one": "{{count}} inachevée",
+    "unfinished_other": "{{count}} inachevées"
   }
 }

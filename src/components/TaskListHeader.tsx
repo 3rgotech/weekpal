@@ -4,6 +4,7 @@ import IconButton from "./IconButton";
 import { useTaskModal } from "../contexts/TaskModalContext";
 import clsx from "clsx";
 import CapacityCount from "./CapacityCount";
+import PastDayRecovery from "./PastDayRecovery";
 import { Gauge } from "../utils/capacity";
 
 interface TaskListHeaderProps {
@@ -13,6 +14,13 @@ interface TaskListHeaderProps {
   isToday: boolean;
   /** What this column is measured against — the day, and any limited category in it. */
   gauges?: Gauge[];
+  /**
+   * Unfinished tasks on a day that has already passed, or 0 for every other column.
+   *
+   * Passed in rather than computed here: the header is handed what to draw, and the question of
+   * which days count as past belongs with the calendar.
+   */
+  unfinished?: number;
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -21,6 +29,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   weekCode,
   isToday,
   gauges = [],
+  unfinished = 0,
 }) => {
   const { openNewTask } = useTaskModal();
 
@@ -36,6 +45,10 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
       {/* Balanced against the menu button on the other side, so the heading stays centred
           whether or not a limit is set. */}
       <CapacityCount gauges={gauges} />
+      {/* Beside the capacity count, on the same side: both are facts about the column rather
+          than about the day's name, and putting one either side of the heading would pull the
+          title off centre on exactly the columns that already draw the eye. */}
+      <PastDayRecovery dayOfWeek={dayOfWeek} count={unfinished} />
       {/* Both lines truncate rather than wrap. A tablet-width column turned "26 AUGUST 2026" into
           three lines, and three-line headers pushed the day's own tasks out of a grid row whose
           height is fixed — the list under Sunday was clipped mid-sentence. */}

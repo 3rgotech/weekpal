@@ -309,8 +309,14 @@
     "unavailable_revoked": "You turned this link off.",
     "unavailable_expired": "This link has expired.",
     "unavailable_exhausted": "This link reached its limit of opens.",
-    "private_note": "{{count}} category is never shared|{{count}} categories are never shared",
     "error": "That did not work. Try again in a moment.",
-    "offline": "Sharing needs a connection."
+    "offline": "Sharing needs a connection.",
+    "private_note_one": "{{count}} category is never shared",
+    "private_note_other": "{{count}} categories are never shared"
+  },
+  "recovery": {
+    "pull_hint": "Move these into today",
+    "unfinished_one": "{{count}} unfinished",
+    "unfinished_other": "{{count}} unfinished"
   }
 }
