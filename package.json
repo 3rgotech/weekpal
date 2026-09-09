@@ -13,7 +13,6 @@
     "@react-aria/utils": "^3.34.1",
     "@tanstack/react-virtual": "^3.14.10",
     "clsx": "^2.1.1",
-    "cra-template-typescript": "1.2.0",
     "dayjs": "^1.11.13",
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^4.4.0",
