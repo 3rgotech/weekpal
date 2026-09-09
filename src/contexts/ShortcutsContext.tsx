@@ -7,6 +7,7 @@ import Task from "../data/task";
 import LeftoverReview from "../components/LeftoverReview";
 import ShortcutsHelp from "../components/ShortcutsHelp";
 import { boardOrder, deferTarget, isTypingTarget, nextTask } from "../utils/shortcuts";
+import { chipForKey } from "../utils/batchEstimate";
 import { boardDayOrder } from "../utils/week";
 
 interface ShortcutsContextProps {
@@ -41,7 +42,10 @@ const ShortcutsContext = createContext<ShortcutsContextProps | undefined>(undefi
  * own Escape.
  */
 const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const { tasks, completeTask, uncompleteTask, relocateTask, toggleFocusCategory } = useData();
+    const {
+        tasks, completeTask, uncompleteTask, relocateTask, toggleFocusCategory,
+        estimatingDay, stopEstimating, estimateTask,
+    } = useData();
     const { settings, updateSettings } = useSettings();
     const { currentWeek, layout, goToPreviousWeek, goToNextWeek, goToToday } = useCalendar();
     const { openNewTask, isOpen: taskModalIsOpen } = useTaskModal();
@@ -100,7 +104,16 @@ const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 // writes on the way out.
                 if (helpOpen) {
                     setHelpOpen(false);
+
+                    return;
                 }
+
+                // Leaving batch estimation. The chip row catches this too, for when focus is
+                // inside it; this is the path for when the user has clicked back onto the board.
+                if (estimatingDay !== null) {
+                    stopEstimating();
+                }
+
                 return;
             }
 
@@ -110,6 +123,36 @@ const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             }
 
             const task = active();
+
+            /*
+             * *(rt §5)* The temporary numeric verb set.
+             *
+             * Only while a column is being estimated, and only 1–6. This is what keeps batch
+             * estimation from being a new keyboard grammar: it is the board's existing
+             * select-then-act model, with digits acting for as long as the mode is on. `j`/`k`
+             * still browse, `Esc` still leaves.
+             */
+            if (estimatingDay !== null && task !== null) {
+                const minutes = chipForKey(event.key);
+
+                if (minutes !== null) {
+                    event.preventDefault();
+                    estimateTask(task, minutes);
+
+                    /*
+                     * Auto-advance, so the run is a rhythm rather than a sequence of aimed
+                     * clicks. The answered task now carries an estimate, so it drops out of the
+                     * remaining list and the next one takes its place in the board's own order.
+                     */
+                    const next = nextTask(ordered, activeTaskId, 1);
+
+                    if (next) {
+                        setActiveTaskId(next.id);
+                    }
+
+                    return;
+                }
+            }
 
             switch (event.key) {
                 case "j":
@@ -200,6 +243,9 @@ const ShortcutsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         leftoversOpen,
         projectsOpen,
         settings.showCompletedTasks,
+        estimatingDay,
+        estimateTask,
+        stopEstimating,
         currentWeek,
         dayOrder,
         openNewTask,

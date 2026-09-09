@@ -244,7 +244,8 @@
     "projects": "Show or hide the projects drawer",
     "week": "Last week, next week",
     "today": "Back to this week",
-    "print": "Print the week (your browser's own)"
+    "print": "Print the week (your browser's own)",
+    "estimate": "Set an estimate, while estimating a day"
   },
   "install": {
     "title": "Add WeekPal to your home screen",
@@ -342,6 +343,13 @@
     "unestimated_other": "{{count}} unestimated",
     "free": "{{time}} free",
     "no_time": "no time free",
-    "booked": "{{booked}} already booked"
+    "booked": "{{booked}} already booked",
+    "batch": "Estimate this day",
+    "skip": "Skip",
+    "remaining_one": "{{count}} left",
+    "remaining_other": "{{count}} left",
+    "batch_for": "Estimate “{{title}}”",
+    "batch_done": "Every task on this day has an estimate",
+    "position": "{{current}} of {{total}}"
   }
 }

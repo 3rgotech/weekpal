@@ -16,6 +16,10 @@ import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import { isPastDay, recoverableTasks } from "../utils/recovery";
 import { dayHours } from "../utils/hours";
+import { nextAfter, unestimatedIn } from "../utils/batchEstimate";
+import BatchEstimateRow from "./BatchEstimateRow";
+import Task from "../data/task";
+import { useShortcuts } from "../contexts/ShortcutsContext";
 import { playFlip, readPositions } from "../utils/flip";
 import { isDayDone } from "../utils/dayDone";
 import { useContentHeight } from "../utils/useContentHeight";
@@ -36,7 +40,11 @@ const TaskList: React.FC<TaskProps> = ({
   const { currentWeek, firstDayOfWeek, dateOf } = useCalendar();
   const { settings } = useSettings();
   const { subscribed } = useAccount();
-  const { tasks, allTasks, events, categories } = useData();
+  const {
+    tasks, allTasks, events, categories,
+    estimatingDay, startEstimating, stopEstimating, estimateTask,
+  } = useData();
+  const { activeTaskId, setActiveTaskId } = useShortcuts();
   const dayjs = useDayJs(settings.language);
 
   const { setNodeRef, isOver } = useDroppable({
@@ -133,6 +141,51 @@ const TaskList: React.FC<TaskProps> = ({
     ? dayHours(counted, filteredEvents, settings.workingDayHours)
     : null;
 
+  /*
+   * Batch estimation, for this column.
+   *
+   * The selection is the board's own — `j`/`k` still browse while the mode is on, because
+   * skipping something you do not want to size is just moving. That is what keeps this from
+   * being a new keyboard grammar.
+   */
+  const estimating = estimatingDay === dayOfWeek;
+  const pending = estimating ? unestimatedIn(allTasks, dayOfWeek) : [];
+
+  const answerEstimate = (task: Task, minutes: number) => {
+    const index = pending.findIndex((candidate) => candidate.id === task.id);
+
+    estimateTask(task, minutes);
+
+    // The answered task drops out of `pending` on the next render, so the task that takes its
+    // index is the next one to ask about.
+    const next = nextAfter(pending.filter((candidate) => candidate.id !== task.id), index);
+
+    if (next === null) {
+      // The column is done. Leaving on its own is what tells the user so — a mode that stayed
+      // open over a finished column would be waiting for an answer that cannot be given.
+      stopEstimating();
+
+      return;
+    }
+
+    setActiveTaskId(next);
+  };
+
+  const skipEstimate = (task: Task) => {
+    const index = pending.findIndex((candidate) => candidate.id === task.id);
+    // Skipped tasks stay in the list — a skip is "not now", not "never", and the task is
+    // still unestimated. Moving past it is all that happens.
+    const next = nextAfter(pending, index + 1);
+
+    if (next === null || next === task.id) {
+      stopEstimating();
+
+      return;
+    }
+
+    setActiveTaskId(next);
+  };
+
   const gauges: Gauge[] = [{
     key: "column",
     label: null,
@@ -195,6 +248,18 @@ const TaskList: React.FC<TaskProps> = ({
         // the number is about what is still ahead, not what the day originally weighed.
         estimateOf={counted}
         hours={hours}
+        onEstimate={isDay ? () => {
+          const first = unestimatedIn(allTasks, dayOfWeek)[0];
+
+          // Nothing to ask about is not a mode worth entering.
+          if (!first) {
+            return;
+          }
+
+          setActiveTaskId(first.id);
+          startEstimating(dayOfWeek);
+        } : undefined}
+        estimating={estimating}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>
@@ -208,7 +273,23 @@ const TaskList: React.FC<TaskProps> = ({
               />
             )
             : filteredTasks.map((task) => (
-              <DraggableTask key={task.id} task={task} dayOfWeek={dayOfWeek} />
+              <React.Fragment key={task.id}>
+                {/* Estimated cards dim and the rest stay lit, so the column shows what is left
+                    to answer without losing its shape — the day still reads as the day. */}
+                <div className={clsx(estimating && task.estimatedMinutes !== null && "opacity-40")}>
+                  <DraggableTask task={task} dayOfWeek={dayOfWeek} />
+                </div>
+
+                {estimating && activeTaskId === task.id && (
+                  <BatchEstimateRow
+                    task={task}
+                    remaining={pending.length}
+                    onChoose={(minutes) => answerEstimate(task, minutes)}
+                    onSkip={() => skipEstimate(task)}
+                    onLeave={stopEstimating}
+                  />
+                )}
+              </React.Fragment>
             ))}
         </SortableContext>
 

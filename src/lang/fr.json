@@ -244,7 +244,8 @@
     "projects": "Afficher ou masquer le panneau projets",
     "week": "Semaine précédente, semaine suivante",
     "today": "Revenir à cette semaine",
-    "print": "Imprimer la semaine (raccourci du navigateur)"
+    "print": "Imprimer la semaine (raccourci du navigateur)",
+    "estimate": "Choisir une estimation, pendant l'estimation d'une journée"
   },
   "install": {
     "title": "Ajouter WeekPal à votre écran d'accueil",
@@ -342,6 +343,13 @@
     "unestimated_other": "{{count}} sans estimation",
     "free": "{{time}} libre",
     "no_time": "aucun temps libre",
-    "booked": "{{booked}} déjà réservé"
+    "booked": "{{booked}} déjà réservé",
+    "batch": "Estimer cette journée",
+    "skip": "Passer",
+    "remaining_one": "{{count}} restante",
+    "remaining_other": "{{count}} restantes",
+    "batch_for": "Estimer « {{title}} »",
+    "batch_done": "Toutes les tâches de cette journée sont estimées",
+    "position": "{{current}} sur {{total}}"
   }
 }

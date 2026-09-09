@@ -116,6 +116,9 @@ export const SHORTCUTS: Array<{ keys: string[]; description: string }> = [
     { keys: ["v"], description: "shortcuts.completed_tasks" },
     { keys: ["i"], description: "shortcuts.inbox" },
     { keys: ["p"], description: "shortcuts.projects" },
+    // Only while a column is being estimated — listed because a temporary verb set nobody knows
+    // about is a verb set nobody uses.
+    { keys: ["1", "…", "6"], description: "shortcuts.estimate" },
     { keys: ["←", "→"], description: "shortcuts.week" },
     { keys: ["t"], description: "shortcuts.today" },
     { keys: [printShortcutLabel()], description: "shortcuts.print" },

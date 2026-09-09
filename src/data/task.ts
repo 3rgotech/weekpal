@@ -8,6 +8,8 @@ interface TaskUpdateData {
     description?: string;
     categoryId?: string | null;
     subtasks?: Array<Subtask>;
+    /** Null is a real value here — it is the user clearing an estimate, not omitting one. */
+    estimatedMinutes?: number | null;
 }
 
 abstract class Task extends Base {
@@ -52,6 +54,14 @@ abstract class Task extends Base {
         }
         if (data.subtasks !== undefined) {
             this.subtasks = data.subtasks;
+        }
+        /*
+         * `undefined` is "not mentioned", `null` is "cleared". Collapsing the two would make it
+         * impossible to remove an estimate once given — the editor sends the whole serialised
+         * task, so a null here is a deliberate answer.
+         */
+        if (data.estimatedMinutes !== undefined) {
+            this.estimatedMinutes = data.estimatedMinutes;
         }
     }
 

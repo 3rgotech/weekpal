@@ -64,6 +64,24 @@ interface DataContextProps {
   escapeTask: Task | null;
   openEscape: (task: Task) => void;
   clearEscape: () => void;
+  /**
+   * The column currently being estimated, or null.
+   *
+   * *(rt §5)* A mode the column *enters* rather than a surface that covers it — the neighbouring
+   * days stay visible, because that is where the "actually, move this to Wednesday" instinct
+   * fires while you are sizing a day.
+   */
+  estimatingDay: DayOfWeek | null;
+  startEstimating: (day: DayOfWeek) => void;
+  stopEstimating: () => void;
+  /**
+   * Give one task an estimate, or clear it.
+   *
+   * Lives here rather than in the column because the keyboard reaches it too, and two
+   * implementations of "answer this task" would be two chances to disagree about what an answer
+   * does to the selection.
+   */
+  estimateTask: (task: Task, minutes: number | null) => void;
   /** Pull the board again from the server, for when something changed it behind the client. */
   reloadBoard: () => Promise<void>;
   findTask: (taskId: string) => Task | null;
@@ -182,6 +200,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const [overLimitColumn, setOverLimitColumn] = useState<DayOfWeek | null>(null);
   const [escapeTask, setEscapeTask] = useState<Task | null>(null);
+  const [estimatingDay, setEstimatingDay] = useState<DayOfWeek | null>(null);
   // Selection and focus travel together — see `CategoryFilterState`, which is where the
   // transitions live so they can be reasoned about without a provider around them.
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterState>(NO_CATEGORY_FILTER);
@@ -827,6 +846,14 @@ const DataProvider: React.FC<DataProviderProps> = ({
     applyTaskChanges(moved);
   };
 
+  const estimateTask = (task: Task, minutes: number | null) => {
+    const updated = task.taskType === "weekly"
+      ? new WeeklyTask({ ...task, estimatedMinutes: minutes })
+      : new SomedayTask({ ...task, estimatedMinutes: minutes });
+
+    updateTask(updated);
+  };
+
   const rescueTask = (task: Task, destination: RescueDestination): Promise<void> => {
     if (destination === "someday") {
       return relocateTask(task, { weekCode: null, dayOfWeek: null });
@@ -936,6 +963,10 @@ const DataProvider: React.FC<DataProviderProps> = ({
         escapeTask,
         openEscape: setEscapeTask,
         clearEscape: () => setEscapeTask(null),
+        estimatingDay,
+        startEstimating: setEstimatingDay,
+        stopEstimating: () => setEstimatingDay(null),
+        estimateTask,
         events: memoizedEvents,
         categories,
         selectedCategories,

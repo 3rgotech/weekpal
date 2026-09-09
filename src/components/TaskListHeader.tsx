@@ -9,6 +9,7 @@ import DayEstimate from "./DayEstimate";
 import DayHoursGauge from "./DayHoursGauge";
 import { DayHours } from "../utils/hours";
 import Task from "../data/task";
+import { useTranslation } from "react-i18next";
 import { Gauge } from "../utils/capacity";
 
 interface TaskListHeaderProps {
@@ -29,6 +30,10 @@ interface TaskListHeaderProps {
   estimateOf?: Task[];
   /** Hours measured against what the calendar left, or null when the day cannot honestly be measured. */
   hours?: DayHours | null;
+  /** Starts batch estimation for this column. Absent where there is nothing to estimate. */
+  onEstimate?: () => void;
+  /** True while this column is the one being estimated. */
+  estimating?: boolean;
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -40,8 +45,11 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   unfinished = 0,
   estimateOf = [],
   hours = null,
+  onEstimate,
+  estimating = false,
 }) => {
   const { openNewTask } = useTaskModal();
+  const { t } = useTranslation();
 
   const [day, date] = title.split(" | ");
 
@@ -63,9 +71,31 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
           carrying "~6h+ planned · 3 unestimated" beside "~6h / ~4h free" is arithmetic homework.
           The hours version wins where it can be computed, because it is the one that knows about
           the calendar. */}
-      {hours !== null
-        ? <DayHoursGauge hours={hours} />
-        : <DayEstimate tasks={estimateOf} />}
+      {/* The gauge is the trigger. *(rt §5)* Batch estimation is reached from the day header —
+          from the number it is about to change — rather than from a menu item that would have to
+          explain itself. A plain span when there is nothing to estimate, so a fully sized day
+          offers no button to press. */}
+      {onEstimate ? (
+        <button
+          type="button"
+          onClick={onEstimate}
+          aria-pressed={estimating}
+          title={t("estimate.batch")}
+          className={clsx(
+            "shrink-0 rounded px-1 -mx-1 hover:bg-slate-200 dark:hover:bg-sky-900",
+            "focus-visible:outline-2 focus-visible:outline-sky-500",
+            estimating && "ring-2 ring-sky-500",
+          )}
+        >
+          {hours !== null
+            ? <DayHoursGauge hours={hours} />
+            : <DayEstimate tasks={estimateOf} />}
+        </button>
+      ) : (
+        hours !== null
+          ? <DayHoursGauge hours={hours} />
+          : <DayEstimate tasks={estimateOf} />
+      )}
       {/* Both lines truncate rather than wrap. A tablet-width column turned "26 AUGUST 2026" into
           three lines, and three-line headers pushed the day's own tasks out of a grid row whose
           height is fixed — the list under Sunday was clipped mid-sentence. */}
