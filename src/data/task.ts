@@ -37,6 +37,7 @@ abstract class Task extends Base {
         // Both spellings, like every other field on this object: it is built from an API row or
         // from a Dexie row depending on where it came from.
         this.deferralCount = data.deferralCount ?? data.deferral_count ?? 0;
+        this.estimatedMinutes = data.estimatedMinutes ?? data.estimated_minutes ?? null;
     }
 
     update(data: TaskUpdateData) {
@@ -107,6 +108,7 @@ abstract class Task extends Base {
             categoryId: this.categoryId,
             projectId: this.projectId,
             order: this.order,
+            estimatedMinutes: this.estimatedMinutes,
             subtasks: this.subtasks,
             createdAt: this.createdAt?.toISOString() ?? null,
             updatedAt: this.updatedAt?.toISOString() ?? null,
@@ -130,6 +132,14 @@ abstract class Task extends Base {
      */
     public deferralCount: number = 0;
 
+    /**
+     * Roughly how long this is expected to take, in minutes, or null for no guess.
+     *
+     * *(rt §5)* Null is not zero and the difference is load-bearing: an unestimated task renders
+     * **nothing**, and a fake zero is a lie the capacity maths would inherit.
+     */
+    public estimatedMinutes: number | null = null;
+
     toApiPayload(): Record<string, any> {
         const weekly = this instanceof WeeklyTask ? this : null;
 
@@ -142,6 +152,7 @@ abstract class Task extends Base {
             week_number: weekly?.weekCode ?? null,
             day_of_week: weekly ? parseInt(`${weekly.dayOfWeek}`, 10) : null,
             order: this.order ?? 0,
+            estimated_minutes: this.estimatedMinutes,
             subtasks: this.subtasks,
             completed_at: this.completedAt?.toISOString() ?? null,
         };
@@ -179,6 +190,7 @@ abstract class Task extends Base {
             createdAt: data.created_at ?? null,
             updatedAt: data.updated_at ?? null,
             deferralCount: data.deferral_count ?? 0,
+            estimatedMinutes: data.estimated_minutes ?? null,
         };
 
         if (data.week_number) {

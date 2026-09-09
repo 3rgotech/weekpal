@@ -5,6 +5,8 @@ import { useTaskModal } from "../contexts/TaskModalContext";
 import clsx from "clsx";
 import CapacityCount from "./CapacityCount";
 import PastDayRecovery from "./PastDayRecovery";
+import DayEstimate from "./DayEstimate";
+import Task from "../data/task";
 import { Gauge } from "../utils/capacity";
 
 interface TaskListHeaderProps {
@@ -21,6 +23,8 @@ interface TaskListHeaderProps {
    * which days count as past belongs with the calendar.
    */
   unfinished?: number;
+  /** The day's unfinished tasks, for the planned-hours line. */
+  estimateOf?: Task[];
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -30,6 +34,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   isToday,
   gauges = [],
   unfinished = 0,
+  estimateOf = [],
 }) => {
   const { openNewTask } = useTaskModal();
 
@@ -49,6 +54,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
           than about the day's name, and putting one either side of the heading would pull the
           title off centre on exactly the columns that already draw the eye. */}
       <PastDayRecovery dayOfWeek={dayOfWeek} count={unfinished} />
+      <DayEstimate tasks={estimateOf} />
       {/* Both lines truncate rather than wrap. A tablet-width column turned "26 AUGUST 2026" into
           three lines, and three-line headers pushed the day's own tasks out of a grid row whose
           height is fixed — the list under Sunday was clipped mid-sentence. */}

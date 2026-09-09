@@ -331,5 +331,12 @@
     "break_down": "Break it down",
     "not_mine": "It's not mine",
     "let_go": "Let it go"
+  },
+  "estimate": {
+    "label": "How long, roughly",
+    "custom": "Minutes",
+    "planned": "planned",
+    "unestimated_one": "{{count}} unestimated",
+    "unestimated_other": "{{count}} unestimated"
   }
 }

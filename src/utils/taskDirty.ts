@@ -91,6 +91,10 @@ export function dirtyBetween(previous: Task | undefined, next: Task): DirtyMap {
         dirty.completed_at = at;
     }
 
+    if ((previous.estimatedMinutes ?? null) !== (next.estimatedMinutes ?? null)) {
+        dirty.estimated_minutes = at;
+    }
+
     // Compared as a whole, and sent as a whole. A JSON array cannot be merged field-wise without
     // inventing an identity for each element, so the honest unit is the array — which at least
     // makes a loss visible in the changelog rather than silently half-applied.

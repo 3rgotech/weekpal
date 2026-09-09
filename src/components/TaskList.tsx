@@ -179,6 +179,10 @@ const TaskList: React.FC<TaskProps> = ({
         isToday={isToday}
         gauges={gauges}
         unfinished={unfinished}
+        // The day's outstanding work, off the unfiltered list: what a day is carrying does not
+        // change because the board is narrowed to one category. Completed tasks are excluded —
+        // the number is about what is still ahead, not what the day originally weighed.
+        estimateOf={counted}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>

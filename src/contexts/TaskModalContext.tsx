@@ -19,6 +19,7 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import TaskActivity from "../components/TaskActivity";
 import SubtaskEditor from "../components/SubtaskEditor";
+import EstimatePicker from "../components/EstimatePicker";
 import TaskMenu from "../components/TaskMenu";
 import { useVerticalLayout } from "../utils/layout";
 
@@ -200,6 +201,13 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     </ListBox>
                   </Select.Popover>
                 </Select>
+
+                {/* Between the category and the subtasks: it is a fact about the whole task, so
+                    it belongs above the list of its parts. */}
+                <EstimatePicker
+                  value={data.estimatedMinutes ?? null}
+                  onChange={(minutes) => setData(prev => ({ ...prev, estimatedMinutes: minutes }))}
+                />
 
                 <SubtaskEditor
                     subtasks={data.subtasks ?? []}

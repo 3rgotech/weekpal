@@ -331,5 +331,12 @@
     "break_down": "La découper",
     "not_mine": "Ce n'est pas à moi",
     "let_go": "L'abandonner"
+  },
+  "estimate": {
+    "label": "Durée, en gros",
+    "custom": "Minutes",
+    "planned": "prévu",
+    "unestimated_one": "{{count}} sans estimation",
+    "unestimated_other": "{{count}} sans estimation"
   }
 }
