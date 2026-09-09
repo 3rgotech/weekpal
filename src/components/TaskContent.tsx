@@ -6,9 +6,12 @@ import Task from "../data/task";
 import { useData } from "../contexts/DataContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { subtaskProgressLabel } from "../utils/settings";
+import DeferralBadge from "./DeferralBadge";
 
 interface TaskContentProps {
   task: Task;
+  /** Opens R20's three doors from the deferral badge. Absent where the card is not interactive. */
+  onOpenEscape?: (task: Task) => void;
 }
 
 /**
@@ -18,7 +21,7 @@ interface TaskContentProps {
  * controls and different gestures, but a task that reads one way on a laptop and another on a
  * phone is two tasks as far as the person holding it is concerned.
  */
-const TaskContent: React.FC<TaskContentProps> = ({ task }) => {
+const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape }) => {
   const { t } = useTranslation();
   const { categories, focusedCategory, toggleFocusCategory } = useData();
   const { settings } = useSettings();
@@ -81,6 +84,14 @@ const TaskContent: React.FC<TaskContentProps> = ({ task }) => {
       >
         {task.title}
       </h3>
+
+      {/* After the title, before the subtask count: it is a fact about the task rather than
+          about its contents, and putting it first would give a carried task a different left
+          edge from every other card. A completed task shows nothing — the count is about what is
+          still being avoided, and a finished one no longer is. */}
+      {!task.completed && (
+        <DeferralBadge task={task} onOpenEscape={onOpenEscape} />
+      )}
 
       {subtaskLabel && (
         <span

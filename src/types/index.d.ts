@@ -276,7 +276,8 @@ export interface ITaskAdapter {
   upsert(task: Task, intent?: WriteIntent): Promise<TaskWriteResult>;
   /** Moves and reorders: the whole affected set in one request. */
   upsertMany(tasks: Task[], intent?: WriteIntent): Promise<TaskWriteResult[]>;
-  delete(id: string): Promise<void>;
+  /** `reason` is R20's escape hatch saying which door was taken. */
+  delete(id: string, reason?: string): Promise<void>;
 }
 
 export interface IEventAdapter {

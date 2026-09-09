@@ -350,6 +350,14 @@ export class SyncService {
         }
 
         if (type === 'delete') {
+            if (entityType === 'task') {
+                // The reason travels on the entry: by the time this runs the local row is gone,
+                // so there is nowhere else left to read it from.
+                await this.taskAdapter().delete(entityId, data?.reason as string | undefined);
+
+                return;
+            }
+
             const adapter = this.adapterFor(entityType);
             await adapter.delete(entityId);
             return;

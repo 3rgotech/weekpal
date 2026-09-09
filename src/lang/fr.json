@@ -318,5 +318,15 @@
     "pull_hint": "Déplacer vers aujourd'hui",
     "unfinished_one": "{{count}} inachevée",
     "unfinished_other": "{{count}} inachevées"
+  },
+  "deferral": {
+    "moved_one": "Déplacée {{count}} fois",
+    "moved_other": "Déplacée {{count}} fois",
+    "escape_hint": "Options pour une tâche qui n'avance pas",
+    "escape_title": "Celle-ci n'avance pas",
+    "escape_intro": "« {{title}} » a été déplacée {{count}} fois. C'est en général l'une de trois choses.",
+    "break_down": "La découper",
+    "not_mine": "Ce n'est pas à moi",
+    "let_go": "L'abandonner"
   }
 }

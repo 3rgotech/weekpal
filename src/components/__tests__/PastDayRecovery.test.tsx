@@ -13,7 +13,7 @@ const data = { recoverDay: jest.fn(async (_day: string) => undefined) };
 
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 
-beforeEach(() => data.recoverDay.mockClear());
+beforeEach(() => { data.recoverDay.mockClear(); });
 
 describe("the past-day mark", () => {
     it("says how many are unfinished", () => {

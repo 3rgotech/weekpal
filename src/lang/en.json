@@ -318,5 +318,15 @@
     "pull_hint": "Move these into today",
     "unfinished_one": "{{count}} unfinished",
     "unfinished_other": "{{count}} unfinished"
+  },
+  "deferral": {
+    "moved_one": "Moved {{count}} time",
+    "moved_other": "Moved {{count}} times",
+    "escape_hint": "Options for a task that keeps moving",
+    "escape_title": "This one keeps moving",
+    "escape_intro": "“{{title}}” has moved {{count}} times. That usually means one of three things.",
+    "break_down": "Break it down",
+    "not_mine": "It's not mine",
+    "let_go": "Let it go"
   }
 }

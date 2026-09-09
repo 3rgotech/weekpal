@@ -34,6 +34,9 @@ abstract class Task extends Base {
         this.categoryId = data.categoryId ?? null;
         this.projectId = data.projectId ?? null;
         this.subtasks = data.subtasks ?? [];
+        // Both spellings, like every other field on this object: it is built from an API row or
+        // from a Dexie row depending on where it came from.
+        this.deferralCount = data.deferralCount ?? data.deferral_count ?? 0;
     }
 
     update(data: TaskUpdateData) {
@@ -119,6 +122,14 @@ abstract class Task extends Base {
      * adapter ran it through JSON.stringify into a JSON body field, so the server stored a
      * string where it expected a list.
      */
+    /**
+     * How many times this task has been pushed later. Server-owned — the client never sets it.
+     *
+     * Read-only here on purpose: a client that could write its own count could zero the one
+     * number on the board nobody chose. See `Task::SERVER_OWNED` on the API side.
+     */
+    public deferralCount: number = 0;
+
     toApiPayload(): Record<string, any> {
         const weekly = this instanceof WeeklyTask ? this : null;
 
@@ -167,6 +178,7 @@ abstract class Task extends Base {
             subtasks: data.subtasks ?? [],
             createdAt: data.created_at ?? null,
             updatedAt: data.updated_at ?? null,
+            deferralCount: data.deferral_count ?? 0,
         };
 
         if (data.week_number) {

@@ -22,7 +22,7 @@ interface MobileTaskProps {
  */
 const MobileTask: React.FC<MobileTaskProps> = ({ task }) => {
   const { t } = useTranslation();
-  const { completeTask, uncompleteTask } = useData();
+  const { completeTask, uncompleteTask, openEscape } = useData();
   const { open } = useTaskModal();
   const { activeTaskId, setActiveTaskId } = useShortcuts();
   const rowRef = useRef<HTMLLIElement>(null);
@@ -46,7 +46,7 @@ const MobileTask: React.FC<MobileTaskProps> = ({ task }) => {
       onPointerDown={() => setActiveTaskId(task.id)}
     >
       <div className="flex-1 flex items-center gap-x-2 min-w-0">
-        <TaskContent task={task} />
+        <TaskContent task={task} onOpenEscape={openEscape} />
       </div>
 
       <div className="flex items-center gap-1 shrink-0">

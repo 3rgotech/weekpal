@@ -317,7 +317,12 @@ class TaskStore extends BaseStore implements ITaskStore {
         return this.put(task);
     }
 
-    async delete(task: Task): Promise<void> {
+    /**
+     * @param reason why it is going, when R20's escape hatch supplied one. Travels on the queue
+     *               entry rather than being looked up at flush time — by then the local row is
+     *               gone, which is the same reason the note's task id is snapshotted there.
+     */
+    async delete(task: Task, reason?: string): Promise<void> {
         await this.db.transaction('rw', this.db.weeklyTasks, this.db.somedayTasks, async () => {
             await this.db.weeklyTasks.delete(task.id);
             await this.db.somedayTasks.delete(task.id);
@@ -327,6 +332,7 @@ class TaskStore extends BaseStore implements ITaskStore {
             entityType: 'task',
             entityId: task.id,
             type: 'delete',
+            data: reason ? { reason } : undefined,
             mutationId: newId(),
             deviceId: deviceId(),
         });

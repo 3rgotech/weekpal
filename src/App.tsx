@@ -10,6 +10,7 @@ import { SettingsProvider } from "./contexts/SettingsContext";
 import { AccountProvider } from "./contexts/AccountContext";
 import SettingsModal from "./components/SettingsModal";
 import LimitReachedModal from "./components/LimitReachedModal";
+import EscapeHatch from "./components/EscapeHatch";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
@@ -154,6 +155,7 @@ function App() {
                 <ShortcutsProvider>
                   <SettingsModal />
                   <LimitReachedModal />
+                  <EscapeHatch />
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (

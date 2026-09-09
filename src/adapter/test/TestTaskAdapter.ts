@@ -36,7 +36,7 @@ class TestTaskAdapter implements ITaskAdapter {
         return { id: task.id, status: 'applied', task: task.toApiPayload() };
     }
 
-    async delete(_id: string): Promise<void> {
+    async delete(_id: string, _reason?: string): Promise<void> {
         // Nothing to do — the fixtures live in IndexedDB.
     }
 }

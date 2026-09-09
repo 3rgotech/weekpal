@@ -103,8 +103,12 @@ class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
     }
 
     /** Idempotent: the backend answers 204 whether or not the task was still there. */
-    async delete(id: string): Promise<void> {
-        await this.getClient().delete(`tasks/${id}`);
+    async delete(id: string, reason?: string): Promise<void> {
+        await this.getClient().delete(`tasks/${id}`, {
+            // A query parameter rather than a body: DELETE bodies are poorly served by proxies
+            // and by `fetch`, and the server treats an unrecognised reason as no reason.
+            searchParams: reason ? { reason } : undefined,
+        });
     }
 
     /**

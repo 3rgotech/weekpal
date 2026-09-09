@@ -54,6 +54,16 @@ interface DataContextProps {
    */
   overLimitColumn: DayOfWeek | null;
   clearOverLimit: () => void;
+  /**
+   * The task whose escape hatch is open, or null.
+   *
+   * Board-level rather than per-card, following `overLimitColumn`: a modal mounted once beside
+   * the board, not one per row — forty cards would otherwise each carry a dialog that is almost
+   * never open.
+   */
+  escapeTask: Task | null;
+  openEscape: (task: Task) => void;
+  clearEscape: () => void;
   /** Pull the board again from the server, for when something changed it behind the client. */
   reloadBoard: () => Promise<void>;
   findTask: (taskId: string) => Task | null;
@@ -81,7 +91,11 @@ interface DataContextProps {
   /** False until the first look, so the badge and the review can tell empty from unknown. */
   leftoversLoaded: boolean;
   refreshLeftovers: () => Promise<WeeklyTask[]>;
-  deleteTask: (task: Task) => void;
+  /**
+   * `reason` is R20's escape hatch saying which door was taken — `not_mine` or `let_go`.
+   * Absent for an ordinary delete, which is most of them.
+   */
+  deleteTask: (task: Task, reason?: string) => void;
   events: Array<Event>;
   categories: Array<Category>;
   selectedCategories: string[];
@@ -167,6 +181,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
   const [events, setEvents] = useState<Event[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [overLimitColumn, setOverLimitColumn] = useState<DayOfWeek | null>(null);
+  const [escapeTask, setEscapeTask] = useState<Task | null>(null);
   // Selection and focus travel together — see `CategoryFilterState`, which is where the
   // transitions live so they can be reasoned about without a provider around them.
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterState>(NO_CATEGORY_FILTER);
@@ -539,11 +554,11 @@ const DataProvider: React.FC<DataProviderProps> = ({
     }
   };
 
-  const deleteTask = (task: Task) => {
+  const deleteTask = (task: Task, reason?: string) => {
     if (!taskStore) {
       return;
     }
-    taskStore.delete(task).then(() => {
+    taskStore.delete(task, reason).then(() => {
       setTasks((prevTasks) => prevTasks.filter((prevTask) => prevTask.id !== task.id));
       setBacklogs((prevBacklogs) => Object.fromEntries(
         Object.entries(prevBacklogs)
@@ -905,6 +920,9 @@ const DataProvider: React.FC<DataProviderProps> = ({
         leftoversLoaded,
         refreshLeftovers,
         deleteTask,
+        escapeTask,
+        openEscape: setEscapeTask,
+        clearEscape: () => setEscapeTask(null),
         events: memoizedEvents,
         categories,
         selectedCategories,

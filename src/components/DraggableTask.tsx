@@ -17,7 +17,7 @@ interface DraggableTaskProps {
 }
 
 const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectId }) => {
-  const { completeTask, uncompleteTask } = useData();
+  const { completeTask, uncompleteTask, openEscape } = useData();
   const { t } = useTranslation();
   const { activeTaskId, setActiveTaskId } = useShortcuts();
   const rowRef = useRef<HTMLLIElement>(null);
@@ -83,7 +83,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
             className="flex flex-1 items-center gap-x-1"
             style={{ cursor }}
           >
-            <TaskContent task={task} />
+            <TaskContent task={task} onOpenEscape={openEscape} />
           </div>
           <div className="group-hover:flex hidden items-center">
             <IconButton
