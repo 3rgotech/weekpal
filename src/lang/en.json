@@ -43,7 +43,10 @@
     "add_new_task": "Click to add task",
     "this_week_short": "TW",
     "some_day_short": "SD",
-    "show_all_tasks": "Showing {{shown}} of {{total}} — show them all"
+    "show_all_tasks": "Showing {{shown}} of {{total}} — show them all",
+    "hidden_below_one": "{{count}} more below",
+    "hidden_below_other": "{{count}} more below",
+    "day_done": "{{day}} done"
   },
   "actions": {
     "add_task": "Add task",

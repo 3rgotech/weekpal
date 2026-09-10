@@ -43,7 +43,10 @@
     "add_new_task": "Cliquez pour ajouter une tâche",
     "this_week_short": "CS",
     "some_day_short": "UJ",
-    "show_all_tasks": "{{shown}} sur {{total}} affichées — tout afficher"
+    "show_all_tasks": "{{shown}} sur {{total}} affichées — tout afficher",
+    "hidden_below_one": "{{count}} de plus en dessous",
+    "hidden_below_other": "{{count}} de plus en dessous",
+    "day_done": "{{day}} terminé"
   },
   "actions": {
     "add_task": "Ajouter la tâche",

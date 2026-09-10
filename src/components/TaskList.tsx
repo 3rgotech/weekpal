@@ -16,6 +16,8 @@ import { Gauge, VIRTUALISE_ABOVE, columnLimit } from "../utils/capacity";
 import { matchesCategorySelection } from "../utils/categories";
 import { isPastDay, recoverableTasks } from "../utils/recovery";
 import { dayHours } from "../utils/hours";
+import { useHiddenBelow } from "../utils/useHiddenBelow";
+import HiddenBelow from "./HiddenBelow";
 import { nextAfter, unestimatedIn } from "../utils/batchEstimate";
 import BatchEstimateRow from "./BatchEstimateRow";
 import Task from "../data/task";
@@ -75,6 +77,10 @@ const TaskList: React.FC<TaskProps> = ({
    * moment ago" is not a fact the DOM can be asked about.
    */
   const travels = settings.completionResort && !virtualise;
+
+  // Measured from the DOM rather than counted from the list: what is out of sight depends on how
+  // tall the rows turned out and where the user has scrolled to, and neither is in the data.
+  const hiddenBelow = useHiddenBelow(scrollRef, filteredTasks.length);
   const positionsBefore = useRef(readPositions(null));
 
   useLayoutEffect(() => {
@@ -263,7 +269,10 @@ const TaskList: React.FC<TaskProps> = ({
         share={dayShare?.get(dayOfWeek) ?? null}
       />
       {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
-      <ul ref={scrollRef} className={clsx("flex-1 overflow-y-auto py-1", !virtualise && "space-y-2")}>
+      {/* `relative`, so the clipped-edge marker has the scrolling list to anchor to rather than
+          the whole column — the fold is at the bottom of the list, not at the bottom of the day. */}
+      <div className="flex-1 min-h-0 relative">
+      <ul ref={scrollRef} className={clsx("h-full overflow-y-auto py-1", !virtualise && "space-y-2")}>
         <SortableContext items={taskIds}>
           {virtualise
             ? (
@@ -296,6 +305,17 @@ const TaskList: React.FC<TaskProps> = ({
 
         {!isOver && <NewTask dayOfWeek={dayOfWeek} />}
       </ul>
+
+      {/* *(rt §4)* No hard cap — the answer to a long column is to say how long it is, never to
+          refuse the ninth task. Not on a windowed column: there the rows below the fold are not
+          mounted, so "how many are hidden" is a question the DOM cannot answer. */}
+      {!virtualise && (
+        <HiddenBelow
+          count={hiddenBelow}
+          onReveal={() => scrollRef.current?.scrollBy({ top: scrollRef.current.clientHeight * 0.8, behavior: "smooth" })}
+        />
+      )}
+      </div>
     </div>
   );
 };

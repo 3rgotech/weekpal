@@ -11,6 +11,7 @@ import { AccountProvider } from "./contexts/AccountContext";
 import SettingsModal from "./components/SettingsModal";
 import LimitReachedModal from "./components/LimitReachedModal";
 import EscapeHatch from "./components/EscapeHatch";
+import Ambient from "./components/Ambient";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
@@ -156,6 +157,10 @@ function App() {
                   <SettingsModal />
                   <LimitReachedModal />
                   <EscapeHatch />
+                  {/* Renders nothing: the tab title and the favicon are the whole ambient
+                      channel, and they are the only way the board reaches somebody who is
+                      looking at a different tab. */}
+                  <Ambient />
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (
