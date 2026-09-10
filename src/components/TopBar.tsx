@@ -18,19 +18,21 @@ import { useInstallPrompt } from "../utils/install";
 import InstallModal from "./InstallModal";
 import ShareWeekModal from "./ShareWeekModal";
 import AvoidanceReportModal from "./AvoidanceReportModal";
+import FeedbackModal from "./FeedbackModal";
 import { useAccount } from "../contexts/AccountContext";
 import { useShortcuts } from "../contexts/ShortcutsContext";
 
 const TopBar: React.FC = () => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
-  const { leftovers, shareAdapter, insightsAdapter } = useData();
+  const { leftovers, shareAdapter, insightsAdapter, feedbackAdapter } = useData();
   const { subscribed } = useAccount();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
   const { openHelp, setLeftoversOpen } = useShortcuts();
   const [installSteps, setInstallSteps] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [avoidanceOpen, setAvoidanceOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Closing the review hides it until next week, so without this the board gave no sign that
   // anything was still waiting in it.
@@ -122,6 +124,20 @@ const TopBar: React.FC = () => {
         {/* *(rt §5)* Visible only with a plan. No in-app upgrade prompts — that is a deliberate
             product decision, and a greyed-out button explaining what you are missing is one with
             extra steps. Someone who wants the tier finds it on the Pro page. */}
+        {/* Beside the other utilities, and available to everybody — a bug report is not a
+            premium feature, and during a beta it is the most valuable thing anybody can send. */}
+        {feedbackAdapter && (
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+            <IconButton
+              icon="feedback"
+              iconClass={ICON_BUTTON_CLASS}
+              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+              tooltip={t("feedback.open")}
+              onClick={() => setFeedbackOpen(true)}
+              size="md"
+            />
+          </div>
+        )}
         {insightsAdapter && subscribed && (
           <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
             <IconButton
@@ -212,6 +228,11 @@ const TopBar: React.FC = () => {
 
       <InstallModal isOpen={installSteps} onOpenChange={setInstallSteps} />
       <ShareWeekModal isOpen={sharing} onOpenChange={setSharing} />
+      <FeedbackModal
+        adapter={feedbackAdapter}
+        isOpen={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+      />
       <AvoidanceReportModal
         adapter={insightsAdapter}
         isOpen={avoidanceOpen}

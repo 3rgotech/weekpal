@@ -8,9 +8,10 @@ import APITaskNoteAdapter from './api/APITaskNoteAdapter';
 import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
 import APIShareAdapter from './api/APIShareAdapter';
 import APIInsightsAdapter from './api/APIInsightsAdapter';
+import APIFeedbackAdapter from './api/APIFeedbackAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IFeedbackAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -30,6 +31,7 @@ interface AdapterFactoryResult {
     importAdapter: IImportAdapter | null;
     shareAdapter: IShareAdapter | null;
     insightsAdapter: IInsightsAdapter | null;
+    feedbackAdapter: IFeedbackAdapter | null;
 }
 
 class AdapterFactory {
@@ -59,6 +61,7 @@ class AdapterFactory {
             importAdapter: factory.createImportAdapter(),
             shareAdapter: factory.createShareAdapter(),
             insightsAdapter: factory.createInsightsAdapter(),
+            feedbackAdapter: factory.createFeedbackAdapter(),
         };
     }
 
@@ -102,6 +105,14 @@ class AdapterFactory {
      */
     createInsightsAdapter(): IInsightsAdapter | null {
         return this.usesApi ? new APIInsightsAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test or demo double: a report needs somewhere real to go, and a demo board that
+     * cheerfully accepted one would be lying to whoever wrote it.
+     */
+    createFeedbackAdapter(): IFeedbackAdapter | null {
+        return this.usesApi ? new APIFeedbackAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     /**

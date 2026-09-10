@@ -371,5 +371,19 @@
     "pro_only": "Ce rapport fait partie de Pro.",
     "error": "Le chargement a échoué. Réessayez dans un instant.",
     "open": "Ce que vous traînez"
+  },
+  "feedback": {
+    "title": "Dites-nous ce qui s'est passé",
+    "open": "Signaler un problème ou proposer une idée",
+    "kind_bug": "Quelque chose ne va pas",
+    "kind_idea": "Une idée",
+    "placeholder_bug": "Que faisiez-vous, et que s'est-il passé à la place ?",
+    "placeholder_idea": "Qu'est-ce qui serait mieux ?",
+    "send": "Envoyer",
+    "thanks": "Merci — c'est envoyé.",
+    "error": "L'envoi a échoué. Réessayez dans un instant.",
+    "attached_one": "{{count}} information sur votre tableau est jointe",
+    "attached_other": "{{count}} informations sur votre tableau sont jointes",
+    "no_tasks": "Vos tâches et leur contenu ne sont jamais inclus."
   }
 }

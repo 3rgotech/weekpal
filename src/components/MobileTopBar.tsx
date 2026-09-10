@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { buttonVariants, Dropdown, Label, Separator } from "@heroui/react";
 import clsx from "clsx";
-import { ChevronDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
+import { Bug, ChevronDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import SyncStatusIndicator from "./SyncStatusIndicator";
@@ -11,6 +11,7 @@ import { getEnvConfig } from "../utils/env";
 import { leftoverBadge } from "../utils/settings";
 import { useInstallPrompt } from "../utils/install";
 import InstallModal from "./InstallModal";
+import FeedbackModal from "./FeedbackModal";
 import { useShortcuts } from "../contexts/ShortcutsContext";
 import { MENU_ITEM_CLASS } from "../utils/color";
 
@@ -25,10 +26,11 @@ import { MENU_ITEM_CLASS } from "../utils/color";
 const MobileTopBar: React.FC = () => {
   const { t } = useTranslation();
   const { settings, updateSettings, openSettingsModal } = useSettings();
-  const { leftovers } = useData();
+  const { leftovers, feedbackAdapter } = useData();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
   const { setLeftoversOpen } = useShortcuts();
   const [installSteps, setInstallSteps] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const { accountUrl, signupUrl, loginUrl } = getEnvConfig();
 
   const badge = leftoverBadge(leftovers.length);
@@ -70,6 +72,19 @@ const MobileTopBar: React.FC = () => {
                     <span className="px-1.5 rounded-full bg-danger text-white text-xs">{badge}</span>
                   )}
                 </Dropdown.Item>
+
+                {/* First after the inbox, and available to everybody. Most of a beta happens on
+                    a phone, and a report nobody can find is a report nobody sends. */}
+                {feedbackAdapter && (
+                  <Dropdown.Item
+                    id="feedback"
+                    textValue={t("feedback.open")}
+                    onAction={() => setFeedbackOpen(true)}
+                  >
+                    <Bug size={16} className={MENU_ITEM_CLASS} />
+                    <Label className={MENU_ITEM_CLASS}>{t("feedback.open")}</Label>
+                  </Dropdown.Item>
+                )}
 
                 <Dropdown.Item
                   id="visibility"
@@ -166,6 +181,11 @@ const MobileTopBar: React.FC = () => {
       </div>
 
       <InstallModal isOpen={installSteps} onOpenChange={setInstallSteps} />
+      <FeedbackModal
+        adapter={feedbackAdapter}
+        isOpen={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+      />
     </div>
   );
 };

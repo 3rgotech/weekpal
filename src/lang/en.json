@@ -371,5 +371,19 @@
     "pro_only": "This report is part of Pro.",
     "error": "That didn't load. Try again in a moment.",
     "open": "What you've been carrying"
+  },
+  "feedback": {
+    "title": "Tell us what happened",
+    "open": "Report a problem or suggest something",
+    "kind_bug": "Something's broken",
+    "kind_idea": "An idea",
+    "placeholder_bug": "What were you doing, and what happened instead?",
+    "placeholder_idea": "What would make this better?",
+    "send": "Send",
+    "thanks": "Thank you — that's been sent.",
+    "error": "That didn't send. Try again in a moment.",
+    "attached_one": "{{count}} detail about your board is attached",
+    "attached_other": "{{count}} details about your board are attached",
+    "no_tasks": "Your tasks and their contents are never included."
   }
 }

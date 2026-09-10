@@ -353,6 +353,15 @@ export interface AvoidanceReport {
   longest_chains: Array<{ id: string; title: string; moves: number; first_seen: string }>;
 }
 
+export interface IFeedbackAdapter {
+  send(
+    kind: 'bug' | 'idea',
+    message: string,
+    diagnostics: Record<string, string>,
+    weekCode: string | null,
+  ): Promise<void>;
+}
+
 export interface IInsightsAdapter {
   /** Null when the account has no plan — "part of Pro" is not an error. */
   avoidance(weeks?: number): Promise<AvoidanceReport | null>;

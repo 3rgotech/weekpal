@@ -21,12 +21,23 @@
 const HEADER = 'X-WeekPal-Build';
 
 /** What this page loaded with. `undefined` on a demo or dev board, which disables the fence. */
-let loadedBuild: string | undefined;
+let loadedBuild_: string | undefined;
 let announced = false;
 const listeners = new Set<() => void>();
 
+/**
+ * Which build this page loaded, for anyone who needs to report it.
+ *
+ * Read from here rather than from `env`: `env.ts` carries `import.meta.env`, and importing it
+ * drags that into every module on the path — which is the same reason `connectivity` is told its
+ * configuration rather than fetching it. This module already has the value.
+ */
+export function loadedBuild(): string | undefined {
+    return loadedBuild_;
+}
+
 export function configureBuildFence(build: string | undefined): void {
-    loadedBuild = build;
+    loadedBuild_ = build;
     announced = false;
 }
 
@@ -38,7 +49,7 @@ export function configureBuildFence(build: string | undefined): void {
  * yet, and a fence that fired on its own absence would be worse than no fence.
  */
 export function checkBuildFence(response: { headers: { get(name: string): string | null } }): void {
-    if (!loadedBuild || announced) {
+    if (!loadedBuild_ || announced) {
         return;
     }
 
@@ -46,7 +57,7 @@ export function checkBuildFence(response: { headers: { get(name: string): string
 
     // `unknown` is what a server with no built bundle answers — a developer running the SPA off
     // the Vite dev server. Comparing against it would nag on every request.
-    if (!served || served === 'unknown' || served === loadedBuild) {
+    if (!served || served === 'unknown' || served === loadedBuild_) {
         return;
     }
 
@@ -64,7 +75,7 @@ export function subscribeToBuildMismatch(listener: () => void): () => void {
 
 /** Test seam. */
 export function resetBuildFence(): void {
-    loadedBuild = undefined;
+    loadedBuild_ = undefined;
     announced = false;
     listeners.clear();
 }

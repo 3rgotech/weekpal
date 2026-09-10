@@ -3,7 +3,7 @@ import { subscribeToTabMessages } from "../utils/tabLeader";
 import { recoverableTasks } from "../utils/recovery";
 import { dayShares } from "../utils/dayLoad";
 import { boardDayOrder } from "../utils/week";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import BaseStore from "../store/BaseStore";
@@ -180,6 +180,8 @@ interface DataContextProps {
   shareAdapter: IShareAdapter | null;
   /** Passed through like history and sharing: a reading of server-side data, with nothing local to cache. */
   insightsAdapter: IInsightsAdapter | null;
+  /** Sending a bug report. Passed through: nothing is read back and nothing is cached. */
+  feedbackAdapter: IFeedbackAdapter | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -193,6 +195,7 @@ interface DataProviderProps {
   historyAdapter?: IHistoryAdapter | null;
   shareAdapter?: IShareAdapter | null;
   insightsAdapter?: IInsightsAdapter | null;
+  feedbackAdapter?: IFeedbackAdapter | null;
 }
 
 const DataProvider: React.FC<DataProviderProps> = ({
@@ -203,7 +206,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
   projectAdapter = null,
   historyAdapter = null,
   shareAdapter = null,
-  insightsAdapter = null
+  insightsAdapter = null,
+  feedbackAdapter = null
 }) => {
   const { currentWeek, thisWeek, layout } = useCalendar();
   const { settings } = useSettings();
@@ -1009,6 +1013,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         historyAdapter,
         shareAdapter,
         insightsAdapter,
+        feedbackAdapter,
         recoverDay,
         projectStore,
         projects,

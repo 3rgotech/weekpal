@@ -27,7 +27,7 @@ import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProject
 import { getEnvConfig } from "./utils/env";
 import { configureConnectivity } from "./utils/connectivity";
 import { startTabLeadership } from "./utils/tabLeader";
-import { IInsightsAdapter, IShareAdapter } from "./types";
+import { IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
 
@@ -86,6 +86,7 @@ function App() {
   );
   const [shareAdapter, setShareAdapter] = useState<IShareAdapter | null>(null);
   const [insightsAdapter, setInsightsAdapter] = useState<IInsightsAdapter | null>(null);
+  const [feedbackAdapter, setFeedbackAdapter] = useState<IFeedbackAdapter | null>(null);
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
@@ -102,6 +103,7 @@ function App() {
       projectAdapter,
       shareAdapter,
       insightsAdapter,
+      feedbackAdapter,
     } = AdapterFactory.createAdapters();
     setTaskAdapter(taskAdapter);
     setCategoryAdapter(categoryAdapter);
@@ -110,6 +112,7 @@ function App() {
     setProjectAdapter(projectAdapter);
     setShareAdapter(shareAdapter);
     setInsightsAdapter(insightsAdapter);
+    setFeedbackAdapter(feedbackAdapter);
 
     // Check if we're in demo mode
     const { dataSource } = getEnvConfig();
@@ -153,6 +156,7 @@ function App() {
               projectAdapter={projectAdapter}
               shareAdapter={shareAdapter}
               insightsAdapter={insightsAdapter}
+              feedbackAdapter={feedbackAdapter}
             >
               <TaskModalProvider>
                 {/* Inside the task modal's provider: the keys stand down while it is open, and

@@ -1,5 +1,5 @@
 import SyncService from "../utils/SyncService";
-import { ICategoryAdapter, INoteAdapter, IProjectAdapter, ITaskAdapter } from "../types";
+import { ICategoryAdapter, INoteAdapter, IProjectAdapter, ITaskAdapter, PendingChange } from "../types";
 import { WeekpalDB } from "./db";
 import { isReachable } from "../utils/connectivity";
 
@@ -104,6 +104,17 @@ class BaseStore {
 
     async getPendingChangesCount(): Promise<number> {
         return this.syncService.getPendingChangesCount();
+    }
+
+    /**
+     * Writes that will never be sent without help.
+     *
+     * Exposed for the bug-report widget: a dead letter is the shape of every silent-data-loss
+     * report, and it is the single most useful thing a tester can tell us without knowing they
+     * are telling us anything.
+     */
+    async getDeadLetters(): Promise<PendingChange[]> {
+        return this.syncService.getDeadLetters();
     }
 }
 
