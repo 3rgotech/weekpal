@@ -392,5 +392,44 @@
     "see_all": "Tout afficher",
     "empty": "Rien à signaler pour l'instant.",
     "unavailable": "Impossible de charger les notes de version. Elles seront là à votre prochaine connexion."
+  },
+  "tour": {
+    "progress": "{{current}} sur {{total}}",
+    "next": "Suivant",
+    "back": "Retour",
+    "done": "Terminé",
+    "replay": "Refaire la visite",
+    "week": {
+      "title": "Une semaine à la fois",
+      "body": "Voici la semaine que vous planifiez. Les flèches vous déplacent d'une semaine, le point vous ramène à celle-ci."
+    },
+    "columns": {
+      "title": "Une colonne par jour",
+      "body": "Écrivez une tâche dans le jour où vous comptez la faire. Glissez-la ailleurs quand le jour change d'avis — c'est tout le principe."
+    },
+    "buckets": {
+      "title": "Pour ce qui n'a pas encore de jour",
+      "body": "Cette semaine, pour ce qui doit être fait avant dimanche sans tomber un matin précis. Un jour, pour la liste que vous ne traitez pas encore."
+    },
+    "leftovers": {
+      "title": "Ce que vous avez laissé derrière",
+      "body": "Les tâches inachevées ne disparaissent pas à minuit. Une fois par semaine, celles qui attendent encore vous sont montrées, et vous décidez de leur sort."
+    },
+    "settings": {
+      "title": "À votre main",
+      "body": "Vos jours travaillés, la durée d'une journée, ce qui fait une journée pleine. Les nouveautés sont ici aussi."
+    },
+    "day": {
+      "title": "Un jour à la fois",
+      "body": "Sur téléphone, un seul jour s'affiche : ses tâches, et à quel point il est déjà rempli."
+    },
+    "tabs": {
+      "title": "Le reste de la semaine",
+      "body": "Chaque jour est un onglet ici, avec Cette semaine pour ce qui n'a pas de jour et Un jour pour ce qui n'a pas de semaine. Touchez le nom de la semaine pour revenir à aujourd'hui."
+    },
+    "menu": {
+      "title": "Tout le reste",
+      "body": "Ce que vous avez laissé derrière, vos réglages, et le bouton pour me signaler un problème."
+    }
   }
 }

@@ -2,6 +2,7 @@ import React, { createContext, ReactNode, useCallback, useContext, useEffect, us
 import { ChangelogEntry } from "../types";
 import { useData } from "./DataContext";
 import { useShortcuts } from "./ShortcutsContext";
+import { useOnboarding } from "./OnboardingContext";
 import ChangelogModal from "../components/ChangelogModal";
 
 /** Closed, showing what shipped while the user was away, or showing the whole history. */
@@ -38,13 +39,17 @@ const ChangelogContext = createContext<ChangelogContextProps | undefined>(undefi
  * Opened once per session at most. A refetch that happened to arrive while the user was mid-task
  * would otherwise interrupt them with a dialog they had already closed.
  *
- * And it gives way to the leftover review, which lets itself in on the same load and is about the
- * user's own work rather than ours. Two stacked dialogs on the first Monday after a deploy is not
- * a greeting; the notes wait until the review has had its turn.
+ * And it gives way to the first-run tour and then to the leftover review, both of which let
+ * themselves in on the same load. Three things arriving at once on the first Monday after a
+ * deploy is not a greeting; the notes go last, which is also the honest order — somebody being
+ * shown the board for the first time has no absence to be caught up on.
  */
 const ChangelogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { changelogAdapter, leftoversLoaded } = useData();
     const { leftoversOpen } = useShortcuts();
+    // Third in the queue, and last for a reason: somebody being shown the board for the first
+    // time has no absence to be caught up on.
+    const { blocking: onboarding } = useOnboarding();
 
     const [entries, setEntries] = useState<ChangelogEntry[]>([]);
     const [view, setView] = useState<ChangelogView>(null);
@@ -100,14 +105,14 @@ const ChangelogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
      * response cannot arrive before a local read and then be overtaken by it.
      */
     useEffect(() => {
-        if (!waiting || announced.current || !leftoversLoaded || leftoversOpen) {
+        if (!waiting || announced.current || !leftoversLoaded || leftoversOpen || onboarding) {
             return;
         }
 
         announced.current = true;
         setWaiting(false);
         setView("new");
-    }, [waiting, leftoversLoaded, leftoversOpen]);
+    }, [waiting, leftoversLoaded, leftoversOpen, onboarding]);
 
     /*
      * Closing is the acknowledgement.

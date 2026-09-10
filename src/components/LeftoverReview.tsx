@@ -3,6 +3,7 @@ import { Button, Chip, Modal, Spinner } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { useData } from "../contexts/DataContext";
+import { useOnboarding } from "../contexts/OnboardingContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs, { weekCodeToDate } from "../utils/dayjs";
@@ -56,6 +57,8 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
   } = useData();
 
   const { thisWeek } = useCalendar();
+  // The first-run tour goes first. See the auto-open effect below.
+  const { blocking: onboarding } = useOnboarding();
 
   /**
    * Which date a leftover sat on, as this user's board would have drawn it.
@@ -106,14 +109,19 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
   // dependencies: it is the setter of the caller's state, and re-running this on every render of
   // the parent would reopen a modal the user has just closed.
   //
+  // `onboarding` is in them, and has to be: the first-run tour takes the floor before the board
+  // has finished drawing, and this would otherwise cover the very columns it is pointing at. The
+  // review is not skipped, only held — when the tour ends, this effect runs again and lets
+  // itself in as usual.
+  //
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!leftoversLoaded || leftovers.length === 0 || reviewed() === thisWeek) {
+    if (!leftoversLoaded || leftovers.length === 0 || reviewed() === thisWeek || onboarding) {
       return;
     }
 
     onOpenChange(true);
-  }, [leftoversLoaded, leftovers.length, thisWeek]);
+  }, [leftoversLoaded, leftovers.length, thisWeek, onboarding]);
 
   // A board left open for days would otherwise reopen showing the list it built on Monday.
   useEffect(() => {

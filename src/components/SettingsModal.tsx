@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Language, SubtaskDisplay } from "../types";
 import { useSettings } from "../contexts/SettingsContext";
 import { useChangelog } from "../contexts/ChangelogContext";
+import { useOnboarding } from "../contexts/OnboardingContext";
 import { useData } from "../contexts/DataContext";
 import useDayJs from "../utils/dayjs";
 import {
@@ -46,6 +47,7 @@ const SettingsModal: React.FC = () => {
     const { t } = useTranslation();
     const { settings, updateSettings, settingsOverlay: overlay, closeSettingsModal } = useSettings();
     const { available: changelogAvailable, openChangelog } = useChangelog();
+    const { startTour } = useOnboarding();
     const { categories } = useData();
     const dayjs = useDayJs(settings.language);
 
@@ -549,8 +551,21 @@ const SettingsModal: React.FC = () => {
                             settings dialog closes on the way: two stacked dialogs would leave the
                             release notes sitting on top of a form the user then has to dismiss
                             twice. */}
-                        {changelogAvailable && (
-                            <Modal.Footer className="justify-start">
+                        <Modal.Footer className="justify-start">
+                            {/* Beside the release notes because they are the same kind of thing:
+                                not a setting, but something a person comes to this dialog looking
+                                for. The tour has to be replayable — it runs once, on the day
+                                somebody understands the product least. */}
+                            <Button
+                                variant="secondary"
+                                onPress={() => {
+                                    closeSettingsModal();
+                                    startTour();
+                                }}
+                            >
+                                {t("tour.replay")}
+                            </Button>
+                            {changelogAvailable && (
                                 <Button
                                     variant="secondary"
                                     onPress={() => {
@@ -560,8 +575,8 @@ const SettingsModal: React.FC = () => {
                                 >
                                     {t("changelog.title")}
                                 </Button>
-                            </Modal.Footer>
-                        )}
+                            )}
+                        </Modal.Footer>
                     </Modal.Dialog>
                 </Modal.Container>
             </Modal.Backdrop>

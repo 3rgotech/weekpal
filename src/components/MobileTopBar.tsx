@@ -49,7 +49,7 @@ const MobileTopBar: React.FC = () => {
         <Dropdown>
           {/* The trigger is itself a button in v3 — and a react-aria one, not HeroUI's, so it
               takes its look from the variants rather than a `variant` prop. */}
-          <Dropdown.Trigger className={clsx(buttonVariants({ variant: "tertiary" }), "flex items-center gap-2 whitespace-nowrap")}>
+          <Dropdown.Trigger data-tour="menu" className={clsx(buttonVariants({ variant: "tertiary" }), "flex items-center gap-2 whitespace-nowrap")}>
             <MenuIcon size={18} />
             {t("actions.menu")}
             <ChevronDown size={14} />

@@ -5,6 +5,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { useOverlayState } from "@heroui/react";
 import { Settings } from "../types";
@@ -21,6 +22,24 @@ interface SettingsContextProps {
   updateSettings: (newSettings: Partial<Settings>) => void;
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
+  /**
+   * Whether the server's copy has been merged in, or there was never a server to ask.
+   *
+   * The board renders from localStorage immediately, so "settings are available" and "settings
+   * are the account's settings" are different moments. Anything that fires *once* off a stored
+   * value — the first-run tour — has to wait for the second, or a fresh browser on an existing
+   * account acts on a default the server is about to overwrite.
+   */
+  settingsLoaded: boolean;
+  /**
+   * Whether there is an account behind these settings, rather than one browser's localStorage.
+   *
+   * False on the demo board and on a local-only build. Anything that should happen once *per
+   * person* rather than once per browser has to ask: the demo already explains itself in its own
+   * dialog, and a first-run tour teaching somebody to plan their week is for somebody who has a
+   * week here to plan.
+   */
+  settingsPersisted: boolean;
   /** The dialog's open state, for `SettingsModal` to render against. */
   settingsOverlay: ReturnType<typeof useOverlayState>;
 }
@@ -43,6 +62,7 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   const overlay = useOverlayState();
   const dayjs = useDayJs(settings.language);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Built here rather than passed down: SettingsProvider sits above DataProvider,
   // where the other adapters are created.
@@ -60,6 +80,10 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
    */
   useEffect(() => {
     if (!adapter) {
+      // A demo or local-only board. There is no server copy coming, so the local one is already
+      // the final answer and nothing should wait for a response that will never arrive.
+      setSettingsLoaded(true);
+
       return;
     }
 
@@ -77,6 +101,14 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         // up in the sync indicator rather than only in the console.
         reportSyncFailure(classifyFailure(error));
         console.error("Could not load settings from the server:", error);
+      })
+      .finally(() => {
+        // Settled, not succeeded. Offline, the local copy is the best answer there is, and a
+        // board that waited for a response it is never going to get would hold back the tour
+        // forever rather than run it on what it knows.
+        if (!cancelled) {
+          setSettingsLoaded(true);
+        }
       });
 
     return () => {
@@ -120,6 +152,8 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     updateSettings,
     openSettingsModal: overlay.open,
     closeSettingsModal: overlay.close,
+    settingsLoaded,
+    settingsPersisted: adapter !== null,
     // Handed out rather than used here: the modal lists the user's categories, and this provider
     // sits above the one that holds them — `SettingsProvider` wraps `CalendarProvider`, which
     // wraps `DataProvider`, and that order is fixed because each reads the one above it. So the

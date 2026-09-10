@@ -20,7 +20,9 @@ const WeekSelector: React.FC = () => {
   ).split(" - ");
 
   return (
-    <div className="flex items-stretch">
+    /* `data-tour` rather than a class or an id: the tour points at things by intent, and a
+       selector written against styling breaks the first time the styling changes. */
+    <div className="flex items-stretch" data-tour="week">
       <div className="flex items-center justify-center border-r border-slate-300 dark:border-sky-900">
         <div className="px-3 xl:px-8 min-w-0 truncate">
           <span className="font-bold">{title1}</span>

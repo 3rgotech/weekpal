@@ -20,6 +20,13 @@ let leftoversOpen = false;
 jest.mock("../DataContext", () => ({ useData: () => provided }));
 jest.mock("../ShortcutsContext", () => ({ useShortcuts: () => ({ leftoversOpen }) }));
 
+/** The first-run tour, which the release notes also give way to. Off unless a test says so. */
+let onboarding = false;
+
+jest.mock("../OnboardingContext", () => ({
+    useOnboarding: () => ({ blocking: onboarding, startTour: () => { } }),
+}));
+
 /*
  * The dialog stands in for itself: what is under test here is when the provider decides to open
  * it and what it does on the way out, not how a release note is laid out.
@@ -65,6 +72,7 @@ const mount = () => render(
 beforeEach(() => {
     provided = { changelogAdapter: adapter, leftoversLoaded: true };
     leftoversOpen = false;
+    onboarding = false;
     lastProps = {};
     adapter.list.mockReset();
     adapter.markRead.mockReset();
@@ -161,6 +169,19 @@ describe("giving way to the leftover review", () => {
         );
 
         await waitFor(() => expect(screen.getByTestId("dialog").textContent).toBe("new"));
+    });
+});
+
+describe("giving way to the first-run tour", () => {
+    it("holds the notes back while the tour has the floor", async () => {
+        // Somebody being shown the board for the first time has no absence to be caught up on.
+        onboarding = true;
+        adapter.list.mockResolvedValue([entry({ seen: false })]);
+
+        mount();
+
+        await waitFor(() => expect(adapter.list).toHaveBeenCalled());
+        expect(screen.queryByTestId("dialog")).toBeNull();
     });
 });
 

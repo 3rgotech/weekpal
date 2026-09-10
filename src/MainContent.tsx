@@ -280,6 +280,7 @@ const MainContent: React.FC<MainContentProps> = () => {
           <div
             className="flex-[2] min-h-0 grid gap-2 xl:gap-4"
             style={{ gridTemplateColumns: `repeat(${layout.columnCount}, minmax(0, 1fr))` }}
+            data-tour="days"
           >
             {/* One element per column, whether it holds one day or a run of days that are not
                 worked — the weekend's stacked pair generalised. `min-h-0` is what makes a cell
@@ -296,7 +297,7 @@ const MainContent: React.FC<MainContentProps> = () => {
             ))}
           </div>
 
-          <div className="flex-1 min-h-0 grid grid-cols-2 gap-2 xl:gap-4">
+          <div className="flex-1 min-h-0 grid grid-cols-2 gap-2 xl:gap-4" data-tour="buckets">
             <div className="min-h-0 overflow-hidden rounded-lg">
               <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
             </div>

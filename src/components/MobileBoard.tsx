@@ -121,6 +121,7 @@ const MobileBoard: React.FC = () => {
   return (
     <div className="h-full flex flex-col overflow-hidden pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <header
+        data-tour="day"
         className={clsx(
           "flex-none px-3 py-2 border-b-2",
           isToday ? "border-sky-500 text-sky-500" : "border-slate-200 dark:border-slate-600 dark:text-white",

@@ -392,5 +392,44 @@
     "see_all": "See everything",
     "empty": "Nothing to report yet.",
     "unavailable": "The release notes couldn't be loaded. They'll be here next time you're online."
+  },
+  "tour": {
+    "progress": "{{current}} of {{total}}",
+    "next": "Next",
+    "back": "Back",
+    "done": "Done",
+    "replay": "Show me around again",
+    "week": {
+      "title": "One week at a time",
+      "body": "This is the week you're planning. The arrows move a week either way, and the dot brings you back to this one."
+    },
+    "columns": {
+      "title": "A column per day",
+      "body": "Write a task into the day you mean to do it. Drag it to another day when the day changes its mind — that's the whole idea."
+    },
+    "buckets": {
+      "title": "For what has no day yet",
+      "body": "This week holds things due before Sunday but not on any particular morning. Some day is the shortlist you're not working from yet."
+    },
+    "leftovers": {
+      "title": "What you left behind",
+      "body": "Unfinished tasks don't quietly vanish at midnight. Once a week this shows you what's still waiting, and you decide where it goes."
+    },
+    "settings": {
+      "title": "Make it yours",
+      "body": "Which days you work, how long a working day is, what counts as a full one. The release notes live here too."
+    },
+    "day": {
+      "title": "One day at a time",
+      "body": "A phone shows a single day: its tasks, and how full it already is."
+    },
+    "tabs": {
+      "title": "The rest of the week",
+      "body": "Every day is a tab along here, plus This week for what has no day and Some day for what has no week. Tap the week's name to come back to today."
+    },
+    "menu": {
+      "title": "Everything else",
+      "body": "What you left behind, your settings, and the button for telling me something's broken."
+    }
   }
 }

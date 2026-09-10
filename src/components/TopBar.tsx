@@ -71,7 +71,7 @@ const TopBar: React.FC = () => {
           </Tooltip.Content>
         </Tooltip>
         {/* <Menu icon="refresh" title="Refresh" /> */}
-        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900" data-tour="leftovers">
             {/* `isInvisible` is gone in v3, and rendering an empty badge in its place would
                 leave a dot on the button with nothing in it — so an empty inbox has no badge. */}
             <Badge.Anchor>
@@ -195,7 +195,7 @@ const TopBar: React.FC = () => {
             size="md"
           />
         </div>
-        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+        <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900" data-tour="settings">
           <IconButton
             icon="settings"
             iconClass={ICON_BUTTON_CLASS}

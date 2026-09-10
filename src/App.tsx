@@ -5,6 +5,7 @@ import MainContent from "./MainContent";
 import { TaskModalProvider } from "./contexts/TaskModalContext";
 import { ShortcutsProvider } from "./contexts/ShortcutsContext";
 import { ChangelogProvider } from "./contexts/ChangelogContext";
+import { OnboardingProvider } from "./contexts/OnboardingContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -151,6 +152,10 @@ function App() {
       ) : (
         <AccountProvider>
         <SettingsProvider>
+          {/* Directly inside the settings, which is all it reads, and outside everything that
+              lets itself in on load — the leftover review and the release notes both stand down
+              while the tour has the floor. */}
+          <OnboardingProvider>
           <CalendarProvider>
             <DataProvider
               taskAdapter={taskAdapter}
@@ -216,6 +221,7 @@ function App() {
               </TaskModalProvider>
             </DataProvider>
           </CalendarProvider>
+          </OnboardingProvider>
         </SettingsProvider>
         </AccountProvider>
       )

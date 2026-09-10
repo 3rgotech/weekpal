@@ -34,6 +34,9 @@ export const DEFAULT_SETTINGS: Settings = {
     completionResort: false,
     workingDayHours: 0,
     subtaskDisplay: "percentage",
+    // Nobody has finished a tour they have not been shown. A browser with no stored settings and
+    // an account that predates the field both land here, and both are offered it.
+    onboardingVersion: 0,
 }
 
 /**
@@ -56,6 +59,11 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
             : [],
         somedayLimit: normaliseDayCapacity(stored?.somedayLimit),
         thisWeekLimit: normaliseDayCapacity(stored?.thisWeekLimit),
+        // Anything unreadable is read as "has seen none". Offering a tour twice is a small cost;
+        // a hand-edited localStorage silently suppressing it forever is a support conversation.
+        onboardingVersion: Number.isInteger(stored?.onboardingVersion)
+            ? (stored!.onboardingVersion as number)
+            : 0,
     };
 }
 

@@ -28,6 +28,7 @@ describe("DEFAULT_SETTINGS", () => {
     "completionResort",
     "workingDayHours",
     "subtaskDisplay",
+    "onboardingVersion",
   ];
 
   it("declares every field the Settings type requires", () => {
@@ -135,5 +136,35 @@ describe("withDefaults", () => {
     expect(withDefaults({ weekStartsOn: 0 }).weekStartsOn).toBe(1);
     expect(withDefaults({ weekStartsOn: 8 }).weekStartsOn).toBe(1);
     expect(withDefaults({ weekStartsOn: "monday" }).weekStartsOn).toBe(1);
+  });
+});
+
+/**
+ * The first-run tour's record of itself.
+ *
+ * A number rather than a flag, so a reworked tour can be offered again. Everything here turns on
+ * 0 meaning "has finished none of them" — the value a browser with nothing stored must produce.
+ */
+describe("onboardingVersion", () => {
+  it("starts at zero, so a browser with nothing stored is offered the tour", () => {
+    expect(withDefaults(null).onboardingVersion).toBe(0);
+  });
+
+  it("keeps a version that was actually stored", () => {
+    expect(withDefaults({ onboardingVersion: 2 }).onboardingVersion).toBe(2);
+  });
+
+  it("reads settings saved before the field existed as zero", () => {
+    // Every browser that has used the board until now. They are offered the tour, which during a
+    // beta is the point — those are the people whose first impression is worth having.
+    expect(withDefaults({ theme: "dark" }).onboardingVersion).toBe(0);
+  });
+
+  it("reads a hand-edited value as zero rather than trusting it", () => {
+    // Offering a tour twice is a small cost. A localStorage edit that suppresses it permanently
+    // is a support conversation nobody can diagnose.
+    for (const bad of ["3", 1.5, true, null, {}]) {
+      expect(withDefaults({ onboardingVersion: bad }).onboardingVersion).toBe(0);
+    }
   });
 });

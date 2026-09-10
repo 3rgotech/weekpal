@@ -24,6 +24,14 @@ export interface Subtask {
 }
 
 export interface Settings {
+  /**
+   * Which version of the first-run tour this account has finished, or 0 for none.
+   *
+   * A number rather than a flag, at the same cost: a reworked tour can be offered again to
+   * people who only ever saw the first one, and a bare boolean cannot tell "finished it" from
+   * "finished the old one".
+   */
+  onboardingVersion: number;
   theme: Theme;
   language: Language;
   dayHeaderFormat: string;
