@@ -13,6 +13,20 @@ class Event extends Base {
 
     public categoryId: string | null;
 
+    /**
+     * What the provider knew about the event beyond its name and its hours.
+     *
+     * All three are optional on every calendar and absent on most personal ones. The board only
+     * shows them when the events are expanded, so an event that has none of them looks exactly
+     * as it did before either way.
+     *
+     * The description arrives as plain text already collapsed and cut — `App\Support\EventText`
+     * does that on the server, so a page-long meeting invite never crosses the wire.
+     */
+    public description: string | null;
+    public location: string | null;
+    public organiser: string | null;
+
     constructor(data: Record<string, any>) {
         super(data);
 
@@ -25,6 +39,15 @@ class Event extends Base {
         this.endHour = data.endHour ?? null;
 
         this.categoryId = data.categoryId ?? null;
+
+        this.description = data.description ?? null;
+        this.location = data.location ?? null;
+        this.organiser = data.organiser ?? null;
+    }
+
+    /** Whether expanding this one would actually reveal anything. */
+    get hasDetail(): boolean {
+        return this.organiser !== null || this.location !== null || this.description !== null;
     }
 
     get hours(): string | null {
@@ -62,6 +85,9 @@ class Event extends Base {
             startHour: data.start_hour ?? null,
             endHour: data.end_hour ?? null,
             categoryId: data.category_id ?? null,
+            description: data.description ?? null,
+            location: data.location ?? null,
+            organiser: data.organiser ?? null,
         });
     }
 }

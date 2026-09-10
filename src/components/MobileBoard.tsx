@@ -190,7 +190,7 @@ const MobileBoard: React.FC = () => {
         />
       ) : (
       <>
-      {dayEvents.length > 0 && (
+      {settings.showEvents && dayEvents.length > 0 && (
         <div className="flex-none px-2">
           <EventList events={dayEvents} />
         </div>

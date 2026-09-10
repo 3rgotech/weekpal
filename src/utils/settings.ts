@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: Settings = {
     weekHeaderFormat: "[[WEEK]] W - MMMM YYYY",
     showCompletedTasks: true,
     showEvents: true,
+    expandEvents: false,
     workingDays: DEFAULT_WORKING_DAYS,
     showNonWorkingDays: true,
     weekStartsOn: DEFAULT_WEEK_STARTS_ON,

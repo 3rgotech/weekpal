@@ -268,7 +268,9 @@ const TaskList: React.FC<TaskProps> = ({
         estimating={estimating}
         share={dayShare?.get(dayOfWeek) ?? null}
       />
-      {filteredEvents.length > 0 && <EventList events={filteredEvents} />}
+      {/* `showEvents` had been declared in the settings type and read by nothing since the
+          board was written, so the switch existed and did not work. */}
+      {settings.showEvents && filteredEvents.length > 0 && <EventList events={filteredEvents} />}
       {/* `relative`, so the clipped-edge marker has the scrolling list to anchor to rather than
           the whole column — the fold is at the bottom of the list, not at the bottom of the day. */}
       <div className="flex-1 min-h-0 relative">

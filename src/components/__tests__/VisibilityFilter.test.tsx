@@ -18,6 +18,8 @@ jest.mock("../../contexts/SettingsContext", () => ({
 beforeEach(() => {
     jest.clearAllMocks();
     settings.showCompletedTasks = true;
+    settings.showEvents = true;
+    settings.expandEvents = false;
 });
 
 describe("the visibility menu on the wide board", () => {
@@ -37,5 +39,63 @@ describe("the visibility menu on the wide board", () => {
         fireEvent.click(screen.getByText("visibility.show_completed_tasks"));
 
         expect(updateSettings).toHaveBeenCalledWith({ showCompletedTasks: true });
+    });
+
+    it("names the action rather than the state", () => {
+        // "Hide completed tasks" is a button. "Completed tasks: shown" is a status line
+        // pretending to be one, and you cannot tell what pressing it will do.
+        render(<VisibilityFilter />);
+
+        expect(screen.queryByText("visibility.hide_completed_tasks")).toBeTruthy();
+        expect(screen.queryByText("visibility.show_completed_tasks")).toBeNull();
+    });
+});
+
+describe("the calendar", () => {
+    it("hides the events when they are showing", () => {
+        // `showEvents` had been declared in the settings type and read by nothing since the board
+        // was written: the setting existed, and switching it did nothing at all.
+        render(<VisibilityFilter />);
+        fireEvent.click(screen.getByText("visibility.hide_events"));
+
+        expect(updateSettings).toHaveBeenCalledWith({ showEvents: false });
+    });
+
+    it("shows them again when they are hidden", () => {
+        settings.showEvents = false;
+
+        render(<VisibilityFilter />);
+        fireEvent.click(screen.getByText("visibility.show_events"));
+
+        expect(updateSettings).toHaveBeenCalledWith({ showEvents: true });
+    });
+});
+
+describe("expanding the events", () => {
+    it("opens them out", () => {
+        render(<VisibilityFilter />);
+        fireEvent.click(screen.getByText("visibility.expand_events"));
+
+        expect(updateSettings).toHaveBeenCalledWith({ expandEvents: true });
+    });
+
+    it("closes them again", () => {
+        settings.expandEvents = true;
+
+        render(<VisibilityFilter />);
+        fireEvent.click(screen.getByText("visibility.collapse_events"));
+
+        expect(updateSettings).toHaveBeenCalledWith({ expandEvents: false });
+    });
+
+    it("is not offered while the calendar is switched off", () => {
+        // Offering to open out a calendar that is hidden is offering to do nothing, and the user
+        // cannot tell which of the two switches failed.
+        settings.showEvents = false;
+
+        render(<VisibilityFilter />);
+
+        expect(screen.queryByText("visibility.expand_events")).toBeNull();
+        expect(screen.queryByText("visibility.collapse_events")).toBeNull();
     });
 });

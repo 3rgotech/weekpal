@@ -39,6 +39,15 @@ export interface Settings {
   showCompletedTasks: boolean;
   showEvents: boolean;
   /**
+   * Whether an event shows what else is known about it — who called it, where it is, and the
+   * first couple of lines of its description.
+   *
+   * Off. A day column is narrow and an event is a fixed point to plan *around*, not the thing
+   * being planned; three extra lines per event is the difference between seeing the shape of a
+   * Tuesday and scrolling it.
+   */
+  expandEvents: boolean;
+  /**
    * The days this user works, as ISO weekday numbers. Never empty — a board with no day
    * columns is not a board — and always ascending, whatever order they were picked in.
    */

@@ -17,6 +17,7 @@ describe("DEFAULT_SETTINGS", () => {
     "weekHeaderFormat",
     "showCompletedTasks",
     "showEvents",
+    "expandEvents",
     "workingDays",
     "showNonWorkingDays",
     "weekStartsOn",

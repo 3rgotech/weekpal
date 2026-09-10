@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { buttonVariants, Dropdown, Label, Separator } from "@heroui/react";
 import clsx from "clsx";
-import { Bug, ChevronDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
+import { Bug, CalendarDays, CalendarOff, ChevronDown, ChevronsDownUp, ChevronsUpDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import SyncStatusIndicator from "./SyncStatusIndicator";
@@ -102,6 +102,46 @@ const MobileTopBar: React.FC = () => {
                       : t("visibility.show_completed_tasks")}
                   </Label>
                 </Dropdown.Item>
+
+                {/* The phone menu is the wide board's visibility dropdown, flattened: there is
+                    no room for a submenu, so the same three switches sit here as siblings. */}
+                <Dropdown.Item
+                  id="events"
+                  textValue={settings.showEvents
+                    ? t("visibility.hide_events")
+                    : t("visibility.show_events")}
+                  onAction={() => updateSettings({ showEvents: !settings.showEvents })}
+                >
+                  {settings.showEvents
+                    ? <CalendarOff size={16} className={MENU_ITEM_CLASS} />
+                    : <CalendarDays size={16} className={MENU_ITEM_CLASS} />}
+                  <Label className={MENU_ITEM_CLASS}>
+                    {settings.showEvents
+                      ? t("visibility.hide_events")
+                      : t("visibility.show_events")}
+                  </Label>
+                </Dropdown.Item>
+
+                {/* Only while there are events to expand: offering to open out a calendar that is
+                    switched off is offering to do nothing. */}
+                {settings.showEvents && (
+                  <Dropdown.Item
+                    id="expandEvents"
+                    textValue={settings.expandEvents
+                      ? t("visibility.collapse_events")
+                      : t("visibility.expand_events")}
+                    onAction={() => updateSettings({ expandEvents: !settings.expandEvents })}
+                  >
+                    {settings.expandEvents
+                      ? <ChevronsDownUp size={16} className={MENU_ITEM_CLASS} />
+                      : <ChevronsUpDown size={16} className={MENU_ITEM_CLASS} />}
+                    <Label className={MENU_ITEM_CLASS}>
+                      {settings.expandEvents
+                        ? t("visibility.collapse_events")
+                        : t("visibility.expand_events")}
+                    </Label>
+                  </Dropdown.Item>
+                )}
 
                 <Dropdown.Item id="print" textValue={t("actions.print")} onAction={() => window.print()}>
                   <Printer size={16} className={MENU_ITEM_CLASS} />
