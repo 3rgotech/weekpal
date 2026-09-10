@@ -3,7 +3,7 @@ import { subscribeToTabMessages } from "../utils/tabLeader";
 import { recoverableTasks } from "../utils/recovery";
 import { dayShares } from "../utils/dayLoad";
 import { boardDayOrder } from "../utils/week";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import BaseStore from "../store/BaseStore";
@@ -178,6 +178,8 @@ interface DataContextProps {
    * open.
    */
   shareAdapter: IShareAdapter | null;
+  /** Passed through like history and sharing: a reading of server-side data, with nothing local to cache. */
+  insightsAdapter: IInsightsAdapter | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -190,6 +192,7 @@ interface DataProviderProps {
   projectAdapter?: IProjectAdapter | null;
   historyAdapter?: IHistoryAdapter | null;
   shareAdapter?: IShareAdapter | null;
+  insightsAdapter?: IInsightsAdapter | null;
 }
 
 const DataProvider: React.FC<DataProviderProps> = ({
@@ -199,7 +202,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
   noteAdapter = null,
   projectAdapter = null,
   historyAdapter = null,
-  shareAdapter = null
+  shareAdapter = null,
+  insightsAdapter = null
 }) => {
   const { currentWeek, thisWeek, layout } = useCalendar();
   const { settings } = useSettings();
@@ -1004,6 +1008,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         noteStore,
         historyAdapter,
         shareAdapter,
+        insightsAdapter,
         recoverDay,
         projectStore,
         projects,

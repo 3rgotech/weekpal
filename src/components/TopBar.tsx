@@ -17,16 +17,20 @@ import { leftoverBadge } from "../utils/settings";
 import { useInstallPrompt } from "../utils/install";
 import InstallModal from "./InstallModal";
 import ShareWeekModal from "./ShareWeekModal";
+import AvoidanceReportModal from "./AvoidanceReportModal";
+import { useAccount } from "../contexts/AccountContext";
 import { useShortcuts } from "../contexts/ShortcutsContext";
 
 const TopBar: React.FC = () => {
   const { openSettingsModal } = useSettings();
   const { t } = useTranslation();
-  const { leftovers, shareAdapter } = useData();
+  const { leftovers, shareAdapter, insightsAdapter } = useData();
+  const { subscribed } = useAccount();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
   const { openHelp, setLeftoversOpen } = useShortcuts();
   const [installSteps, setInstallSteps] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [avoidanceOpen, setAvoidanceOpen] = useState(false);
 
   // Closing the review hides it until next week, so without this the board gave no sign that
   // anything was still waiting in it.
@@ -115,6 +119,21 @@ const TopBar: React.FC = () => {
             front of somebody else. Hidden entirely without a backend: a demo board cannot mint a
             link, and a Share button that produced a URL nobody could open would be worse than
             no button. */}
+        {/* *(rt §5)* Visible only with a plan. No in-app upgrade prompts — that is a deliberate
+            product decision, and a greyed-out button explaining what you are missing is one with
+            extra steps. Someone who wants the tier finds it on the Pro page. */}
+        {insightsAdapter && subscribed && (
+          <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
+            <IconButton
+              icon="avoidance"
+              iconClass={ICON_BUTTON_CLASS}
+              wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+              tooltip={t("avoidance.open")}
+              onClick={() => setAvoidanceOpen(true)}
+              size="md"
+            />
+          </div>
+        )}
         {shareAdapter && (
           <div className="flex items-center justify-center size-12 xl:size-16 border-l border-slate-300 dark:border-sky-900">
             <IconButton
@@ -193,6 +212,11 @@ const TopBar: React.FC = () => {
 
       <InstallModal isOpen={installSteps} onOpenChange={setInstallSteps} />
       <ShareWeekModal isOpen={sharing} onOpenChange={setSharing} />
+      <AvoidanceReportModal
+        adapter={insightsAdapter}
+        isOpen={avoidanceOpen}
+        onOpenChange={setAvoidanceOpen}
+      />
     </div>
   );
 };

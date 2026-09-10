@@ -356,5 +356,20 @@
     "batch_for": "Estimate “{{title}}”",
     "batch_done": "Every task on this day has an estimate",
     "position": "{{current}} of {{total}}"
+  },
+  "avoidance": {
+    "title": "What you've been carrying",
+    "headline": "You moved work {{moves}} times. {{open}} things are still open, {{chronic}} of them carried four times or more.",
+    "most_deferred": "Moved most often",
+    "by_category": "Done, or carried",
+    "longest": "With you the longest",
+    "moved_one": "moved {{count}} time",
+    "moved_other": "moved {{count}} times",
+    "completion": "{{percent}}% done",
+    "uncategorised": "No category",
+    "too_early": "There isn't enough history yet for this to say anything useful. Come back in a few weeks.",
+    "pro_only": "This report is part of Pro.",
+    "error": "That didn't load. Try again in a moment.",
+    "open": "What you've been carrying"
   }
 }

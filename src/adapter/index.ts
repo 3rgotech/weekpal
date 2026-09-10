@@ -7,9 +7,10 @@ import APIImportAdapter from './api/APIImportAdapter';
 import APITaskNoteAdapter from './api/APITaskNoteAdapter';
 import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
 import APIShareAdapter from './api/APIShareAdapter';
+import APIInsightsAdapter from './api/APIInsightsAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IHistoryAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -28,6 +29,7 @@ interface AdapterFactoryResult {
     accountAdapter: IAccountAdapter | null;
     importAdapter: IImportAdapter | null;
     shareAdapter: IShareAdapter | null;
+    insightsAdapter: IInsightsAdapter | null;
 }
 
 class AdapterFactory {
@@ -56,6 +58,7 @@ class AdapterFactory {
             accountAdapter: factory.createAccountAdapter(),
             importAdapter: factory.createImportAdapter(),
             shareAdapter: factory.createShareAdapter(),
+            insightsAdapter: factory.createInsightsAdapter(),
         };
     }
 
@@ -89,6 +92,16 @@ class AdapterFactory {
      */
     createShareAdapter(): IShareAdapter | null {
         return this.usesApi ? new APIShareAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test or demo double.
+     *
+     * The report is a reading of months of real history; a fixture board has none, and inventing
+     * one would demonstrate a conclusion the data never supported.
+     */
+    createInsightsAdapter(): IInsightsAdapter | null {
+        return this.usesApi ? new APIInsightsAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Dot, Download, EllipsisVertical, Eye, EyeOff, Inbox, Keyboard, Link2Off, Lock, Pencil, Plus, Printer, RefreshCw, Settings, Share2, Trash2, User } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Dot, Download, EllipsisVertical, Eye, EyeOff, Inbox, Keyboard, Link2Off, Lock, Pencil, Plus, Printer, RefreshCw, Settings, Share2, Trash2, TrendingDown, User } from "lucide-react";
 
 export const icons = {
     check: Check,
@@ -17,6 +17,7 @@ export const icons = {
     lock: Lock,
     settings: Settings,
     share: Share2,
+    avoidance: TrendingDown,
     trash: Trash2,
     user: User,
     verticalDots: EllipsisVertical,

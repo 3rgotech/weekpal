@@ -321,6 +321,43 @@ export interface WeekShare {
   created_at: string | null;
 }
 
+/**
+ * What the account's history says about its habits.
+ *
+ * `has_enough_data` is stated by the server rather than inferred from empty arrays here: "we have
+ * not watched you long enough" and "you have nothing to answer for" are different sentences that
+ * would otherwise render identically.
+ */
+export interface AvoidanceReport {
+  has_enough_data: boolean;
+  moves: number;
+  open: number;
+  chronic: number;
+  since: string;
+  most_deferred: Array<{
+    id: string;
+    title: string;
+    moves: number;
+    week: string | null;
+    category: string | null;
+    color: string | null;
+  }>;
+  by_category: Array<{
+    category: string | null;
+    color: string | null;
+    total: number;
+    done: number;
+    deferrals: number;
+    completion: number;
+  }>;
+  longest_chains: Array<{ id: string; title: string; moves: number; first_seen: string }>;
+}
+
+export interface IInsightsAdapter {
+  /** Null when the account has no plan — "part of Pro" is not an error. */
+  avoidance(weeks?: number): Promise<AvoidanceReport | null>;
+}
+
 export interface IShareAdapter {
   list(): Promise<WeekShare[]>;
   share(weekCode: string, options: { password?: string; expiresAt?: string; maxViews?: number }): Promise<WeekShare>;

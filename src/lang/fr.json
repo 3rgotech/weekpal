@@ -356,5 +356,20 @@
     "batch_for": "Estimer « {{title}} »",
     "batch_done": "Toutes les tâches de cette journée sont estimées",
     "position": "{{current}} sur {{total}}"
+  },
+  "avoidance": {
+    "title": "Ce que vous traînez",
+    "headline": "Vous avez déplacé des tâches {{moves}} fois. {{open}} sont encore ouvertes, dont {{chronic}} déplacées au moins quatre fois.",
+    "most_deferred": "Déplacées le plus souvent",
+    "by_category": "Faites, ou traînées",
+    "longest": "Avec vous depuis le plus longtemps",
+    "moved_one": "déplacée {{count}} fois",
+    "moved_other": "déplacée {{count}} fois",
+    "completion": "{{percent}} % faites",
+    "uncategorised": "Sans catégorie",
+    "too_early": "Il n'y a pas encore assez d'historique pour dire quoi que ce soit d'utile. Revenez dans quelques semaines.",
+    "pro_only": "Ce rapport fait partie de Pro.",
+    "error": "Le chargement a échoué. Réessayez dans un instant.",
+    "open": "Ce que vous traînez"
   }
 }
