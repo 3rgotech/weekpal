@@ -19,9 +19,13 @@ const data = {
     leftoversLoaded: true,
     refreshLeftovers: jest.fn(async () => [] as WeeklyTask[]),
     categories: [] as unknown[],
-    completeTask: jest.fn(),
-    deleteTask: jest.fn(),
-    rescueTask: jest.fn(async () => undefined),
+    completeTask: jest.fn((_task: WeeklyTask) => undefined),
+    deleteTask: jest.fn((_task: WeeklyTask) => undefined),
+    rescueTask: jest.fn(async (_task: WeeklyTask, _destination: string) => undefined),
+    // Typed, or `mock.calls` is an empty tuple and every assertion about what was moved reads as
+    // a type error rather than as a check.
+    relocateTask: jest.fn(async (_task: WeeklyTask, _target: { weekCode: string | null; dayOfWeek: string | null }) => undefined),
+    updateTask: jest.fn((_task: WeeklyTask) => undefined),
 };
 
 jest.mock("../../contexts/DataContext", () => ({
@@ -121,7 +125,9 @@ describe("the weekly review of what was left behind", () => {
         setup([task]);
         await screen.findByText("Task a");
 
-        fireEvent.click(screen.getByLabelText("leftovers.complete"));
+        // A named button now, not an icon: *(rt §7)* the review was backwards on both axes, and
+        // the most common actions were the ones behind a tooltip.
+        fireEvent.click(screen.getByText("leftovers.complete"));
 
         expect(data.completeTask).toHaveBeenCalledWith(task);
         await waitFor(() => expect(screen.queryByText("Task a")).not.toBeInTheDocument());
@@ -137,27 +143,81 @@ describe("the weekly review of what was left behind", () => {
         await waitFor(() => expect(data.deleteTask).toHaveBeenCalledWith(task));
     });
 
-    it.each([
-        ["leftovers.same_day", "sameDay"],
-        ["leftovers.this_week", "thisWeek"],
-        ["leftovers.some_day", "someday"],
-    ])("moves a task through the %s option", async (label, destination) => {
+    it("puts a task back on a day in one tap", async () => {
+        // *(rt §7)* The whole point of the rework: the most common action was two taps and a
+        // read behind a dropdown, and the destructive one was a single click in the open.
         const task = leftover("a", "2");
         setup([task]);
         await screen.findByText("Task a");
 
-        fireEvent.click(screen.getByText(label));
+        // Tuesday's pill, by its accessible name rather than its letter — the letters are a
+        // locale's abbreviations and several of them collide.
+        const tuesday = screen.getAllByRole("button")
+            .find((button) => /tuesday/i.test(button.getAttribute("aria-label") ?? ""));
 
-        await waitFor(() => expect(data.rescueTask).toHaveBeenCalledWith(task, destination));
+        fireEvent.click(tuesday!);
+
+        await waitFor(() => expect(data.relocateTask).toHaveBeenCalled());
+        expect(data.relocateTask.mock.calls[0]?.[1]?.dayOfWeek).toBe("2");
     });
 
-    it("leaves out the same-day move for a task that never had a day", async () => {
-        setup([leftover("a", "0")]);
+    it("pre-lights the day the task came from", async () => {
+        // The most-used action is one tap on the glowing thing, and the pre-lit pill shows its
+        // date while the others are letters.
+        setup([leftover("a", "2")]);
         await screen.findByText("Task a");
 
-        // Day 0 is the undated "this week" bucket, so keeping its weekday and moving it into this
-        // week are the same move — offering both would be two options that do one thing.
-        expect(screen.queryByText("leftovers.same_day")).not.toBeInTheDocument();
-        expect(screen.getByText("leftovers.this_week")).toBeInTheDocument();
+        const lit = screen.getAllByRole("button")
+            .filter((button) => button.className.includes("bg-sky-500"));
+
+        expect(lit).toHaveLength(1);
+        expect(lit[0].getAttribute("aria-label")).toMatch(/tuesday/i);
+    });
+
+    it("offers the week without a day", async () => {
+        // "Any" is a real answer rather than an evasion: it is where a task goes when you know it
+        // matters and not when.
+        const task = leftover("a", "2");
+        setup([task]);
+        await screen.findByText("Task a");
+
+        fireEvent.click(screen.getByText("leftovers.any"));
+
+        await waitFor(() => expect(data.rescueTask).toHaveBeenCalledWith(task, "thisWeek"));
+    });
+
+    it("offers Some day only once a task has earned it", async () => {
+        // *(rt §6)* Offering "give up on this" on every row would make giving up the suggestion
+        // rather than the escape.
+        setup([leftover("a", "2")]);
+        await screen.findByText("Task a");
+
+        expect(screen.queryByText("leftovers.some_day")).not.toBeInTheDocument();
+    });
+
+    it("offers Some day on a task that has been carried five times", async () => {
+        const carried = leftover("a", "2");
+        (carried as any).deferralCount = 6;
+        setup([carried]);
+        await screen.findByText("Task a");
+
+        fireEvent.click(screen.getByText("leftovers.some_day"));
+
+        await waitFor(() => expect(data.rescueTask).toHaveBeenCalledWith(carried, "someday"));
+    });
+
+    it("offers a deleted task back", async () => {
+        // Delete is the one action here that cannot be reasoned about afterwards — every other
+        // one leaves the task somewhere you can find it.
+        const task = leftover("a", "2");
+        setup([task]);
+        await screen.findByText("Task a");
+
+        fireEvent.click(screen.getByLabelText("leftovers.delete"));
+
+        await waitFor(() => expect(data.deleteTask).toHaveBeenCalledWith(task));
+        fireEvent.click(await screen.findByText("leftovers.undo_delete"));
+
+        expect(data.updateTask).toHaveBeenCalledWith(task);
     });
 });

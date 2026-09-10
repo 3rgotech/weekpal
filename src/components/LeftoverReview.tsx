@@ -1,15 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button, buttonVariants, Chip, Dropdown, Label, Modal, Spinner } from "@heroui/react";
-import { ChevronDown } from "lucide-react";
+import { Button, Chip, Modal, Spinner } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
-import { RescueDestination, useData } from "../contexts/DataContext";
+import { useData } from "../contexts/DataContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs, { weekCodeToDate } from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
 import { Weekday, dateOfWeekDay } from "../utils/week";
 import { WeeklyTask } from "../data/task";
+import LeftoverActions from "./LeftoverActions";
 import IconButton from "./IconButton";
 
 /** The week whose review has already been seen. Per browser: nagging is a per-device concern. */
@@ -17,12 +17,6 @@ const REVIEWED_KEY = "leftover-review-week";
 
 /** How long the loaded list is trusted before reopening the review goes and looks again. */
 const STALE_AFTER = 5 * 60 * 1000;
-
-const MOVE_LABELS: Record<RescueDestination, string> = {
-  sameDay: "leftovers.same_day",
-  thisWeek: "leftovers.this_week",
-  someday: "leftovers.some_day",
-};
 
 interface LeftoverReviewProps {
   isOpen: boolean;
@@ -57,6 +51,8 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     completeTask,
     deleteTask,
     rescueTask,
+    relocateTask,
+    updateTask,
   } = useData();
 
   const { thisWeek } = useCalendar();
@@ -74,6 +70,26 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     settings.weekStartsOn,
   );
   const [busy, setBusy] = useState<string | null>(null);
+
+  /*
+   * The last deleted task, offered back for five seconds.
+   *
+   * *(rt §7)* Delete is the one action in this dialog that cannot be reasoned about afterwards —
+   * every other one leaves the task somewhere you can find it. The delete itself is immediate;
+   * this is a revival, which the write path already supports (an upsert against a soft-deleted
+   * row restores it), rather than a deferred delete that a closed tab would lose.
+   */
+  const [undoable, setUndoable] = useState<WeeklyTask | null>(null);
+
+  useEffect(() => {
+    if (undoable === null) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setUndoable(null), 5000);
+
+    return () => window.clearTimeout(timer);
+  }, [undoable]);
   const refreshedAt = useRef(Date.now());
 
 
@@ -191,10 +207,11 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                     <li
                       key={task.id}
                       className={clsx(
-                        "flex items-center gap-2 py-2 border-b border-slate-200 dark:border-slate-600",
+                        "flex flex-col gap-1.5 py-2 border-b border-slate-200 dark:border-slate-600",
                         busy === task.id && "opacity-50",
                       )}
                     >
+                      <div className="flex items-center gap-2">
                       <span className="w-24 shrink-0 text-xs text-slate-500 dark:text-slate-400">
                         {undated ? t("main.this_week") : leftoverDate(task).format("ddd D MMM")}
                       </span>
@@ -209,48 +226,25 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                           actions onto a line of their own. */}
                       <span className="flex-1 min-w-0 truncate">{task.title}</span>
 
-                      <div className="flex items-center gap-1 shrink-0">
-                        <IconButton
-                          icon="check"
-                          size="sm"
-                          tooltip={t("leftovers.complete")}
-                          onClick={() => resolve(task, () => completeTask(task))}
-                        />
-                        <IconButton
-                          icon="trash"
-                          size="sm"
-                          tooltip={t("leftovers.delete")}
-                          onClick={() => resolve(task, () => deleteTask(task))}
-                        />
-
-                        <Dropdown>
-                          {/* The trigger *is* the button in v3 — wrapping a `Button` inside it
-                              nests one button in another. It is a react-aria button rather than
-                              HeroUI's, so the look comes from the variants directly. */}
-                          <Dropdown.Trigger className={clsx(buttonVariants({ size: "sm", variant: "secondary" }), "flex items-center gap-2 whitespace-nowrap")}>
-                            {t("leftovers.move")}
-                            <ChevronDown size={14} />
-                          </Dropdown.Trigger>
-                          <Dropdown.Popover>
-                            <Dropdown.Menu aria-label={t("leftovers.move")}>
-                              {([
-                                ...(undated ? [] : ["sameDay" as const]),
-                                "thisWeek" as const,
-                                "someday" as const,
-                              ]).map((destination: RescueDestination) => (
-                                <Dropdown.Item
-                                  key={destination}
-                                  id={destination}
-                                  textValue={t(MOVE_LABELS[destination])}
-                                  onAction={() => resolve(task, () => rescueTask(task, destination))}
-                                >
-                                  <Label>{t(MOVE_LABELS[destination])}</Label>
-                                </Dropdown.Item>
-                              ))}
-                            </Dropdown.Menu>
-                          </Dropdown.Popover>
-                        </Dropdown>
                       </div>
+
+                      {/* On its own line: seven day targets do not fit beside a title, and the
+                          rail is the primary action rather than an afterthought at the end. */}
+                      <LeftoverActions
+                        task={task}
+                        busy={busy === task.id}
+                        onMoveToDay={(day) => resolve(task, () => relocateTask(task, { weekCode: thisWeek, dayOfWeek: day }))}
+                        onMoveToWeek={() => resolve(task, () => rescueTask(task, "thisWeek"))}
+                        onSomeday={() => resolve(task, () => rescueTask(task, "someday"))}
+                        onDone={() => resolve(task, () => completeTask(task))}
+                        onDelete={() => resolve(task, () => {
+                          deleteTask(task);
+                          // Held so the row below can offer it back. The delete itself is not
+                          // deferred — a delay would lose it if the tab closed, and reviving a
+                          // deleted task is something the write path already does.
+                          setUndoable(task);
+                        })}
+                      />
                     </li>
                   );
                 })}
@@ -260,6 +254,22 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
             </Modal.Body>
 
             <Modal.Footer>
+              {/* In the footer rather than in place of the row: the row is gone, and putting the
+                  offer where it used to be would make the list jump under the pointer. */}
+              {undoable && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Re-upserting the same id revives it; the queue keeps the delete and this
+                    // in order, so the server sees the same sequence the user did.
+                    updateTask(undoable);
+                    setUndoable(null);
+                  }}
+                  className="mr-auto text-sm underline text-slate-600 dark:text-slate-300"
+                >
+                  {t("leftovers.undo_delete", { title: undoable.title })}
+                </button>
+              )}
               <Button variant="primary" onPress={close}>
                 {total === 0 ? t("leftovers.done") : t("leftovers.later")}
               </Button>

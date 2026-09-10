@@ -219,7 +219,9 @@
     "done": "Close",
     "move": "Move",
     "waiting_one": "{{count}} task waiting in the review",
-    "waiting_other": "{{count}} tasks waiting in the review"
+    "waiting_other": "{{count}} tasks waiting in the review",
+    "any": "Any",
+    "undo_delete": "Undo deleting “{{title}}”"
   },
   "update": {
     "available": "A new version of WeekPal is ready.",

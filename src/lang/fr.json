@@ -219,7 +219,9 @@
     "done": "Fermer",
     "move": "Déplacer",
     "waiting_one": "{{count}} tâche en attente dans la revue",
-    "waiting_other": "{{count}} tâches en attente dans la revue"
+    "waiting_other": "{{count}} tâches en attente dans la revue",
+    "any": "Peu importe",
+    "undo_delete": "Annuler la suppression de « {{title}} »"
   },
   "update": {
     "available": "Une nouvelle version de WeekPal est prête.",
