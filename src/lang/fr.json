@@ -385,5 +385,12 @@
     "attached_one": "{{count}} information sur votre tableau est jointe",
     "attached_other": "{{count}} informations sur votre tableau sont jointes",
     "no_tasks": "Vos tâches et leur contenu ne sont jamais inclus."
+  },
+  "changelog": {
+    "title": "Nouveautés",
+    "whats_new": "Quoi de neuf",
+    "see_all": "Tout afficher",
+    "empty": "Rien à signaler pour l'instant.",
+    "unavailable": "Impossible de charger les notes de version. Elles seront là à votre prochaine connexion."
   }
 }

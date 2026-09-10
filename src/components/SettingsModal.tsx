@@ -14,6 +14,7 @@ import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Language, SubtaskDisplay } from "../types";
 import { useSettings } from "../contexts/SettingsContext";
+import { useChangelog } from "../contexts/ChangelogContext";
 import { useData } from "../contexts/DataContext";
 import useDayJs from "../utils/dayjs";
 import {
@@ -43,7 +44,8 @@ import ImportPanel from "./ImportPanel";
  */
 const SettingsModal: React.FC = () => {
     const { t } = useTranslation();
-    const { settings, updateSettings, settingsOverlay: overlay } = useSettings();
+    const { settings, updateSettings, settingsOverlay: overlay, closeSettingsModal } = useSettings();
+    const { available: changelogAvailable, openChangelog } = useChangelog();
     const { categories } = useData();
     const dayjs = useDayJs(settings.language);
 
@@ -538,6 +540,28 @@ const SettingsModal: React.FC = () => {
                 </Tabs.Panel>
                             </Tabs>
                         </Modal.Body>
+
+                        {/* The one thing in here that is not a setting.
+                            
+                            It goes in the dialog rather than the toolbar because the toolbar is
+                            for things done to this week, and it is the place people already open
+                            when they are looking for the app itself rather than their board. The
+                            settings dialog closes on the way: two stacked dialogs would leave the
+                            release notes sitting on top of a form the user then has to dismiss
+                            twice. */}
+                        {changelogAvailable && (
+                            <Modal.Footer className="justify-start">
+                                <Button
+                                    variant="secondary"
+                                    onPress={() => {
+                                        closeSettingsModal();
+                                        openChangelog();
+                                    }}
+                                >
+                                    {t("changelog.title")}
+                                </Button>
+                            </Modal.Footer>
+                        )}
                     </Modal.Dialog>
                 </Modal.Container>
             </Modal.Backdrop>

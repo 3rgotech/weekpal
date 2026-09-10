@@ -4,6 +4,7 @@ import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
 import { TaskModalProvider } from "./contexts/TaskModalContext";
 import { ShortcutsProvider } from "./contexts/ShortcutsContext";
+import { ChangelogProvider } from "./contexts/ChangelogContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
@@ -27,7 +28,7 @@ import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProject
 import { getEnvConfig } from "./utils/env";
 import { configureConnectivity } from "./utils/connectivity";
 import { startTabLeadership } from "./utils/tabLeader";
-import { IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
+import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
 
@@ -87,6 +88,7 @@ function App() {
   const [shareAdapter, setShareAdapter] = useState<IShareAdapter | null>(null);
   const [insightsAdapter, setInsightsAdapter] = useState<IInsightsAdapter | null>(null);
   const [feedbackAdapter, setFeedbackAdapter] = useState<IFeedbackAdapter | null>(null);
+  const [changelogAdapter, setChangelogAdapter] = useState<IChangelogAdapter | null>(null);
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
@@ -104,6 +106,7 @@ function App() {
       shareAdapter,
       insightsAdapter,
       feedbackAdapter,
+      changelogAdapter,
     } = AdapterFactory.createAdapters();
     setTaskAdapter(taskAdapter);
     setCategoryAdapter(categoryAdapter);
@@ -113,6 +116,7 @@ function App() {
     setShareAdapter(shareAdapter);
     setInsightsAdapter(insightsAdapter);
     setFeedbackAdapter(feedbackAdapter);
+    setChangelogAdapter(changelogAdapter);
 
     // Check if we're in demo mode
     const { dataSource } = getEnvConfig();
@@ -157,11 +161,17 @@ function App() {
               shareAdapter={shareAdapter}
               insightsAdapter={insightsAdapter}
               feedbackAdapter={feedbackAdapter}
+              changelogAdapter={changelogAdapter}
             >
               <TaskModalProvider>
                 {/* Inside the task modal's provider: the keys stand down while it is open, and
                     `n` is what opens it. */}
                 <ShortcutsProvider>
+                  {/* Inside the shortcuts, not outside: the release notes give way to the
+                      leftover review, which lets itself in on the same load and whose open state
+                      lives in that provider. The Settings dialog is inside this one because it
+                      carries the link that opens the full history. */}
+                  <ChangelogProvider>
                   <SettingsModal />
                   <LimitReachedModal />
                   <EscapeHatch />
@@ -201,6 +211,7 @@ function App() {
                 {/* Outside the shell above, which is hidden on paper. Always mounted so ⌘P works
                     as well as the toolbar button. */}
                 <PrintSheet />
+                </ChangelogProvider>
                 </ShortcutsProvider>
               </TaskModalProvider>
             </DataProvider>

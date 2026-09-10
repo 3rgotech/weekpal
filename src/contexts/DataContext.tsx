@@ -3,7 +3,7 @@ import { subscribeToTabMessages } from "../utils/tabLeader";
 import { recoverableTasks } from "../utils/recovery";
 import { dayShares } from "../utils/dayLoad";
 import { boardDayOrder } from "../utils/week";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import BaseStore from "../store/BaseStore";
@@ -182,6 +182,8 @@ interface DataContextProps {
   insightsAdapter: IInsightsAdapter | null;
   /** Sending a bug report. Passed through: nothing is read back and nothing is cached. */
   feedbackAdapter: IFeedbackAdapter | null;
+  /** Reading the release notes. Passed through: server-side data with nothing local to cache. */
+  changelogAdapter: IChangelogAdapter | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -196,6 +198,7 @@ interface DataProviderProps {
   shareAdapter?: IShareAdapter | null;
   insightsAdapter?: IInsightsAdapter | null;
   feedbackAdapter?: IFeedbackAdapter | null;
+  changelogAdapter?: IChangelogAdapter | null;
 }
 
 const DataProvider: React.FC<DataProviderProps> = ({
@@ -207,7 +210,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
   historyAdapter = null,
   shareAdapter = null,
   insightsAdapter = null,
-  feedbackAdapter = null
+  feedbackAdapter = null,
+  changelogAdapter = null
 }) => {
   const { currentWeek, thisWeek, layout } = useCalendar();
   const { settings } = useSettings();
@@ -1014,6 +1018,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         shareAdapter,
         insightsAdapter,
         feedbackAdapter,
+        changelogAdapter,
         recoverDay,
         projectStore,
         projects,

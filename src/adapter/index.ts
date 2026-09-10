@@ -9,9 +9,10 @@ import APITaskHistoryAdapter from './api/APITaskHistoryAdapter';
 import APIShareAdapter from './api/APIShareAdapter';
 import APIInsightsAdapter from './api/APIInsightsAdapter';
 import APIFeedbackAdapter from './api/APIFeedbackAdapter';
+import APIChangelogAdapter from './api/APIChangelogAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IFeedbackAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -32,6 +33,7 @@ interface AdapterFactoryResult {
     shareAdapter: IShareAdapter | null;
     insightsAdapter: IInsightsAdapter | null;
     feedbackAdapter: IFeedbackAdapter | null;
+    changelogAdapter: IChangelogAdapter | null;
 }
 
 class AdapterFactory {
@@ -62,6 +64,7 @@ class AdapterFactory {
             shareAdapter: factory.createShareAdapter(),
             insightsAdapter: factory.createInsightsAdapter(),
             feedbackAdapter: factory.createFeedbackAdapter(),
+            changelogAdapter: factory.createChangelogAdapter(),
         };
     }
 
@@ -113,6 +116,17 @@ class AdapterFactory {
      */
     createFeedbackAdapter(): IFeedbackAdapter | null {
         return this.usesApi ? new APIFeedbackAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test or demo double.
+     *
+     * The release notes are the product's own history, and a fixture board would either invent
+     * releases that never happened or greet a first-time visitor with a dialog about a product
+     * they have not started using yet.
+     */
+    createChangelogAdapter(): IChangelogAdapter | null {
+        return this.usesApi ? new APIChangelogAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     /**

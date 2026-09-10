@@ -220,3 +220,72 @@
         stroke-dashoffset: 0;
     }
 }
+
+/*
+ * Release-note bodies.
+ *
+ * Written in a rich editor and rendered as HTML, so the tags arrive without classes on them and
+ * Tailwind's preflight has already flattened every one of them. Nine rules rather than the
+ * typography plugin: this is the only rich text the board renders, and pulling in a whole prose
+ * stylesheet to format a bulleted list would cost more CSS than the dialog contains.
+ */
+.changelog-body > * + * {
+    margin-top: 0.75rem;
+}
+
+.changelog-body ul,
+.changelog-body ol {
+    padding-left: 1.25rem;
+    list-style-position: outside;
+}
+
+.changelog-body ul {
+    list-style-type: disc;
+}
+
+.changelog-body ol {
+    list-style-type: decimal;
+}
+
+.changelog-body li + li {
+    margin-top: 0.25rem;
+}
+
+.changelog-body strong,
+.changelog-body b {
+    font-weight: 600;
+}
+
+.changelog-body em,
+.changelog-body i {
+    font-style: italic;
+}
+
+.changelog-body a {
+    text-decoration: underline;
+    color: var(--color-sky-600);
+}
+
+.dark .changelog-body a {
+    color: var(--color-sky-300);
+}
+
+.changelog-body h2,
+.changelog-body h3,
+.changelog-body h4 {
+    font-weight: 600;
+}
+
+.changelog-body code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875em;
+}
+
+.changelog-body blockquote {
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--color-slate-300);
+}
+
+.dark .changelog-body blockquote {
+    border-left-color: var(--color-sky-800);
+}

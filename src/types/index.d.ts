@@ -353,6 +353,31 @@ export interface AvoidanceReport {
   longest_chains: Array<{ id: string; title: string; moves: number; first_seen: string }>;
 }
 
+/**
+ * One release note.
+ *
+ * `version` is null for everything written before the 1.0.0 tag — the board prints the date alone
+ * in that case rather than inventing a number for a release that never had one.
+ *
+ * `body` is HTML, reduced server-side to an allowlist of tags before it is sent.
+ */
+export interface ChangelogEntry {
+  id: number;
+  version: string | null;
+  title: string;
+  description: string;
+  body: string;
+  publishedAt: string | null;
+  /** True once the user has been shown it, or if it shipped before their account existed. */
+  seen: boolean;
+}
+
+export interface IChangelogAdapter {
+  list(): Promise<ChangelogEntry[]>;
+  /** Records that every published entry has been seen. Idempotent. */
+  markRead(): Promise<void>;
+}
+
 export interface IFeedbackAdapter {
   send(
     kind: 'bug' | 'idea',
