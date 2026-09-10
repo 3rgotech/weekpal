@@ -100,34 +100,83 @@ describe("making room in a column that is over its limit", () => {
     });
 });
 
-describe("where a drop lands", () => {
-    // A row 40px tall sitting at y=100, so its middle is 120.
-    const row = { top: 100, height: 40, order: 5 };
-    const at = (activeTop: number) => dropOrder(activeTop, row.top, row.height, row.order);
+describe("where a drop lands, in a single file", () => {
+    // A card 40px tall sitting at y=100, so its middle is 120. One column, so every card shares
+    // the same horizontal centre — which is what makes the vertical axis the only one that means
+    // anything here.
+    const over = { top: 100, left: 0, width: 200, height: 40 };
+    const ORDER = 5;
+    const at = (activeTop: number) =>
+        dropOrder({ top: activeTop, left: 0, width: 200, height: 40 }, over, ORDER);
 
-    it("goes before the row while the dragged one is above its middle", () => {
+    it("goes before the card while the dragged one is above its middle", () => {
         expect(at(100)).toBe(5);
         expect(at(119)).toBe(5);
     });
 
-    it("goes after the row once past its middle", () => {
+    it("goes after the card once past its middle", () => {
         expect(at(121)).toBe(6);
         expect(at(140)).toBe(6);
     });
 
     it("uses the middle, not the bottom edge", () => {
-        // The bug this replaces: the old test asked whether the dragged row had cleared the
+        // The bug this replaces: the old rule asked whether the dragged card had cleared the
         // target's *bottom*, so a whole row of travel still counted as "above" and a task aimed
         // between the second and third landed between the first and second.
-        const justPastMiddle = row.top + row.height / 2 + 1;
+        const justPastMiddle = over.top + over.height / 2 + 1;
 
         expect(at(justPastMiddle)).toBe(6);
-        // Under the old rule this same position was still "above" — it needed to pass 140.
-        expect(justPastMiddle).toBeLessThan(row.top + row.height);
+        // Under that rule this same position was still "above" — it needed to pass 140.
+        expect(justPastMiddle).toBeLessThan(over.top + over.height);
     });
 
-    it("treats the first row like any other", () => {
-        expect(dropOrder(105, 100, 40, 0)).toBe(0);
-        expect(dropOrder(125, 100, 40, 0)).toBe(1);
+    it("treats the first card like any other", () => {
+        const first = { top: 100, left: 0, width: 200, height: 40 };
+
+        expect(dropOrder({ top: 105, left: 0, width: 200, height: 40 }, first, 0)).toBe(0);
+        expect(dropOrder({ top: 125, left: 0, width: 200, height: 40 }, first, 0)).toBe(1);
+    });
+
+    it("survives a dragged card taller than the one under it", () => {
+        // Cards are as tall as their titles make them, so a three-line task dropped onto a
+        // one-line one is the ordinary case rather than an edge one.
+        const tall = { top: 100, left: 0, width: 200, height: 120 };
+
+        expect(dropOrder(tall, over, ORDER)).toBe(6);
+    });
+});
+
+describe("where a drop lands, across a grid", () => {
+    /*
+     * The undated buckets lay their cards out in a grid on a wide screen, so two cards can share
+     * a top edge and be separated only horizontally. A vertical-only rule reads every drop onto a
+     * right-hand neighbour as "still above it" and inserts before, whichever way the card was
+     * actually dragged — which is the failure this half exists to prevent.
+     */
+    const ROW_Y = 100;
+    const card = (left: number, top = ROW_Y) => ({ top, left, width: 180, height: 40 });
+
+    const middle = card(200);
+    const ORDER = 5;
+
+    it("goes after the card when dragged past it to the right", () => {
+        expect(dropOrder(card(300), middle, ORDER)).toBe(6);
+    });
+
+    it("goes before the card when dragged past it to the left", () => {
+        expect(dropOrder(card(100), middle, ORDER)).toBe(5);
+    });
+
+    it("still uses the vertical axis for a card on another row", () => {
+        // Reading order is rows first: anything on the row below comes after everything on this
+        // one, however far to the left it sits.
+        expect(dropOrder(card(0, ROW_Y + 60), middle, ORDER)).toBe(6);
+        expect(dropOrder(card(600, ROW_Y - 60), middle, ORDER)).toBe(5);
+    });
+
+    it("reads a card sitting exactly on another as going before it", () => {
+        // Neither past it nor above it. "Before" is as good an answer as "after", and it is the
+        // one the single-file rule has always given.
+        expect(dropOrder(card(200), middle, ORDER)).toBe(5);
     });
 });

@@ -14,9 +14,17 @@ interface DraggableTaskProps {
   dayOfWeek?: DayOfWeek;
   /** Set in the projects drawer: the task is in this project's backlog rather than in a day. */
   projectId?: string;
+  /**
+   * Extra classes for the row itself.
+   *
+   * On the `<li>` rather than on a wrapper, and that is the whole point of the prop: the FLIP and
+   * the hidden-below count both read the list's *direct children*, so anything put between the
+   * `<ul>` and this row makes both of them silently measure nothing.
+   */
+  className?: string;
 }
 
-const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectId }) => {
+const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectId, className }) => {
   const { completeTask, uncompleteTask, openEscape } = useData();
   const { t } = useTranslation();
   const { activeTaskId, setActiveTaskId } = useShortcuts();
@@ -72,6 +80,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
         // that is the child the list actually lays out.
         data-flip-key={task.id}
         className={clsx(
+          className,
           "group flex items-center justify-between min-h-10 rounded-md transition-colors",
           isActive && "ring-2 ring-sky-500 bg-sky-50 dark:bg-sky-900/40"
         )}

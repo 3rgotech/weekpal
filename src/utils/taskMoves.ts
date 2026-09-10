@@ -88,8 +88,16 @@ export function moveTarget(
     }
 }
 
+/** As much of a dnd-kit rectangle as deciding a drop position needs. */
+export interface DropRect {
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+}
+
 /**
- * Which position a drop lands on, given where the dragged row is against the row under it.
+ * Which position a drop lands on, given where the dragged card is against the card under it.
  *
  * The rule is the target's **midpoint**: past halfway and the task goes after it, short of that
  * and it goes before. The board used to compare against the target's *bottom* edge, which meant
@@ -97,12 +105,34 @@ export function moveTarget(
  * and third landed between the first and second, every time, and the further you aimed the more
  * wrong it looked.
  *
+ * **Which midpoint depends on whether the two cards share a row.** A day column is a single file
+ * and the answer is always vertical, but the undated buckets lay their cards out in a grid on a
+ * wide screen, and there two cards side by side have the same top edge — so a vertical test reads
+ * every drop onto a right-hand neighbour as "still above it" and inserts before, whichever way
+ * the card was actually dragged. Same row, and the reading order runs left to right, so the
+ * horizontal midpoint is the one that means anything.
+ *
+ * "Same row" is judged against half the target's own height rather than a fixed tolerance: cards
+ * are as tall as their titles make them, and a constant would be wrong for both a one-line task
+ * and a three-line one.
+ *
  * Used at the end of a drag as well as during it. Only the live preview applied any above/below
  * test before; the drop itself took the target's own order unconditionally, which re-applied the
  * same "insert before" whatever the preview had shown.
  */
-export function dropOrder(activeTop: number, overTop: number, overHeight: number, overOrder: number): number {
-    return activeTop > overTop + overHeight / 2 ? overOrder + 1 : overOrder;
+export function dropOrder(active: DropRect, over: DropRect, overOrder: number): number {
+    const activeMiddleY = active.top + active.height / 2;
+    const overMiddleY = over.top + over.height / 2;
+
+    // Clearly above or below: a different row, and the vertical axis decides — which is every
+    // drop in a single-file day column.
+    if (Math.abs(activeMiddleY - overMiddleY) > over.height / 2) {
+        return activeMiddleY > overMiddleY ? overOrder + 1 : overOrder;
+    }
+
+    // Alongside it. In a single file both middles sit on the same vertical line, so this reads as
+    // "not past it" and the drop goes before — which is the answer the vertical rule gave too.
+    return active.left + active.width / 2 > over.left + over.width / 2 ? overOrder + 1 : overOrder;
 }
 
 /**

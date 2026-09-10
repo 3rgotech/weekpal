@@ -112,6 +112,26 @@ const TaskList: React.FC<TaskProps> = ({
   // and have somewhere to be. The "this week" bucket is deliberately uncounted: it is the
   // overflow the other columns drain into, and a limit there would have nowhere to point.
   const isDay = dayOfWeek !== "0" && dayOfWeek !== "someday";
+
+  /*
+   * The two undated buckets, laid out across the width they actually have.
+   *
+   * A weekday column is one-seventh of the board and a single file of cards is the right shape
+   * for it. "This week" and "Some day" are each half the board wide and a third of it tall, so a
+   * single file there wastes most of a very wide row and then scrolls — which is exactly the two
+   * lists where scrolling hurts most, because they are the ones you read to decide what to do
+   * next rather than to check one day.
+   *
+   * One grid, not two or three lists: `grid-auto-flow` is `row` by default, so DOM order runs
+   * left to right and then wraps — the reading order and the sort order are the same thing, and
+   * the drag stays inside a single droppable with a single ordering. Splitting the bucket into
+   * columns would have meant a container each, and a task's position would then depend on which
+   * of them it landed in.
+   *
+   * Not while the column is windowed: `VirtualTaskList` positions rows absolutely down one axis,
+   * which a grid has no way to lay out. Past sixty tasks the bucket goes back to a single file.
+   */
+  const multiColumn = !isDay && !virtualise;
   const counted = allTasks.filter((task) => (
     task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
   ));
@@ -274,7 +294,16 @@ const TaskList: React.FC<TaskProps> = ({
       {/* `relative`, so the clipped-edge marker has the scrolling list to anchor to rather than
           the whole column — the fold is at the bottom of the list, not at the bottom of the day. */}
       <div className="flex-1 min-h-0 relative">
-      <ul ref={scrollRef} className={clsx("h-full overflow-y-auto py-1", !virtualise && "space-y-2")}>
+      <ul
+        ref={scrollRef}
+        className={clsx(
+          "h-full overflow-y-auto py-1",
+          // `content-start` so eight cards in a three-column grid stay card-height instead of
+          // stretching to fill the bucket, which is what a grid does with spare vertical room.
+          multiColumn && "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 content-start",
+          !virtualise && !multiColumn && "space-y-2",
+        )}
+      >
         <SortableContext items={taskIds}>
           {virtualise
             ? (
@@ -287,10 +316,16 @@ const TaskList: React.FC<TaskProps> = ({
             : filteredTasks.map((task) => (
               <React.Fragment key={task.id}>
                 {/* Estimated cards dim and the rest stay lit, so the column shows what is left
-                    to answer without losing its shape — the day still reads as the day. */}
-                <div className={clsx(estimating && task.estimatedMinutes !== null && "opacity-40")}>
-                  <DraggableTask task={task} dayOfWeek={dayOfWeek} />
-                </div>
+                    to answer without losing its shape — the day still reads as the day.
+
+                    Passed to the row rather than wrapped around it: `readPositions` and
+                    `useHiddenBelow` both walk the list's direct children looking for
+                    `data-flip-key`, so a wrapper here leaves both of them measuring nothing. */}
+                <DraggableTask
+                  task={task}
+                  dayOfWeek={dayOfWeek}
+                  className={clsx(estimating && task.estimatedMinutes !== null && "opacity-40")}
+                />
 
                 {estimating && activeTaskId === task.id && (
                   <BatchEstimateRow
@@ -305,7 +340,13 @@ const TaskList: React.FC<TaskProps> = ({
             ))}
         </SortableContext>
 
-        {!isOver && <NewTask dayOfWeek={dayOfWeek} />}
+        {/* Across the whole row in a grid: "add a task" is the end of the list, not the next
+            item in it, and a third of a row is a very small place to type. */}
+        {!isOver && (
+          multiColumn
+            ? <div className="col-span-full"><NewTask dayOfWeek={dayOfWeek} /></div>
+            : <NewTask dayOfWeek={dayOfWeek} />
+        )}
       </ul>
 
       {/* *(rt §4)* No hard cap — the answer to a long column is to say how long it is, never to

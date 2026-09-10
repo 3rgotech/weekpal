@@ -151,14 +151,16 @@ const MainContent: React.FC<MainContentProps> = () => {
       if (!toDay) return;
 
       const onContainer = over.data.current?.type === "container";
-      const activeTop = active.rect.current.translated?.top;
+      // The whole rectangle, not just its top edge: the undated buckets lay their cards out in a
+      // grid, where two cards can share a top and only the horizontal axis separates them.
+      const activeRect = active.rect.current.translated;
 
       // Dropped on empty space in a column: the end of it. Dropped on a task: whichever side of
       // that task's middle the dragged row finished on — the same rule the live preview uses, so
       // the drop lands where the preview said it would.
-      const toOrder = onContainer || activeTop === undefined
+      const toOrder = onContainer || !activeRect
         ? tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay).length
-        : dropOrder(activeTop, over.rect.top, over.rect.height, over.data.current?.currentOrder ?? 0);
+        : dropOrder(activeRect, over.rect, over.data.current?.currentOrder ?? 0);
 
       moveTask(task, toDay, toOrder);
     }
@@ -226,11 +228,11 @@ const MainContent: React.FC<MainContentProps> = () => {
       const overTask = findTask(over.id.toString().replace("task-", ""));
       if (!overTask) return;
 
-      const activeTop = active.rect.current.translated?.top;
+      const activeRect = active.rect.current.translated;
 
-      newOrder = activeTop === undefined
+      newOrder = !activeRect
         ? overTask.order ?? 0
-        : dropOrder(activeTop, over.rect.top, over.rect.height, overTask.order ?? 0);
+        : dropOrder(activeRect, over.rect, overTask.order ?? 0);
     } else {
       // If dropping in empty space, put at the end
       newOrder = tasksInTargetDay.length;
