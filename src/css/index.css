@@ -229,71 +229,89 @@
 }
 
 /*
- * Release-note bodies.
+ * Rich text the board renders: release-note bodies, and rendered task descriptions.
  *
  * Written in a rich editor and rendered as HTML, so the tags arrive without classes on them and
  * Tailwind's preflight has already flattened every one of them. Nine rules rather than the
  * typography plugin: this is the only rich text the board renders, and pulling in a whole prose
  * stylesheet to format a bulleted list would cost more CSS than the dialog contains.
  */
-.changelog-body > * + * {
+.changelog-body > * + *,
+.markdown-body > * + * {
     margin-top: 0.75rem;
 }
 
 .changelog-body ul,
-.changelog-body ol {
+.changelog-body ol,
+.markdown-body ul,
+.markdown-body ol {
     padding-left: 1.25rem;
     list-style-position: outside;
 }
 
-.changelog-body ul {
+.changelog-body ul,
+.markdown-body ul {
     list-style-type: disc;
 }
 
-.changelog-body ol {
+.changelog-body ol,
+.markdown-body ol {
     list-style-type: decimal;
 }
 
-.changelog-body li + li {
+.changelog-body li + li,
+.markdown-body li + li {
     margin-top: 0.25rem;
 }
 
 .changelog-body strong,
-.changelog-body b {
+.changelog-body b,
+.markdown-body strong,
+.markdown-body b {
     font-weight: 600;
 }
 
 .changelog-body em,
-.changelog-body i {
+.changelog-body i,
+.markdown-body em,
+.markdown-body i {
     font-style: italic;
 }
 
-.changelog-body a {
+.changelog-body a,
+.markdown-body a {
     text-decoration: underline;
     color: var(--color-sky-600);
 }
 
-.dark .changelog-body a {
+.dark .changelog-body a,
+.dark .markdown-body a {
     color: var(--color-sky-300);
 }
 
 .changelog-body h2,
 .changelog-body h3,
-.changelog-body h4 {
+.changelog-body h4,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5 {
     font-weight: 600;
 }
 
-.changelog-body code {
+.changelog-body code,
+.markdown-body code {
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 0.875em;
 }
 
-.changelog-body blockquote {
+.changelog-body blockquote,
+.markdown-body blockquote {
     padding-left: 0.75rem;
     border-left: 2px solid var(--color-slate-300);
 }
 
-.dark .changelog-body blockquote {
+.dark .changelog-body blockquote,
+.dark .markdown-body blockquote {
     border-left-color: var(--color-sky-800);
 }
 
@@ -388,4 +406,44 @@
     .driver-overlay {
         display: none !important;
     }
+}
+
+/*
+ * The two things a rendered description needs that a release note does not.
+ *
+ * A fenced code block, which a note about a bug routinely contains, and a horizontal rule —
+ * neither of which a changelog entry has ever used.
+ */
+.markdown-body pre {
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    overflow-x: auto;
+    background-color: var(--color-slate-100);
+}
+
+.dark .markdown-body pre {
+    background-color: var(--color-sky-900);
+}
+
+.markdown-body pre code {
+    white-space: pre;
+}
+
+.markdown-body hr {
+    border-top: 1px solid var(--color-slate-200);
+}
+
+.dark .markdown-body hr {
+    border-top-color: var(--color-sky-900);
+}
+
+/* Headings inside a description are only a little larger than its text: this is a note in a
+   dialog, and a `h3` at heading scale would outshout the task's own title. */
+.markdown-body h3 {
+    font-size: 1rem;
+}
+
+.markdown-body h4,
+.markdown-body h5 {
+    font-size: 0.9375rem;
 }

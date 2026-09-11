@@ -165,6 +165,19 @@
       "some_day": "Un jour",
       "duplicate": "Dupliquer",
       "delete": "Supprimer"
+    },
+    "editor": {
+      "write": "Écrire",
+      "preview": "Aperçu",
+      "bold": "Gras",
+      "italic": "Italique",
+      "strike": "Barré",
+      "code": "Code",
+      "link": "Lien",
+      "bullet": "Liste à puces",
+      "ordered": "Liste numérotée",
+      "quote": "Citation",
+      "hint": "Markdown : **gras**, *italique*, - listes, [liens](https://…)"
     }
   },
   "misc": {

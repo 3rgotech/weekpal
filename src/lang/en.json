@@ -175,6 +175,19 @@
       "some_day": "Some day",
       "duplicate": "Duplicate",
       "delete": "Delete"
+    },
+    "editor": {
+      "write": "Write",
+      "preview": "Preview",
+      "bold": "Bold",
+      "italic": "Italic",
+      "strike": "Strikethrough",
+      "code": "Code",
+      "link": "Link",
+      "bullet": "Bullet list",
+      "ordered": "Numbered list",
+      "quote": "Quote",
+      "hint": "Markdown: **bold**, *italic*, - lists, [links](https://…)"
     }
   },
   "misc": {

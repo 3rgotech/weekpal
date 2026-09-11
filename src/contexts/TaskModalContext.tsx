@@ -7,7 +7,6 @@ import {
   Description,
   Modal,
   Select,
-  TextArea,
   TextField,
   useOverlayState,
 } from "@heroui/react";
@@ -19,6 +18,7 @@ import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import TaskActivity from "../components/TaskActivity";
 import SubtaskEditor from "../components/SubtaskEditor";
+import DescriptionEditor from "../components/DescriptionEditor";
 import EstimatePicker from "../components/EstimatePicker";
 import TaskMenu from "../components/TaskMenu";
 import { useVerticalLayout } from "../utils/layout";
@@ -138,10 +138,16 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   <Label>{t('task.title')}</Label>
                   <Input placeholder={t('task.placeholder.title')} />
                 </TextField>
-                <TextField value={data.description} onChange={updateField('description')}>
-                  <Label>{t('task.description')}</Label>
-                  <TextArea placeholder={t('task.placeholder.description')} />
-                </TextField>
+                {/* Markdown, written in a textarea with a toolbar rather than in a WYSIWYG
+                    surface — see `DescriptionEditor` for the measurement that decided it. What is
+                    stored is still a plain string, so nothing downstream of here changed: the
+                    column, the per-field LWW, the export and the CSV import all carry on. */}
+                <DescriptionEditor
+                  value={data.description ?? ''}
+                  onChange={(next) => updateField('description')(next)}
+                  label={t('task.description')}
+                  placeholder={t('task.placeholder.description')}
+                />
                 <Select
                   placeholder={t('task.placeholder.project')}
                   value={data.projectId ? `${data.projectId}` : null}
