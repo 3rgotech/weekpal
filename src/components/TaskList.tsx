@@ -17,6 +17,7 @@ import { matchesCategorySelection } from "../utils/categories";
 import { isPastDay, recoverableTasks } from "../utils/recovery";
 import { dayHours } from "../utils/hours";
 import { useHiddenBelow } from "../utils/useHiddenBelow";
+import { useGridColumns } from "../utils/useGridColumns";
 import HiddenBelow from "./HiddenBelow";
 import { nextAfter, unestimatedIn } from "../utils/batchEstimate";
 import BatchEstimateRow from "./BatchEstimateRow";
@@ -128,10 +129,20 @@ const TaskList: React.FC<TaskProps> = ({
    * columns would have meant a container each, and a task's position would then depend on which
    * of them it landed in.
    *
-   * Not while the column is windowed: `VirtualTaskList` positions rows absolutely down one axis,
-   * which a grid has no way to lay out. Past sixty tasks the bucket goes back to a single file.
+   * Windowing does not change the shape, only what is mounted: past sixty cards `VirtualTaskList`
+   * windows *rows* of `columns` rather than cards, so a bucket with four hundred things in it is
+   * still read left to right and still scrolls a third as far.
    */
-  const multiColumn = !isDay && !virtualise;
+  const multiColumn = !isDay;
+
+  /*
+   * How many are actually side by side, read off the grid rather than declared here.
+   *
+   * The count lives in the `md:` and `xl:` classes below, and a `matchMedia` copy of those
+   * breakpoints would be a second source of truth that drifts the first time one of them changes.
+   * The windowing needs the number, so it asks the element.
+   */
+  const columns = useGridColumns(scrollRef, multiColumn);
   const counted = allTasks.filter((task) => (
     task.dayOfWeek === dayOfWeek && !task.completed && !task.belongsToProject
   ));
@@ -300,6 +311,10 @@ const TaskList: React.FC<TaskProps> = ({
           "h-full overflow-y-auto py-1",
           // `content-start` so eight cards in a three-column grid stay card-height instead of
           // stretching to fill the bucket, which is what a grid does with spare vertical room.
+          //
+          // Applied while the bucket is windowed too: `useGridColumns` reads the track count off
+          // this element, so the classes have to be here for there to be anything to read — and
+          // the windowed list spans the whole grid rather than sitting in one cell of it.
           multiColumn && "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 content-start",
           !virtualise && !multiColumn && "space-y-2",
         )}
@@ -310,6 +325,7 @@ const TaskList: React.FC<TaskProps> = ({
               <VirtualTaskList
                 tasks={filteredTasks}
                 scrollRef={scrollRef}
+                columns={columns}
                 renderTask={(task) => <DraggableTask task={task} dayOfWeek={dayOfWeek} />}
               />
             )
