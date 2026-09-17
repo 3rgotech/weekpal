@@ -8,10 +8,13 @@ import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs, { weekCodeToDate } from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
-import { Weekday, dateOfWeekDay } from "../utils/week";
+import { Weekday, boardDayOrder, dateOfWeekDay } from "../utils/week";
+import { useVerticalLayout } from "../utils/layout";
 import { WeeklyTask } from "../data/task";
+import { DayOfWeek } from "../types";
 import LeftoverActions from "./LeftoverActions";
-import IconButton from "./IconButton";
+import LeftoverStack, { WeekShapeEntry } from "./LeftoverStack";
+import LeftoverSummary from "./LeftoverSummary";
 
 /** The week whose review has already been seen. Per browser: nagging is a per-device concern. */
 const REVIEWED_KEY = "leftover-review-week";
@@ -32,9 +35,13 @@ interface LeftoverReviewProps {
  * a leftover ends: it was done and never ticked, it stopped mattering, it belongs in this week,
  * or it belongs to no week at all.
  *
- * The three moves sit behind one dropdown rather than three buttons. Spelled out, the row ran to
- * five controls and wrapped onto a second line at the widths this modal actually gets, which put
- * the same task's actions in two places depending on how long its title was.
+ * Two bodies, one review. On a wide screen it is a list grouped by the week each task was left
+ * in, with the rail of day targets under every row. On a phone it is `LeftoverStack`: one card
+ * at a time, the rail pinned at the bottom *(rt §7)*. Which one renders is the same question as
+ * which board mounted, so it is answered by the same hook. Everything that is not layout — when
+ * it opens, what an action does, the five-second undo — is here, once.
+ *
+ * Above either body sits last week in one line *(R23)*: "Last week: 14 done, 5 moved."
  *
  * The list itself lives in `DataContext`, so acting on a row here and the top bar's badge cannot
  * disagree. Writes queue through the same store the board uses: this works offline exactly as the
@@ -53,10 +60,14 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     deleteTask,
     rescueTask,
     relocateTask,
-    updateTask,
+    restoreLeftover,
+    lastWeekSummary,
+    refreshLastWeekSummary,
+    allTasks,
   } = useData();
 
-  const { thisWeek } = useCalendar();
+  const { thisWeek, currentWeek, layout, dateOf } = useCalendar();
+  const vertical = useVerticalLayout();
   // The first-run tour goes first. See the auto-open effect below.
   const { blocking: onboarding } = useOnboarding();
 
@@ -132,6 +143,15 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
+  // The line above the inbox. Asked for on open rather than on load: it is only ever read here,
+  // and a request on every page load for a line nobody is looking at is a request too many.
+  useEffect(() => {
+    if (isOpen) {
+      refreshLastWeekSummary();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
   const close = () => {
     try {
       localStorage.setItem(REVIEWED_KEY, thisWeek);
@@ -166,16 +186,86 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
 
   const total = leftovers.length;
 
+  /**
+   * This week, bucket by bucket, for the moment the stack empties.
+   *
+   * Only when the board is showing this week: `allTasks` is the week on screen, and counting
+   * some other week's columns under this week's labels would be a confident wrong answer. Null
+   * says "unknown", and the stack draws nothing rather than zeros.
+   */
+  const shape = useMemo((): WeekShapeEntry[] | null => {
+    if (currentWeek !== thisWeek) {
+      return null;
+    }
+
+    const label = (day: DayOfWeek): string => {
+      if (day === "0") {
+        return t("main.this_week_short");
+      }
+
+      if (day === "someday") {
+        return t("main.some_day_short");
+      }
+
+      return dateOf(day)?.format("dd") ?? "";
+    };
+
+    return boardDayOrder(layout).map((day) => ({
+      day,
+      label: label(day),
+      count: allTasks.filter((task) => task.dayOfWeek === day && !task.completed && !task.belongsToProject).length,
+    }));
+  }, [allTasks, currentWeek, thisWeek, layout, dateOf, t]);
+
+  const undo = () => {
+    if (!undoable) {
+      return;
+    }
+
+    restoreLeftover(undoable);
+    setUndoable(null);
+  };
+
+  const remove = (task: WeeklyTask) => resolve(task, () => {
+    deleteTask(task);
+    // Held so the undo can offer it back. The delete itself is not deferred — a delay would
+    // lose it if the tab closed, and reviving a deleted task is something the write path
+    // already does.
+    setUndoable(task);
+  });
+
   return (
     <Modal isOpen={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
       <Modal.Backdrop>
-        <Modal.Container size="lg" scroll="inside">
+        <Modal.Container size={vertical ? "full" : "lg"} scroll="inside">
+          {vertical ? (
+            <Modal.Dialog className="h-full">
+              <LeftoverStack
+                tasks={leftovers}
+                loaded={leftoversLoaded}
+                summary={lastWeekSummary}
+                categories={categories}
+                busy={busy}
+                leftoverDate={leftoverDate}
+                onMoveToDay={(task, day) => resolve(task, () => relocateTask(task, { weekCode: thisWeek, dayOfWeek: day }))}
+                onMoveToWeek={(task) => resolve(task, () => rescueTask(task, "thisWeek"))}
+                onSomeday={(task) => resolve(task, () => rescueTask(task, "someday"))}
+                onDone={(task) => resolve(task, () => completeTask(task))}
+                onDelete={remove}
+                undoable={undoable}
+                onUndo={undo}
+                onClose={close}
+                shape={shape}
+              />
+            </Modal.Dialog>
+          ) : (
           <Modal.Dialog>
             <Modal.Header className="flex flex-col gap-1">
               <Modal.Heading>{t("leftovers.title")}</Modal.Heading>
               <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
                 {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
               </span>
+              <LeftoverSummary summary={lastWeekSummary} className="font-normal" />
             </Modal.Header>
 
             <Modal.Body>
@@ -245,13 +335,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                         onMoveToWeek={() => resolve(task, () => rescueTask(task, "thisWeek"))}
                         onSomeday={() => resolve(task, () => rescueTask(task, "someday"))}
                         onDone={() => resolve(task, () => completeTask(task))}
-                        onDelete={() => resolve(task, () => {
-                          deleteTask(task);
-                          // Held so the row below can offer it back. The delete itself is not
-                          // deferred — a delay would lose it if the tab closed, and reviving a
-                          // deleted task is something the write path already does.
-                          setUndoable(task);
-                        })}
+                        onDelete={() => remove(task)}
                       />
                     </li>
                   );
@@ -267,12 +351,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
               {undoable && (
                 <button
                   type="button"
-                  onClick={() => {
-                    // Re-upserting the same id revives it; the queue keeps the delete and this
-                    // in order, so the server sees the same sequence the user did.
-                    updateTask(undoable);
-                    setUndoable(null);
-                  }}
+                  onClick={undo}
                   className="mr-auto text-sm underline text-slate-600 dark:text-slate-300"
                 >
                   {t("leftovers.undo_delete", { title: undoable.title })}
@@ -283,6 +362,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
               </Button>
             </Modal.Footer>
           </Modal.Dialog>
+          )}
         </Modal.Container>
       </Modal.Backdrop>
     </Modal>

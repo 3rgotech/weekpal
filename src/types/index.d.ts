@@ -229,6 +229,7 @@ export type SyncFailureKind = 'transient' | 'permanent' | 'conflict' | 'unauthor
 export interface ITaskStore {
   list(weekCode: string): Promise<Task[]>;
   leftovers(): Promise<WeeklyTask[]>;
+  weekSummary(weekCode: string): Promise<WeekSummary | null>;
   reload(task: Task | string): Promise<Task | null>;
   create(task: Task): Promise<Task>;
   update(task: Task): Promise<Task>;
@@ -290,6 +291,17 @@ export interface WeekPayload { tasks: Task[]; events: Event[] }
 export interface LeftoverPayload { tasks: Task[]; since: string }
 
 /**
+ * What became of a week, in three numbers. *(rt §7)* One line above the review — "Last week:
+ * 14 done, 5 moved." — and nothing more. `left` is the week's own leftovers, as a count.
+ */
+export interface WeekSummary {
+  week: string;
+  done: number;
+  moved: number;
+  left: number;
+}
+
+/**
  * What a write asserts, alongside the rows it carries.
  *
  * Separate from the tasks themselves because it describes the *gesture*: one device, one
@@ -305,6 +317,8 @@ export interface ITaskAdapter {
   getWeek(weekCode: string): Promise<WeekPayload>;
   /** Everything still outstanding from weeks that have already ended. */
   leftovers(): Promise<LeftoverPayload>;
+  /** How one week went: done, carried out of it, and still in it. */
+  weekSummary(weekCode: string): Promise<WeekSummary>;
   upsert(task: Task, intent?: WriteIntent): Promise<TaskWriteResult>;
   /** Moves and reorders: the whole affected set in one request. */
   upsertMany(tasks: Task[], intent?: WriteIntent): Promise<TaskWriteResult[]>;

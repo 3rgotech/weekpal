@@ -234,7 +234,19 @@
     "waiting_one": "{{count}} task waiting in the review",
     "waiting_other": "{{count}} tasks waiting in the review",
     "any": "Any",
-    "undo_delete": "Undo deleting “{{title}}”"
+    "undo_delete": "Undo deleting “{{title}}”",
+    "last_week": "Last week: {{done}} done, {{moved}} moved.",
+    "last_week_done_one": "task done",
+    "last_week_done_other": "tasks done",
+    "last_week_moved_one": "task carried into a later week or Some day",
+    "last_week_moved_other": "tasks carried into a later week or Some day",
+    "last_week_left_one": "task still waiting in it",
+    "last_week_left_other": "tasks still waiting in it",
+    "position": "{{current}} of {{total}}",
+    "skip": "Skip",
+    "swipe_hint": "Swipe sideways to skip a card. Tap to decide.",
+    "shape": "This week, bucket by bucket",
+    "rail": "Move into this week"
   },
   "update": {
     "available": "A new version of WeekPal is ready.",

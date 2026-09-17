@@ -3,7 +3,7 @@ import { subscribeToTabMessages } from "../utils/tabLeader";
 import { recoverableTasks } from "../utils/recovery";
 import { dayShares } from "../utils/dayLoad";
 import { boardDayOrder } from "../utils/week";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation, WeekSummary } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import BaseStore from "../store/BaseStore";
@@ -13,7 +13,7 @@ import ProjectStore from "../store/ProjectStore";
 import Project from "../data/project";
 import Category from "../data/category";
 import { useCalendar } from "./CalendarContext";
-import useDayJs from "../utils/dayjs";
+import useDayJs, { weekCodeToDate } from "../utils/dayjs";
 import Event from "../data/event";
 import EventStore from "../store/EventStore";
 import {
@@ -118,6 +118,17 @@ interface DataContextProps {
   /** False until the first look, so the badge and the review can tell empty from unknown. */
   leftoversLoaded: boolean;
   refreshLeftovers: () => Promise<WeeklyTask[]>;
+  /**
+   * How last week went — the one line above the review. See R23.
+   *
+   * Null until fetched, and null when nothing can be said: the line is then not drawn. Kept
+   * current as the review acts, so ticking a leftover off moves it from `left` to `done` in the
+   * same tap rather than on the next load.
+   */
+  lastWeekSummary: WeekSummary | null;
+  refreshLastWeekSummary: () => Promise<WeekSummary | null>;
+  /** Offer a deleted leftover back: revives the row and puts it back in the review. */
+  restoreLeftover: (task: WeeklyTask) => void;
   /**
    * `reason` is R20's escape hatch saying which door was taken — `not_mine` or `let_go`.
    * Absent for an ordinary delete, which is most of them.
@@ -270,6 +281,46 @@ const DataProvider: React.FC<DataProviderProps> = ({
   useEffect(() => {
     refreshLeftovers();
   }, [refreshLeftovers]);
+
+  const [lastWeekSummary, setLastWeekSummary] = useState<WeekSummary | null>(null);
+
+  // The week before this one, by the calendar rather than by what is on screen: "last week" in
+  // the review means the same thing whichever week the board happens to be showing.
+  const lastWeek = weekCodeToDate(thisWeek).subtract(1, "week").format("GGGG[w]WW");
+
+  const refreshLastWeekSummary = useCallback(async (): Promise<WeekSummary | null> => {
+    if (!taskStore) {
+      return null;
+    }
+
+    const summary = await taskStore.weekSummary(lastWeek);
+    setLastWeekSummary(summary);
+
+    return summary;
+  }, [taskStore, lastWeek]);
+
+  /**
+   * Keep the line honest as the review acts.
+   *
+   * Only for tasks of the week the line describes, and only in the direction the numbers can
+   * move: a task ticked off leaves `left` for `done`, one carried out leaves it for `moved`, and
+   * one deleted simply leaves. Never below zero — a stale copy from storage may already be a
+   * step ahead of what this tab has done.
+   */
+  const adjustLastWeekSummary = (task: Task, delta: Partial<Omit<WeekSummary, "week">>) => {
+    const weekly = task instanceof WeeklyTask ? task : null;
+
+    if (!weekly || weekly.weekCode !== lastWeek) {
+      return;
+    }
+
+    setLastWeekSummary((previous) => previous && ({
+      ...previous,
+      done: Math.max(0, previous.done + (delta.done ?? 0)),
+      moved: Math.max(0, previous.moved + (delta.moved ?? 0)),
+      left: Math.max(0, previous.left + (delta.left ?? 0)),
+    }));
+  };
 
   /**
    * A task stops being outstanding the moment it is ticked, deleted or moved.
@@ -574,9 +625,16 @@ const DataProvider: React.FC<DataProviderProps> = ({
   };
 
   const completeTask = (task: Task) => {
+    // Read before the write: `completedAt` is what says whether the week's numbers move.
+    const wasOpen = !task.completedAt;
+
     task.completedAt = dayjs();
     updateTask(task);
     dropLeftover(task.id);
+
+    if (wasOpen) {
+      adjustLastWeekSummary(task, { done: 1, left: -1 });
+    }
   };
 
   const uncompleteTask = (task: Task) => {
@@ -592,6 +650,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
         previous.some((leftover) => leftover.id === weekly.id) ? previous : [...previous, weekly]
       ));
     }
+
+    adjustLastWeekSummary(task, { done: -1, left: 1 });
   };
 
   const deleteTask = (task: Task, reason?: string) => {
@@ -607,6 +667,30 @@ const DataProvider: React.FC<DataProviderProps> = ({
     });
 
     dropLeftover(task.id);
+
+    if (!task.completedAt) {
+      adjustLastWeekSummary(task, { left: -1 });
+    }
+  };
+
+  /**
+   * The five-second undo, made whole.
+   *
+   * Re-upserting the same id revives it — the write path treats an upsert against a soft-deleted
+   * row as a restore, and the queue keeps the delete and this in order, so the server sees the
+   * same sequence the user did. The row goes back into the review as well: an undo that left the
+   * list one short would look like the delete had half happened.
+   */
+  const restoreLeftover = (task: WeeklyTask) => {
+    updateTask(task);
+
+    setLeftovers((previous) => (
+      previous.some((leftover) => leftover.id === task.id) ? previous : [...previous, task]
+    ));
+
+    if (!task.completedAt) {
+      adjustLastWeekSummary(task, { left: 1 });
+    }
   };
 
   const moveTask = (
@@ -826,6 +910,12 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
     dropLeftover(stored.id);
     applyTaskChanges([stored]);
+
+    // Only a task that actually left its week was "moved" as far as the line is concerned — the
+    // same rule the server applies when it reads the changelog.
+    if (task instanceof WeeklyTask && task.weekCode !== target.weekCode && !task.completedAt) {
+      adjustLastWeekSummary(task, { moved: 1, left: -1 });
+    }
   };
 
   /**
@@ -865,6 +955,10 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
     moved.forEach((task) => dropLeftover(task.id));
     applyTaskChanges(moved);
+
+    stranded
+      .filter((task): task is WeeklyTask => task instanceof WeeklyTask && task.weekCode !== thisWeek)
+      .forEach((task) => adjustLastWeekSummary(task, { moved: 1, left: -1 }));
   };
 
   const estimateTask = (task: Task, minutes: number | null) => {
@@ -992,6 +1086,9 @@ const DataProvider: React.FC<DataProviderProps> = ({
         leftovers,
         leftoversLoaded,
         refreshLeftovers,
+        lastWeekSummary,
+        refreshLastWeekSummary,
+        restoreLeftover,
         deleteTask,
         escapeTask,
         openEscape: setEscapeTask,

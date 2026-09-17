@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React, { useState } from "react";
 import LeftoverReview from "../LeftoverReview";
 import { WeeklyTask } from "../../data/task";
+import { WeekSummary } from "../../types";
 import { DEFAULT_SETTINGS } from "../../utils/settings";
 import { getDayJs } from "../../utils/dayjs";
 import { fakeCalendar } from "../../test-support/calendar";
@@ -25,7 +26,12 @@ const data = {
     // Typed, or `mock.calls` is an empty tuple and every assertion about what was moved reads as
     // a type error rather than as a check.
     relocateTask: jest.fn(async (_task: WeeklyTask, _target: { weekCode: string | null; dayOfWeek: string | null }) => undefined),
-    updateTask: jest.fn((_task: WeeklyTask) => undefined),
+    restoreLeftover: jest.fn((_task: WeeklyTask) => undefined),
+    // The real provider always supplies these. Mocked so the review is exercised against the
+    // shape it actually receives: the line above the list, and the week it would sum up.
+    lastWeekSummary: null as WeekSummary | null,
+    refreshLastWeekSummary: jest.fn(async () => null as WeekSummary | null),
+    allTasks: [] as unknown[],
 };
 
 jest.mock("../../contexts/DataContext", () => ({
@@ -80,6 +86,7 @@ beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
     data.leftoversLoaded = true;
+    data.lastWeekSummary = null;
 });
 
 describe("the weekly review of what was left behind", () => {
@@ -218,6 +225,40 @@ describe("the weekly review of what was left behind", () => {
         await waitFor(() => expect(data.deleteTask).toHaveBeenCalledWith(task));
         fireEvent.click(await screen.findByText("leftovers.undo_delete"));
 
-        expect(data.updateTask).toHaveBeenCalledWith(task);
+        // Through the provider rather than a bare upsert: the row has to come back into the
+        // review too, or the undo looks like it half happened.
+        expect(data.restoreLeftover).toHaveBeenCalledWith(task);
+    });
+
+    it("asks how last week went when it opens", async () => {
+        setup([leftover("a", "2")]);
+        await screen.findByText("Task a");
+
+        // On open, not on load: the line is only ever read here.
+        expect(data.refreshLastWeekSummary).toHaveBeenCalled();
+    });
+
+    it("sums last week up in one line", async () => {
+        // *(rt §7)* "Last week: 14 done, 5 moved." — one line above the inbox, not a panel.
+        data.lastWeekSummary = { week: "2026w36", done: 14, moved: 5, left: 2 };
+        setup([leftover("a", "2")]);
+        await screen.findByText("Task a");
+
+        expect(screen.getByText("leftovers.last_week")).toBeInTheDocument();
+        // The third number waits behind a tap: it is the list underneath, as a count.
+        expect(screen.queryByText("leftovers.last_week_left")).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByText("leftovers.last_week"));
+
+        expect(screen.getByText("leftovers.last_week_left")).toBeInTheDocument();
+    });
+
+    it("says nothing about a week the board was not used in", async () => {
+        // "0 done, 0 moved" is not a summary, it is a reproach.
+        data.lastWeekSummary = { week: "2026w36", done: 0, moved: 0, left: 0 };
+        setup([leftover("a", "2")]);
+        await screen.findByText("Task a");
+
+        expect(screen.queryByText("leftovers.last_week")).not.toBeInTheDocument();
     });
 });

@@ -23,6 +23,10 @@ const data = {
     deleteTask: jest.fn(),
     rescueTask: jest.fn(async () => undefined),
     relocateTask: jest.fn(async () => undefined),
+    restoreLeftover: jest.fn(),
+    lastWeekSummary: null,
+    refreshLastWeekSummary: jest.fn(async () => null),
+    allTasks: [] as unknown[],
     toggleFocusCategory: jest.fn(),
 };
 

@@ -234,7 +234,19 @@
     "waiting_one": "{{count}} tâche en attente dans la revue",
     "waiting_other": "{{count}} tâches en attente dans la revue",
     "any": "Peu importe",
-    "undo_delete": "Annuler la suppression de « {{title}} »"
+    "undo_delete": "Annuler la suppression de « {{title}} »",
+    "last_week": "Semaine dernière : {{done}} faites, {{moved}} déplacées.",
+    "last_week_done_one": "tâche faite",
+    "last_week_done_other": "tâches faites",
+    "last_week_moved_one": "tâche reportée à une semaine suivante ou à Un jour",
+    "last_week_moved_other": "tâches reportées à une semaine suivante ou à Un jour",
+    "last_week_left_one": "tâche encore en attente",
+    "last_week_left_other": "tâches encore en attente",
+    "position": "{{current}} sur {{total}}",
+    "skip": "Passer",
+    "swipe_hint": "Balayez sur le côté pour passer une carte. Touchez pour décider.",
+    "shape": "Cette semaine, jour par jour",
+    "rail": "Déplacer dans cette semaine"
   },
   "update": {
     "available": "Une nouvelle version de WeekPal est prête.",

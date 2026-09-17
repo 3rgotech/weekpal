@@ -1,6 +1,6 @@
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import Event from "../data/event";
-import { DayOfWeek, ITaskAdapter, ITaskStore } from "../types";
+import { DayOfWeek, ITaskAdapter, ITaskStore, WeekSummary } from "../types";
 import { getDayJs, weekCodeToDate } from "../utils/dayjs";
 import { classifyFailure } from "../utils/SyncService";
 import { reportSyncFailure, reportSyncHealth } from "../utils/syncStatus";
@@ -82,6 +82,43 @@ class TaskStore extends BaseStore implements ITaskStore {
             console.error('Could not read the tasks left behind:', error);
 
             return local;
+        }
+    }
+
+    /**
+     * How one week went, for the line above the review.
+     *
+     * Asked of the server, and the answer kept in `localStorage` under the week it describes:
+     * the numbers are read from the changelog, which this browser never holds, so offline the
+     * choice is between the last answer and no line at all. The last answer wins — a week that
+     * has ended does not change much, and the review adjusts the copy it is shown as it acts.
+     *
+     * `null` when nothing can be said: no adapter, unreachable and never asked before. The line
+     * then simply is not drawn, which is the honest shape of "I don't know".
+     */
+    async weekSummary(weekCode: string): Promise<WeekSummary | null> {
+        const key = `week-summary-${weekCode}`;
+        const cached = readCachedSummary(key);
+
+        if (!this.canSync('task') || !this.adapter) {
+            return cached;
+        }
+
+        try {
+            const summary = await this.adapter.weekSummary(weekCode);
+
+            try {
+                localStorage.setItem(key, JSON.stringify(summary));
+            } catch {
+                // Storage blocked or full: the line still shows this time round.
+            }
+
+            return summary;
+        } catch (error) {
+            reportSyncFailure(classifyFailure(error));
+            console.error('Could not sum up the week:', error);
+
+            return cached;
         }
     }
 
@@ -380,6 +417,25 @@ class TaskStore extends BaseStore implements ITaskStore {
             deviceId: deviceId(),
         });
     }
+}
+
+/** A cached summary, or null for anything that is not one — a blocked store, a stale shape. */
+function readCachedSummary(key: string): WeekSummary | null {
+    try {
+        const raw = localStorage.getItem(key);
+        const parsed = raw === null ? null : JSON.parse(raw);
+
+        if (
+            parsed && typeof parsed.week === 'string'
+            && typeof parsed.done === 'number' && typeof parsed.moved === 'number' && typeof parsed.left === 'number'
+        ) {
+            return parsed as WeekSummary;
+        }
+    } catch {
+        // Unreadable is the same as absent.
+    }
+
+    return null;
 }
 
 export default TaskStore;

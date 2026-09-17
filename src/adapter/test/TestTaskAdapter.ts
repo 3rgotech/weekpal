@@ -1,5 +1,5 @@
 import Task from '../../data/task';
-import { ITaskAdapter, LeftoverPayload, TaskWriteResult, WeekPayload } from '../../types';
+import { ITaskAdapter, LeftoverPayload, TaskWriteResult, WeekPayload, WeekSummary } from '../../types';
 
 /**
  * A no-op backend for `VITE_DATA_SOURCE=test`.
@@ -16,6 +16,10 @@ class TestTaskAdapter implements ITaskAdapter {
         // An empty window rather than an empty list: `since: ''` tells the store there is no
         // server-side scope to reconcile against, so it keeps whatever the fixtures hold.
         return { tasks: [], since: '' };
+    }
+
+    async weekSummary(weekCode: string): Promise<WeekSummary> {
+        return { week: weekCode, done: 0, moved: 0, left: 0 };
     }
 
     async upsert(task: Task): Promise<TaskWriteResult> {

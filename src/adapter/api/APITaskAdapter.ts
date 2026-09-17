@@ -1,6 +1,6 @@
 import Task, { WeeklyTask, SomedayTask } from '../../data/task';
 import Event from '../../data/event';
-import { ITaskAdapter, LeftoverPayload, TaskWriteResult, WeekPayload, WriteIntent } from '../../types';
+import { ITaskAdapter, LeftoverPayload, TaskWriteResult, WeekPayload, WeekSummary, WriteIntent } from '../../types';
 import { APIBaseAdapter } from './APIBaseAdapter';
 import { recordServerTime } from '../../utils/syncClock';
 
@@ -50,6 +50,24 @@ class APITaskAdapter extends APIBaseAdapter implements ITaskAdapter {
             .filter((task): task is WeeklyTask | SomedayTask => task !== null);
 
         return { tasks, since: response.meta?.since ?? '' };
+    }
+
+    /**
+     * The line above the review. Server-side because two of its three numbers are not in any
+     * task the client holds: a task that left the week no longer says it was ever there, and
+     * only the changelog remembers.
+     */
+    async weekSummary(weekCode: string): Promise<WeekSummary> {
+        const response = await this.getClient()
+            .get(`weeks/${weekCode}/summary`)
+            .json<{ data: WeekSummary }>();
+
+        return {
+            week: response.data?.week ?? weekCode,
+            done: response.data?.done ?? 0,
+            moved: response.data?.moved ?? 0,
+            left: response.data?.left ?? 0,
+        };
     }
 
     /**
