@@ -1,14 +1,10 @@
 import React from "react";
-import clsx from "clsx";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { WeeklyTask } from "../data/task";
 import { DayOfWeek } from "../types";
-import { useCalendar } from "../contexts/CalendarContext";
-import { useSettings } from "../contexts/SettingsContext";
-import useDayJs from "../utils/dayjs";
-import { boardDayOrder } from "../utils/week";
 import { hasEscapeHatch } from "../utils/deferral";
+import LeftoverRail from "./LeftoverRail";
 
 interface LeftoverActionsProps {
     task: WeeklyTask;
@@ -40,23 +36,14 @@ interface LeftoverActionsProps {
  * - **Delete is a low-contrast `×` at the far end**, deliberately away from everything else, and
  *   always undoable.
  *
- * Not the full R21: that design puts these on a *card* — Done bottom-left in the thumb zone,
- * Someday bottom-right — which is the mobile card stack (R22) and does not exist yet. What is
- * here is the part that is true of a list: the rail, the pre-lit day, and the demoted delete.
+ * This is the list's half of R21. The card's half — Done bottom-left in the thumb zone, Someday
+ * bottom-right, the rail pinned under the card — is `LeftoverStack`, the phone's review. The rail
+ * itself is shared (`LeftoverRail`), so the two never disagree about which days are on offer.
  */
 const LeftoverActions: React.FC<LeftoverActionsProps> = ({
     task, busy, onMoveToDay, onMoveToWeek, onSomeday, onDone, onDelete,
 }) => {
     const { t } = useTranslation();
-    const { layout, dateOf } = useCalendar();
-    const { settings } = useSettings();
-    const dayjs = useDayJs(settings.language);
-
-    // The same days the board draws, in the same order. A day the user has hidden is not a place
-    // they can put anything, so offering it here would be offering a column they cannot see.
-    const days = boardDayOrder(layout).filter((day) => day !== "0" && day !== "someday");
-
-    const original = `${task.dayOfWeek}` as DayOfWeek;
 
     return (
         <div className="flex items-center gap-1 flex-wrap">
@@ -75,45 +62,7 @@ const LeftoverActions: React.FC<LeftoverActionsProps> = ({
 
             <span className="w-px h-4 bg-slate-200 dark:bg-sky-900 mx-0.5" aria-hidden="true" />
 
-            {days.map((day) => {
-                const isOriginal = day === original;
-                const date = dateOf(day);
-
-                return (
-                    <button
-                        key={day}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => onMoveToDay(day)}
-                        // The pill shows a letter; the pre-lit one shows its date, because "the
-                        // same day next week" is a date rather than a weekday as far as anybody
-                        // deciding is concerned.
-                        aria-label={date ? date.format("dddd D MMMM") : day}
-                        className={clsx(
-                            "min-w-7 px-1.5 py-1 rounded-md text-xs tabular-nums",
-                            "focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50",
-                            isOriginal
-                                ? "bg-sky-500 text-white font-semibold"
-                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-sky-900",
-                        )}
-                    >
-                        {isOriginal && date ? date.format("D") : (date?.format("dd").charAt(0) ?? day)}
-                    </button>
-                );
-            })}
-
-            <button
-                type="button"
-                disabled={busy}
-                onClick={onMoveToWeek}
-                className="
-                    px-2 py-1 rounded-md text-xs
-                    text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-sky-900
-                    focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
-                "
-            >
-                {t("leftovers.any")}
-            </button>
+            <LeftoverRail task={task} busy={busy} onMoveToDay={onMoveToDay} onMoveToWeek={onMoveToWeek} />
 
             {/* *(rt §6)* Only once the task has earned it. Offering "give up on this" on every row
                 would make giving up the suggestion rather than the escape. */}
