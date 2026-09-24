@@ -32,6 +32,8 @@ import { startTabLeadership } from "./utils/tabLeader";
 import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
+import { ProTeaserProvider } from "./contexts/ProTeaserContext";
+import ProTeaserBar from "./components/ProTeaserBar";
 
 // Extend Window interface to include API_URL
 declare global {
@@ -171,6 +173,9 @@ function App() {
               <TaskModalProvider>
                 {/* Inside the task modal's provider: the keys stand down while it is open, and
                     `n` is what opens it. */}
+                {/* Above the shortcuts, which is where the Leftover Review lives: closing the
+                    review is what may raise the one Pro teaser. */}
+                <ProTeaserProvider proUrl={getEnvConfig().proUrl}>
                 <ShortcutsProvider>
                   {/* Inside the shortcuts, not outside: the release notes give way to the
                       leftover review, which lets itself in on the same load and whose open state
@@ -203,6 +208,9 @@ function App() {
                         the only way back out, so it belongs on both boards. */}
                     <CategoryFocusBar />
 
+                    {/* The one Pro teaser, after a review — never inside it. */}
+                    <ProTeaserBar />
+
                     <div className="grow overflow-hidden">
                       {vertical ? <MobileBoard /> : <MainContent />}
                     </div>
@@ -218,6 +226,7 @@ function App() {
                 <PrintSheet />
                 </ChangelogProvider>
                 </ShortcutsProvider>
+                </ProTeaserProvider>
               </TaskModalProvider>
             </DataProvider>
           </CalendarProvider>

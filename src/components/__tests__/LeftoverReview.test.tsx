@@ -42,6 +42,12 @@ jest.mock("../../contexts/SettingsContext", () => ({
     useSettings: () => ({ settings: DEFAULT_SETTINGS }),
 }));
 
+const teaser = { reviewClosed: jest.fn((_week: string) => undefined) };
+
+jest.mock("../../contexts/proTeaser", () => ({
+    useProTeaser: () => teaser,
+}));
+
 jest.mock("../../contexts/CalendarContext", () => ({
     useCalendar: () => fakeCalendar(getDayJs()(), DEFAULT_SETTINGS),
 }));
@@ -125,6 +131,20 @@ describe("the weekly review of what was left behind", () => {
         setup([leftover("a", "2")]);
 
         await waitFor(() => expect(screen.queryByText("Task a")).not.toBeInTheDocument());
+    });
+
+    it("reports the closed review so the one Pro teaser can follow it, never inside it", async () => {
+        teaser.reviewClosed.mockClear();
+        setup([leftover("a", "2")]);
+        await screen.findByText("Task a");
+
+        // Nothing while the review is open: the teaser may not live in this room.
+        expect(teaser.reviewClosed).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByText("leftovers.later"));
+
+        await waitFor(() => expect(teaser.reviewClosed).toHaveBeenCalledTimes(1));
+        expect(teaser.reviewClosed.mock.calls[0][0]).toMatch(/^\d{4}w\d{2}$/);
     });
 
     it("ticks a task off without leaving the review", async () => {

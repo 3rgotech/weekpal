@@ -123,7 +123,9 @@ const TopBar: React.FC = () => {
             no button. */}
         {/* *(rt §5)* Visible only with a plan. No in-app upgrade prompts — that is a deliberate
             product decision, and a greyed-out button explaining what you are missing is one with
-            extra steps. Someone who wants the tier finds it on the Pro page. */}
+            extra steps. Someone who wants the tier finds it on the Pro page — linked from the
+            settings dialog. The one exception is `ProTeaserBar`, after a review, under the rules
+            in `ProTeaserContext`. */}
         {/* Beside the other utilities, and available to everybody — a bug report is not a
             premium feature, and during a beta it is the most valuable thing anybody can send. */}
         {feedbackAdapter && (

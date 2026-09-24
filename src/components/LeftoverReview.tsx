@@ -15,6 +15,7 @@ import { DayOfWeek } from "../types";
 import LeftoverActions from "./LeftoverActions";
 import LeftoverStack, { WeekShapeEntry } from "./LeftoverStack";
 import LeftoverSummary from "./LeftoverSummary";
+import { useProTeaser } from "../contexts/proTeaser";
 
 /** The week whose review has already been seen. Per browser: nagging is a per-device concern. */
 const REVIEWED_KEY = "leftover-review-week";
@@ -105,6 +106,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     return () => window.clearTimeout(timer);
   }, [undoable]);
   const refreshedAt = useRef(Date.now());
+  const { reviewClosed } = useProTeaser();
 
 
   const reviewed = (): string | null => {
@@ -160,6 +162,10 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
     }
 
     onOpenChange(false);
+
+    // After the review, never inside it: the one Pro teaser may appear on the board now, if the
+    // server's rules allow. Reported on every close; the server counts each week once.
+    reviewClosed(thisWeek);
   };
 
   /** Every action settles the task, so the context drops it and the row goes with it. */
