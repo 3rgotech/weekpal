@@ -40,8 +40,10 @@ const DayStrike: React.FC<DayStrikeProps> = ({ done, height }) => {
     }
 
     return (
+        // `z-10`: over the cards, not under them. The list below is positioned and comes later in
+        // the column, so without it the stroke only showed in the gaps between cards.
         <svg
-            className="day-strike absolute left-0 top-0 w-full pointer-events-none"
+            className="day-strike absolute left-0 top-0 z-10 w-full pointer-events-none"
             height={height}
             // Decorative: the day's tasks are each already marked complete, so a screen reader
             // announcing this would be repeating what it has just read out card by card.

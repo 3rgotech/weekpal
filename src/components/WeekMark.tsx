@@ -38,7 +38,7 @@ const WeekMark: React.FC<WeekMarkProps> = ({ done, shape }) => {
     if (shape === "rule") {
         return (
             <svg
-                className="week-mark week-mark--rule absolute left-0 top-0 w-full h-0.5 overflow-visible pointer-events-none"
+                className="week-mark week-mark--rule absolute left-0 top-0 z-10 w-full h-0.5 overflow-visible pointer-events-none"
                 aria-hidden="true"
                 data-week-mark="rule"
             >
@@ -49,7 +49,7 @@ const WeekMark: React.FC<WeekMarkProps> = ({ done, shape }) => {
 
     return (
         <svg
-            className="week-mark week-mark--frame absolute inset-px w-[calc(100%-2px)] h-[calc(100%-2px)] overflow-visible pointer-events-none"
+            className="week-mark week-mark--frame absolute z-10 inset-px w-[calc(100%-2px)] h-[calc(100%-2px)] overflow-visible pointer-events-none"
             aria-hidden="true"
             data-week-mark="frame"
         >
