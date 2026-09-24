@@ -75,31 +75,40 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
           setNodeRef(node);
           rowRef.current = node;
         }}
-        style={style}
+        style={{ ...style, cursor }}
         // What the FLIP reads to know where this row was a moment ago. On the `<li>` because
         // that is the child the list actually lays out.
         data-flip-key={task.id}
+        // The whole card is the handle, padding included. The listeners used to sit on the
+        // content inside it, which left a ten-pixel frame round every card that could be pressed
+        // and would not drag.
+        {...attributes}
+        {...listeners}
         className={clsx(
           className,
-          "group flex items-center gap-2.5 rounded-lg border py-2.5 pl-3 pr-2.5 transition-colors",
+          "group flex items-center gap-2.5 rounded-lg border py-2.5 pl-3 pr-2.5 transition-colors focus:outline-hidden",
           "bg-wp-card border-wp-border hover:bg-wp-card-hover hover:border-wp-border-strong",
           isActive && "ring-2 ring-wp-accent",
         )}
         // Pointing at a task with the mouse and then acting on it with the keyboard is one
         // gesture, not two: clicking anywhere on the row selects it.
-        onPointerDown={() => setActiveTaskId(task.id)}
+        onPointerDown={(event) => {
+          setActiveTaskId(task.id);
+          listeners?.onPointerDown?.(event);
+        }}
       >
-        <div
-          {...attributes}
-          {...listeners}
-          className="flex flex-1 min-w-0 items-center focus:outline-hidden"
-          style={{ cursor }}
-        >
+        <div className="flex flex-1 min-w-0 items-center">
           <TaskContent task={task} onOpenEscape={openEscape} />
         </div>
         {/* On hover only, and kept in the layout while hidden so the title does not re-wrap
-            the moment the pointer arrives. */}
-        <div className="invisible group-hover:visible group-focus-within:visible">
+            the moment the pointer arrives.
+
+            Out of the drag: pressed, the card would start one — and a press under ten pixels of
+            travel opens the editor, so the tick would open the task instead of ticking it. */}
+        <div
+          className="invisible group-hover:visible group-focus-within:visible"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           <IconButton
             icon="check"
             iconClass={task.completed ? "text-wp-on-accent" : "text-wp-fg-secondary"}
