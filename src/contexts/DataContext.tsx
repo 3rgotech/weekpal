@@ -826,10 +826,15 @@ const DataProvider: React.FC<DataProviderProps> = ({
         });
         updatedTasks.push(updatedTask);
       } else {
-        // Reordering within the same day
-        const tasksWithoutMoved = tasksSourceDay.filter((t) => t.id !== task.id);
+        // Reordering within the same day. Sorted first: `toOrder` is a position on screen, and
+        // the state array is in whatever order the tasks arrived in, not the order they are shown.
+        const tasksWithoutMoved = tasksSourceDay
+          .filter((t) => t.id !== task.id)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         const targetOrder = toOrder ?? tasksWithoutMoved.length;
-        const currentOrder = task.order ?? 0;
+        // Where it sits now, counted the same way: the stored `order` can have gaps, or count
+        // tasks since finished, and comparing it to an index skipped moves that were real.
+        const currentOrder = tasksWithoutMoved.filter((t) => (t.order ?? 0) < (task.order ?? 0)).length;
 
         if (currentOrder !== targetOrder) {
           const allTasks = [...tasksWithoutMoved];
@@ -888,11 +893,15 @@ const DataProvider: React.FC<DataProviderProps> = ({
         t.completedAt === null
       );
 
-      const targetOrder = toOrder ?? somedayTasks.length - 1;
-      const currentOrder = task.order ?? 0;
+      // Sorted, and positions compared rather than stored orders, for the same reasons as a
+      // day's reorder: the index is a position on screen.
+      const tasksWithoutMoved = somedayTasks
+        .filter((t) => t.id !== task.id)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const targetOrder = toOrder ?? tasksWithoutMoved.length;
+      const currentOrder = tasksWithoutMoved.filter((t) => (t.order ?? 0) < (task.order ?? 0)).length;
 
       if (currentOrder !== targetOrder) {
-        const tasksWithoutMoved = somedayTasks.filter((t) => t.id !== task.id);
         const allTasks = [...tasksWithoutMoved];
         allTasks.splice(targetOrder, 0, task);
 

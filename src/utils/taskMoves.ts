@@ -116,9 +116,8 @@ export interface DropRect {
  * are as tall as their titles make them, and a constant would be wrong for both a one-line task
  * and a three-line one.
  *
- * Used at the end of a drag as well as during it. Only the live preview applied any above/below
- * test before; the drop itself took the target's own order unconditionally, which re-applied the
- * same "insert before" whatever the preview had shown.
+ * Used when a card crosses into another list, which is where there is no sortable preview to
+ * follow. A reorder inside one list follows the preview instead — see `reorderedIndex`.
  */
 export function dropOrder(active: DropRect, over: DropRect, overOrder: number): number {
     const activeMiddleY = active.top + active.height / 2;
@@ -133,6 +132,33 @@ export function dropOrder(active: DropRect, over: DropRect, overOrder: number): 
     // Alongside it. In a single file both middles sit on the same vertical line, so this reads as
     // "not past it" and the drop goes before — which is the answer the vertical rule gave too.
     return active.left + active.width / 2 > over.left + over.width / 2 ? overOrder + 1 : overOrder;
+}
+
+/**
+ * Where a reorder inside one list lands, as the index `moveTask` expects.
+ *
+ * **The preview is the answer.** While a card is dragged within its own list, dnd-kit's sortable
+ * preview draws the list with the card moved into the slot of the card under the pointer — an
+ * `arrayMove` from its index to that one — in a grid and a single file alike. The drop used to be
+ * worked out again from the midpoint rule, which is a different question: in a bucket's grid the
+ * two answers routinely disagreed, and the card settled somewhere other than where it had been
+ * shown to go. Taking the preview's own order makes the drop land exactly where the card was
+ * shown.
+ *
+ * `items` is the list as the sortable context holds it, completed tasks included; `moveTask`
+ * orders only the tasks still to do, so the result counts the unfinished ones ahead of the card.
+ */
+export function reorderedIndex(
+    items: string[],
+    activeIndex: number,
+    overIndex: number,
+    isCompleted: (id: string) => boolean,
+): number {
+    const moved = [...items];
+    const [active] = moved.splice(activeIndex, 1);
+    moved.splice(overIndex, 0, active);
+
+    return moved.slice(0, overIndex).filter((id) => !isCompleted(id)).length;
 }
 
 /**

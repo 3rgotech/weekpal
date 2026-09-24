@@ -23,7 +23,7 @@ import { useSettings } from "./contexts/SettingsContext";
 import { useTranslation } from "react-i18next";
 import useDayJs from "./utils/dayjs";
 import { Weekday, dateOfDay } from "./utils/week";
-import { dropOrder } from "./utils/taskMoves";
+import { dropOrder, reorderedIndex } from "./utils/taskMoves";
 import WeekMark from "./components/WeekMark";
 import { isWeekDone } from "./utils/weekDone";
 import { columnTemplate } from "./utils/week";
@@ -157,13 +157,20 @@ const MainContent: React.FC<MainContentProps> = () => {
       // The whole rectangle, not just its top edge: the undated buckets lay their cards out in a
       // grid, where two cards can share a top and only the horizontal axis separates them.
       const activeRect = active.rect.current.translated;
+      const from = active.data.current?.sortable;
+      const to = over.data.current?.sortable;
 
-      // Dropped on empty space in a column: the end of it. Dropped on a task: whichever side of
-      // that task's middle the dragged row finished on — the same rule the live preview uses, so
-      // the drop lands where the preview said it would.
+      // Dropped on empty space in a column: the end of it. Dropped on a task in the same list —
+      // which is every drop by the time it ends, since crossing lists is settled while hovering —
+      // exactly where the sortable preview showed it. Otherwise, whichever side of that task's
+      // middle the dragged row finished on.
       const toOrder = onContainer || !activeRect
         ? tasks.filter((t) => t.weekCode === task.weekCode && t.dayOfWeek === toDay).length
-        : dropOrder(activeRect, over.rect, over.data.current?.currentOrder ?? 0);
+        : from && to && from.containerId === to.containerId
+          ? reorderedIndex(to.items.map(String), from.index, to.index, (id) => (
+            findTask(id.replace("task-", ""))?.completed ?? false
+          ))
+          : dropOrder(activeRect, over.rect, over.data.current?.currentOrder ?? 0);
 
       moveTask(task, toDay, toOrder);
     }

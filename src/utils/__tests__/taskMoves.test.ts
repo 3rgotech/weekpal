@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { availableMoves, dropOrder, moveTarget, relieveTarget } from "../taskMoves";
+import { availableMoves, dropOrder, moveTarget, relieveTarget, reorderedIndex } from "../taskMoves";
 import { getDayJs } from "../dayjs";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 
@@ -178,5 +178,33 @@ describe("where a drop lands, across a grid", () => {
         // Neither past it nor above it. "Before" is as good an answer as "after", and it is the
         // one the single-file rule has always given.
         expect(dropOrder(card(200), middle, ORDER)).toBe(5);
+    });
+});
+
+describe("where a reorder inside one list lands", () => {
+    const none = () => false;
+
+    it("lands a card moved forward in the slot it was shown in", () => {
+        // [a, b, c, d]: a dragged onto c is previewed as [b, c, a, d]. The midpoint rule, spliced
+        // into the list without the card, used to land it one slot further — after d.
+        expect(reorderedIndex(["a", "b", "c", "d"], 0, 2, none)).toBe(2);
+    });
+
+    it("lands a card moved backward in the slot it was shown in", () => {
+        expect(reorderedIndex(["a", "b", "c", "d"], 3, 1, none)).toBe(1);
+    });
+
+    it("moves along a grid row exactly as along a single file", () => {
+        // A bucket three wide: dropping the first card on the third of the same row. The rows
+        // are only layout — the order is one list, read left to right.
+        expect(reorderedIndex(["a", "b", "c", "d", "e", "f"], 0, 2, none)).toBe(2);
+        expect(reorderedIndex(["a", "b", "c", "d", "e", "f"], 2, 0, none)).toBe(0);
+    });
+
+    it("counts only the unfinished tasks ahead of it, which is what moveTask orders", () => {
+        // [a, done, c]: a onto c is previewed as [done, c, a] — one unfinished task ahead of it.
+        const done = (id: string) => id === "done";
+
+        expect(reorderedIndex(["a", "done", "c"], 0, 2, done)).toBe(1);
     });
 });
