@@ -128,7 +128,7 @@ const PrintSheet: React.FC = () => {
      * cell should be depends on how many are stacked, and a class name built at runtime is one
      * Tailwind never sees and so never generates.
      */
-    const column = (heading: React.ReactNode, day: DayOfWeek, minHeight: string) => {
+    const column = (heading: React.ReactNode, day: DayOfWeek, minHeight: string, flowColumns = 1) => {
         const all = tasksOf(day);
         const shown = all.slice(0, PRINT_COLUMN_LIMIT);
         const hidden = all.length - shown.length;
@@ -136,7 +136,9 @@ const PrintSheet: React.FC = () => {
         return (
             <section className="flex flex-col" style={{ minHeight }}>
                 {heading}
-                <ul className="mt-1">
+                {/* A full-width *Some day* (the two-row layouts) flows its list into several
+                    columns, as it does on screen, rather than one long list down the left. */}
+                <ul className="mt-1 gap-x-5" style={flowColumns > 1 ? { columnCount: flowColumns } : undefined}>
                     {eventsOf(day).map(eventLine)}
                     {shown.map(taskLine)}
 
@@ -212,25 +214,55 @@ const PrintSheet: React.FC = () => {
                 <img src={iconDark} alt="" className="w-8 h-8 grayscale" />
             </header>
 
-            <div
-                className="grid gap-x-5"
-                style={{ gridTemplateColumns: columnTemplate(layout) }}
-            >
-                {layout.columns.map((column) => (
-                    <div className="flex flex-col gap-5" key={column.days[0]}>
-                        {column.days.map((day) => (
-                            <React.Fragment key={day}>
-                                {dayColumn(day, `${Math.floor(columnHeight / column.days.length)}mm`)}
+            {layout.grid ? (
+                <>
+                    {/* The two-row layouts: the same grid, in the same reading order, with
+                        *this week* in its cell and *Some day* the full width underneath. */}
+                    <div
+                        className="grid gap-x-5 gap-y-5"
+                        style={{
+                            gridTemplateColumns: `repeat(${layout.grid.columnCount}, minmax(0, 1fr))`,
+                            gridTemplateRows: "repeat(2, auto)",
+                            gridAutoFlow: layout.grid.flow,
+                        }}
+                        data-print-grid={layout.grid.flow}
+                    >
+                        {layout.grid.cells.map((cell) => (
+                            <React.Fragment key={cell}>
+                                {cell === "0"
+                                    ? column(bucketHeading(t("main.this_week"), "0"), "0", `${columnHeight / 2}mm`)
+                                    : dayColumn(parseInt(cell, 10) as Weekday, `${columnHeight / 2}mm`)}
                             </React.Fragment>
                         ))}
                     </div>
-                ))}
-            </div>
 
-            <div className="grid grid-cols-2 gap-x-5 mt-6">
-                {column(bucketHeading(t("main.this_week"), "0"), "0", "42mm")}
-                {column(bucketHeading(t("main.some_day"), "someday"), "someday", "42mm")}
-            </div>
+                    <div className="mt-6">
+                        {column(bucketHeading(t("main.some_day"), "someday"), "someday", "42mm", layout.grid.columnCount)}
+                    </div>
+                </>
+            ) : (
+                <>
+                    <div
+                        className="grid gap-x-5"
+                        style={{ gridTemplateColumns: columnTemplate(layout) }}
+                    >
+                        {layout.columns.map((column) => (
+                            <div className="flex flex-col gap-5" key={column.days[0]}>
+                                {column.days.map((day) => (
+                                    <React.Fragment key={day}>
+                                        {dayColumn(day, `${Math.floor(columnHeight / column.days.length)}mm`)}
+                                    </React.Fragment>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-5 mt-6">
+                        {column(bucketHeading(t("main.this_week"), "0"), "0", "42mm")}
+                        {column(bucketHeading(t("main.some_day"), "someday"), "someday", "42mm")}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

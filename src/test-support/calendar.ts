@@ -31,7 +31,8 @@ export function fakeCalendar(
                 ? null
                 : dateOfDay(firstDayOfWeek, parseInt(day, 10) as Weekday, weekStartsOn)
         ),
-        layout: weekLayout(settings.workingDays, settings.showNonWorkingDays, weekStartsOn),
+        // As a Pro account sees it: the stored preset applies.
+        layout: weekLayout(settings.workingDays, settings.showNonWorkingDays, weekStartsOn, settings.layoutPreset),
         goToPreviousWeek: () => { },
         goToNextWeek: () => { },
         goToToday: () => { },

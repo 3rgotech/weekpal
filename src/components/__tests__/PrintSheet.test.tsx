@@ -121,6 +121,31 @@ describe("the printable week", () => {
         expect(grid.style.gridTemplateColumns).toBe("repeat(7, minmax(0, 1fr))");
     });
 
+    it("prints the front-loaded layout with its wide first three days", () => {
+        settings.layoutPreset = "front";
+
+        const { container } = printed();
+        const grid = container.querySelector("[style*='grid-template-columns']") as HTMLElement;
+
+        expect(grid.style.gridTemplateColumns).toBe("minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)");
+    });
+
+    it("prints a two-row layout as its grid, this week in a cell and some day across the bottom", () => {
+        settings.layoutPreset = "columns";
+        data.tasks = [weekly("Plan the offsite", "0"), new SomedayTask({ title: "Learn Italian" })];
+
+        const { container } = printed();
+        const grid = container.querySelector("[data-print-grid]") as HTMLElement;
+
+        expect(grid.getAttribute("data-print-grid")).toBe("column");
+        expect(grid.style.gridTemplateColumns).toBe("repeat(4, minmax(0, 1fr))");
+        // Seven days and this week are the grid's eight cells; some day is not one of them.
+        expect(grid.children).toHaveLength(8);
+        expect(grid.textContent).toContain("Plan the offsite");
+        expect(grid.textContent).not.toContain("Learn Italian");
+        expect(screen.getByText("Learn Italian")).toBeTruthy();
+    });
+
     it("leaves hidden days off the sheet entirely", () => {
         settings.showNonWorkingDays = false;
         data.tasks = [weekly("Monday task", "1"), weekly("Sunday task", "7")];
