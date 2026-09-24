@@ -96,7 +96,10 @@
     "no_limit": "None",
     "day_limit_paid": "A per-category daily limit is part of the paid plan.",
     "private": "Private",
-    "private_hint": "Never included in a shared week"
+    "private_hint": "Never included in a shared week",
+    "event_keywords": "Calendar events containing",
+    "event_keywords_placeholder": "Calendar events containing… e.g. standup, 1:1, gym",
+    "event_keywords_hint": "A calendar event whose title contains one of these words takes this category. Separate them with commas."
   },
   "visibility": {
     "show_completed_tasks": "Show completed tasks",

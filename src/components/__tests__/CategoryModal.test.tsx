@@ -213,3 +213,45 @@ describe("the category editor", () => {
         expect(data.saveCategory.mock.calls[0][0].dayLimit).toBeNull();
     });
 });
+
+describe("event keywords (#36)", () => {
+    beforeEach(() => {
+        data.saveCategory.mockClear();
+    });
+
+    it("saves the words that file calendar events into a category", async () => {
+        data.categories = [new Category({ id: "a", name: "Work", color: "sky", eventKeywords: [] })];
+        open();
+
+        fireEvent.change(screen.getByLabelText("category.event_keywords: Work"), { target: { value: " standup, 1:1 ,, review " } });
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalled());
+        expect(data.saveCategory.mock.calls[0][0].eventKeywords).toEqual(["standup", "1:1", "review"]);
+    });
+
+    it("shows what is already there, and saves nothing when it is unchanged", async () => {
+        data.categories = [new Category({ id: "a", name: "Sport", color: "sky", eventKeywords: ["gym", "run"] })];
+        open();
+
+        expect((screen.getByLabelText("category.event_keywords: Sport") as HTMLInputElement).value).toBe("gym, run");
+
+        fireEvent.click(screen.getByText("actions.save"));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(data.saveCategory).not.toHaveBeenCalled();
+    });
+
+    it("leaves keywords alone on a copy that never loaded them", async () => {
+        data.categories = [new Category({ id: "a", name: "Work", color: "sky" })];
+        open();
+
+        expect(screen.queryByLabelText("category.event_keywords: Work")).toBeNull();
+
+        fireEvent.change(screen.getAllByLabelText("category.name")[0], { target: { value: "Client work" } });
+        fireEvent.click(screen.getByText("actions.save"));
+
+        await waitFor(() => expect(data.saveCategory).toHaveBeenCalled());
+        expect(data.saveCategory.mock.calls[0][0].eventKeywords).toBeNull();
+    });
+});

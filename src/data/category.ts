@@ -22,6 +22,16 @@ class Category extends Base {
      */
     public isPrivate: boolean;
 
+    /**
+     * Words that pull a calendar event into this category (#36) — "standup", "1:1", "gym".
+     *
+     * An event whose title contains one takes this category; otherwise it keeps its calendar's.
+     * The server does the matching, at sync and whenever these change. Null means the board has
+     * not been told (an older copy), which is not the same as an empty list: a null is never sent,
+     * so saving a rename cannot wipe keywords the board never knew about.
+     */
+    public eventKeywords: string[] | null;
+
     constructor(data: Record<string, any>) {
         super(data);
         this.name = data.name;
@@ -30,6 +40,7 @@ class Category extends Base {
         // built from either side depending on whether it came from the server or from Dexie.
         this.dayLimit = data.dayLimit ?? data.day_limit ?? null;
         this.isPrivate = Boolean(data.isPrivate ?? data.is_private ?? false);
+        this.eventKeywords = data.eventKeywords ?? data.event_keywords ?? null;
     }
 
     getColorClasses() {

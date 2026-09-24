@@ -30,6 +30,13 @@ import { newId } from "../utils/id";
 import { columnLimit, exceedsLimit } from "../utils/capacity";
 import { useSettings } from "./SettingsContext";
 
+/** Whether two keyword lists say the same thing, ignoring order and case. */
+const sameKeywords = (a: string[] | null, b: string[] | null): boolean => {
+  const norm = (list: string[] | null) => (list ?? []).map((word) => word.trim().toLowerCase()).filter(Boolean).sort().join("\n");
+
+  return b === null || norm(a) === norm(b);
+};
+
 /**
  * Where a task left behind in a past week goes next.
  *
@@ -367,8 +374,20 @@ const DataProvider: React.FC<DataProviderProps> = ({
       return;
     }
 
+    const before = categories.find((held) => held.id === category.id) ?? null;
+
     await categoryStore.update(category);
     await refreshCategories();
+
+    // New event keywords re-file the week's calendar events (#36), and it is the server that
+    // does the filing — so send the write now rather than whenever the queue next drains, then
+    // read the week back. Offline, the flush does nothing and the events follow at the next sync.
+    if (!sameKeywords(before?.eventKeywords ?? null, category.eventKeywords) && taskStore) {
+      await categoryStore.syncPendingChanges();
+      BaseStore.resetThrottle("tasks");
+      setTasks(await taskStore.list(currentWeek));
+      setEvents(await eventStore.list(currentWeek));
+    }
   };
 
   const deleteCategory = async (category: Category) => {
@@ -383,7 +402,15 @@ const DataProvider: React.FC<DataProviderProps> = ({
     // the week is read again. Without this the board keeps colouring tasks by a category that no
     // longer exists until the next reload, and the filter offers a row that matches nothing.
     if (taskStore) {
+      // Its keywords stop filing events (#36); the server sends those back to their calendar's
+      // category when the delete reaches it, so send it now and read the week's events again.
+      if ((category.eventKeywords ?? []).length > 0) {
+        await categoryStore.syncPendingChanges();
+        BaseStore.resetThrottle("tasks");
+      }
+
       setTasks(await taskStore.list(currentWeek));
+      setEvents(await eventStore.list(currentWeek));
     }
 
     // A filter or focus pointing at it would otherwise hide the whole board behind a category

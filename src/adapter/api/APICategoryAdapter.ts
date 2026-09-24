@@ -12,6 +12,7 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
             color: row.color,
             dayLimit: row.day_limit ?? null,
             isPrivate: row.is_private ?? false,
+            eventKeywords: row.event_keywords ?? [],
         }));
     }
 
@@ -35,6 +36,8 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
                     // is no tier for the server to refuse it on, and omitting it would make
                     // "turn this back off again" impossible to express.
                     is_private: category.isPrivate,
+                    // Only when known: absent tells the server to keep what it has.
+                    ...(category.eventKeywords === null ? {} : { event_keywords: category.eventKeywords }),
                 },
             })
             .json<{ data: any }>();
@@ -45,6 +48,7 @@ class APICategoryAdapter extends APIBaseAdapter implements ICategoryAdapter {
             color: response.data.color,
             dayLimit: response.data.day_limit ?? null,
             isPrivate: response.data.is_private ?? false,
+            eventKeywords: response.data.event_keywords ?? [],
         });
     }
 

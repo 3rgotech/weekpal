@@ -27,6 +27,11 @@ interface Draft {
     dayLimit: number | null;
     /** Never included in a shared week. Free on every plan — a privacy control behind a paywall is not one. */
     isPrivate: boolean;
+    /**
+     * Event keywords as typed, comma-separated (#36). Null when the board was never told what the
+     * server holds — then the field stays untouched and nothing about keywords is sent.
+     */
+    keywords: string | null;
     /** True for a row added here that has never been saved. */
     isNew: boolean;
 }
@@ -37,8 +42,13 @@ const toDraft = (category: Category): Draft => ({
     color: category.color,
     dayLimit: category.dayLimit,
     isPrivate: category.isPrivate,
+    keywords: category.eventKeywords === null ? null : category.eventKeywords.join(", "),
     isNew: false,
 });
+
+/** "standup, 1:1 , gym" → ["standup", "1:1", "gym"]. */
+const parseKeywords = (text: string | null): string[] | null =>
+    text === null ? null : text.split(",").map((word) => word.trim()).filter((word) => word !== "");
 
 /**
  * Where categories are created, renamed, recoloured and deleted.
@@ -86,6 +96,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                 color: COLOR_NAMES[current.length % COLOR_NAMES.length],
                 dayLimit: null,
                 isPrivate: false,
+                keywords: "",
                 isNew: true,
             },
         ]);
@@ -132,16 +143,19 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
             // and the server clears it on the way through, which is the same answer.
             const dayLimit = subscribed ? draft.dayLimit : null;
 
+            const eventKeywords = parseKeywords(draft.keywords);
+
             if (before
                 && before.name === name
                 && before.color === draft.color
                 && before.dayLimit === dayLimit
-                && before.isPrivate === draft.isPrivate) {
+                && before.isPrivate === draft.isPrivate
+                && (eventKeywords === null || (before.eventKeywords ?? []).join("\n") === eventKeywords.join("\n"))) {
                 continue;
             }
 
             await saveCategory(new Category({
-                id: draft.id, name, color: draft.color, dayLimit, isPrivate: draft.isPrivate,
+                id: draft.id, name, color: draft.color, dayLimit, isPrivate: draft.isPrivate, eventKeywords,
             }));
         }
 
@@ -178,7 +192,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                             )}
 
                             {drafts.map((draft) => (
-                                <div key={draft.id} className="flex items-start gap-3">
+                                <div key={draft.id} className="flex flex-col gap-1.5">
+                                <div className="flex items-start gap-3">
                                     {/* The picker is the sixteen colours themselves. A dropdown
                                         would name them, and nobody picks a category colour by
                                         reading the word "fuchsia". */}
@@ -269,6 +284,26 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                         onClick={() => { void remove(draft); }}
                                         iconClass="text-red-600 dark:text-red-400"
                                     />
+                                </div>
+
+                                {/* #36, on its own line under the row: a list of words needs the
+                                    width, and the row above is already five columns. Under the
+                                    name rather than the swatches, so it reads as part of this
+                                    category. Hidden for an older copy that never loaded them. */}
+                                {draft.keywords !== null && (
+                                    <TextField
+                                        aria-label={`${t("category.event_keywords")}: ${draft.name}`}
+                                        value={draft.keywords}
+                                        onChange={(keywords: string) => edit(draft.id, { keywords })}
+                                        className="ml-[10.75rem] mr-11"
+                                    >
+                                        <Input
+                                            placeholder={t("category.event_keywords_placeholder")}
+                                            title={t("category.event_keywords_hint")}
+                                            className="text-sm"
+                                        />
+                                    </TextField>
+                                )}
                                 </div>
                             ))}
 

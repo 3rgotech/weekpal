@@ -96,7 +96,10 @@
     "no_limit": "Aucune",
     "day_limit_paid": "Une limite quotidienne par catégorie fait partie de l'offre payante.",
     "private": "Privée",
-    "private_hint": "Jamais incluse dans une semaine partagée"
+    "private_hint": "Jamais incluse dans une semaine partagée",
+    "event_keywords": "Événements d'agenda contenant",
+    "event_keywords_placeholder": "Événements d'agenda contenant… ex. point d'équipe, 1:1, sport",
+    "event_keywords_hint": "Un événement d'agenda dont le titre contient l'un de ces mots prend cette catégorie. Séparez-les par des virgules."
   },
   "task": {
     "title": "Titre",
