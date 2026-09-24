@@ -31,6 +31,202 @@
 }
 
 /*
+|------------------------------------------------------------------------------
+| Design tokens
+|------------------------------------------------------------------------------
+|
+| One-to-one with the variables of the redesign in `weekpal-api/app.pen`, so a value read off the
+| canvas has exactly one place to land. Components use them as Tailwind colours — `bg-wp-card`,
+| `text-wp-muted`, `border-wp-border` — and never restate a hex or a `dark:` pair: the theme
+| switches by the `.dark` class on `body` redefining the variables underneath.
+|
+| Prefixed `wp-` because HeroUI 3 already owns the unprefixed names (`surface`, `accent`,
+| `border`…) as utilities of its own.
+*/
+:root,
+.light {
+    --wp-bg: #f3f5f9;
+    --wp-chrome: #ffffff;
+    --wp-surface: #ffffff;
+    --wp-surface-today: #f5faff;
+    --wp-card: #ffffff;
+    --wp-card-hover: #f8fafc;
+    --wp-border: #e4e9f0;
+    --wp-border-strong: #d5dce6;
+    --wp-track: #eef1f5;
+    --wp-fg: #0f172a;
+    --wp-fg-secondary: #475569;
+    --wp-muted: #8c99ad;
+    --wp-accent: #0284c7;
+    --wp-accent-strong: #0284c7;
+    --wp-accent-soft: #e0f2fe;
+    --wp-on-accent: #ffffff;
+    --wp-check-border: #c3ccd8;
+    --wp-warn: #b45309;
+    --wp-warn-soft: #fef3c7;
+    --wp-danger: #dc2626;
+    --wp-danger-soft: #fee2e2;
+    --wp-strike: #0f172a;
+    --wp-scrim: #0f172a59;
+    --wp-modal: #ffffff;
+    --wp-input: #ffffff;
+    --wp-shadow: #0f172a26;
+    --wp-seg-active: #ffffff;
+}
+
+.dark {
+    --wp-bg: #0a101c;
+    --wp-chrome: #0d1524;
+    --wp-surface: #111a2b;
+    --wp-surface-today: #0f1e33;
+    --wp-card: #18233a;
+    --wp-card-hover: #1d2a45;
+    --wp-border: #1e2a40;
+    --wp-border-strong: #2a3852;
+    --wp-track: #1e2a40;
+    --wp-fg: #e8eef7;
+    --wp-fg-secondary: #9aa8be;
+    --wp-muted: #62718a;
+    --wp-accent: #38bdf8;
+    --wp-accent-strong: #0ea5e9;
+    --wp-accent-soft: #38bdf81f;
+    --wp-on-accent: #04121f;
+    --wp-check-border: #3a4a66;
+    --wp-warn: #fbbf24;
+    --wp-warn-soft: #fbbf241f;
+    --wp-danger: #f87171;
+    --wp-danger-soft: #f8717122;
+    --wp-strike: #ffffff;
+    --wp-scrim: #03060cb3;
+    --wp-modal: #111a2b;
+    --wp-input: #0d1524;
+    --wp-shadow: #00000080;
+    --wp-seg-active: #26344f;
+}
+
+@theme inline {
+    --color-wp-bg: var(--wp-bg);
+    --color-wp-chrome: var(--wp-chrome);
+    --color-wp-surface: var(--wp-surface);
+    --color-wp-surface-today: var(--wp-surface-today);
+    --color-wp-card: var(--wp-card);
+    --color-wp-card-hover: var(--wp-card-hover);
+    --color-wp-border: var(--wp-border);
+    --color-wp-border-strong: var(--wp-border-strong);
+    --color-wp-track: var(--wp-track);
+    --color-wp-fg: var(--wp-fg);
+    --color-wp-fg-secondary: var(--wp-fg-secondary);
+    --color-wp-muted: var(--wp-muted);
+    --color-wp-accent: var(--wp-accent);
+    --color-wp-accent-strong: var(--wp-accent-strong);
+    --color-wp-accent-soft: var(--wp-accent-soft);
+    --color-wp-on-accent: var(--wp-on-accent);
+    --color-wp-check-border: var(--wp-check-border);
+    --color-wp-warn: var(--wp-warn);
+    --color-wp-warn-soft: var(--wp-warn-soft);
+    --color-wp-danger: var(--wp-danger);
+    --color-wp-danger-soft: var(--wp-danger-soft);
+    --color-wp-strike: var(--wp-strike);
+    --color-wp-scrim: var(--wp-scrim);
+    --color-wp-modal: var(--wp-modal);
+    --color-wp-input: var(--wp-input);
+    --color-wp-shadow: var(--wp-shadow);
+    --color-wp-seg-active: var(--wp-seg-active);
+
+    --shadow-wp-pop: 0 12px 32px var(--wp-shadow);
+    --shadow-wp-modal: 0 24px 64px var(--wp-shadow);
+    --shadow-wp-seg: 0 1px 3px var(--wp-shadow);
+}
+
+/*
+ * HeroUI's own theme, pointed at the tokens above so its dialogs, menus, fields and buttons wear
+ * the same palette as the board around them. Unlayered on purpose: HeroUI declares these in
+ * `@layer base`, and unlayered CSS wins over any layer whatever its specificity.
+ */
+:root,
+.light,
+.dark {
+    --background: var(--wp-bg);
+    --foreground: var(--wp-fg);
+    --surface: var(--wp-surface);
+    --surface-foreground: var(--wp-fg);
+    --surface-secondary: var(--wp-track);
+    --surface-tertiary: var(--wp-card-hover);
+    --overlay: var(--wp-modal);
+    --overlay-foreground: var(--wp-fg);
+    --muted: var(--wp-muted);
+    --default: var(--wp-track);
+    --default-foreground: var(--wp-fg);
+    --accent: var(--wp-accent);
+    --accent-foreground: var(--wp-on-accent);
+    --danger: var(--wp-danger);
+    --warning: var(--wp-warn);
+    --field-background: var(--wp-input);
+    --field-foreground: var(--wp-fg);
+    --field-placeholder: var(--wp-muted);
+    --field-border: var(--wp-border-strong);
+    --field-border-width: 1px;
+    --segment: var(--wp-seg-active);
+    --segment-foreground: var(--wp-fg);
+    --border: var(--wp-border);
+    --separator: var(--wp-border);
+    --focus: var(--wp-accent);
+    --backdrop: var(--wp-scrim);
+    --radius: 0.5rem;
+    --field-radius: 0.5rem;
+}
+
+/*
+ * Category and calendar-event colours.
+ *
+ * Categories are user-chosen from a fixed palette (`utils/categories.ts`), so each palette entry
+ * gets a soft chip in the redesign's style: a tinted background and a strong foreground, both
+ * derived from the one stored hue so no palette entry can be left without a pair. Events use the
+ * same derivation, a notch softer, with the hue kept for the left rule and the start time.
+ */
+.wp-tag {
+    background-color: color-mix(in oklab, var(--tag) 16%, var(--wp-card));
+    color: color-mix(in oklab, var(--tag) 78%, var(--wp-fg));
+}
+
+.dark .wp-tag {
+    background-color: color-mix(in oklab, var(--tag) 20%, transparent);
+    color: color-mix(in oklab, var(--tag) 55%, white);
+}
+
+.wp-event {
+    background-color: color-mix(in oklab, var(--tag) 7%, var(--wp-card));
+    border-left: 2px solid var(--tag);
+}
+
+.dark .wp-event {
+    background-color: color-mix(in oklab, var(--tag) 9%, transparent);
+    border-left-color: color-mix(in oklab, var(--tag) 60%, white);
+}
+
+.wp-event__start {
+    color: color-mix(in oklab, var(--tag) 80%, var(--wp-fg));
+}
+
+.dark .wp-event__start {
+    color: color-mix(in oklab, var(--tag) 55%, white);
+}
+
+.wp-event--allday {
+    background-color: color-mix(in oklab, var(--tag) 16%, var(--wp-card));
+    border-left: 0;
+}
+
+.dark .wp-event--allday {
+    background-color: color-mix(in oklab, var(--tag) 22%, transparent);
+}
+
+body {
+    background-color: var(--wp-bg);
+    color: var(--wp-fg);
+}
+
+/*
  * Printing: one landscape A4 of the week, black on white.
  *
  * The sheet itself is `PrintSheet`, hidden on screen and revealed by Tailwind's `print:` variant.
@@ -41,57 +237,158 @@
  * The widest dialog HeroUI 3 offers is not wide enough for this board's.
  *
  * Its scale stops at `lg` — `max-w-lg`, 512px — and then jumps straight to `cover` and `full`.
- * Before the v3 migration the settings dialog was `size="2xl"`, 672px on the old scale, and the
- * migration had nowhere to map it: it became `lg` and the settings lost 160px of the width they
- * were laid out for. The category editor, written since, has three columns and never had it.
+ * The category editor has three columns of label and controls and needs more than that; there is
+ * screen either side of it on anything wider than a small laptop. A `max-width`, so a narrow
+ * window still gets the whole width it has.
  *
- * Wider than that old 672px, not merely back to it: both dialogs are now three columns of label
- * and controls, and there is screen either side of them on anything wider than a small laptop.
- * A `max-width`, so a narrow window still gets the whole width it has.
+ * In `@layer components`, beside HeroUI's own sizes, rather than unlayered: a dialog that wants a
+ * narrower cap than this — the settings, at the redesign's 640px — passes a `max-w-*` utility, and
+ * utilities only win against layered CSS.
  *
- * Done here rather than with a utility class because the v3 `Modal` parts do not forward
- * `className` at all — `Modal.Container`, `Modal.Dialog` and `Modal.Header` each drop it, so
- * nothing passed from a component reaches the DOM. This is the only place the cap can be lifted.
- *
- * Deliberately only `--lg`, which the three content-heavy dialogs use. The small ones are small
- * on purpose.
+ * Deliberately only `--lg`, which the content-heavy dialogs use. The small ones are small on
+ * purpose.
  */
-.modal__dialog--lg {
-    max-width: 56rem;
+@layer components {
+    .modal__dialog--lg {
+        max-width: 56rem;
+    }
+}
+
+/*
+|------------------------------------------------------------------------------
+| The dialog shell
+|------------------------------------------------------------------------------
+|
+| Every dialog on the board wears the redesign's shell: the modal surface, a hairline border, a
+| 14px radius and a long soft shadow, over a scrim that blurs the week behind it. Written once
+| here against HeroUI's own class names rather than on each of fifteen dialogs, so a new one gets
+| it without asking.
+|
+| Layered with HeroUI's components, so a `className` passed to a part (a utility) still wins.
+| The full-screen variant keeps its square corners and no shadow — it is a page, not a card.
+*/
+@layer components {
+    .modal__backdrop--blur,
+    .modal__backdrop--opaque {
+        background-color: var(--wp-scrim);
+        backdrop-filter: blur(8px);
+    }
+
+    .modal__dialog:not(.modal__dialog--full) {
+        border: 1px solid var(--wp-border);
+        border-radius: 14px;
+        box-shadow: 0 24px 64px var(--wp-shadow);
+    }
+
+    .modal__dialog {
+        background-color: var(--wp-modal);
+        color: var(--wp-fg);
+    }
+
+    .modal__heading {
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+        color: var(--wp-fg);
+    }
+
+    /* HeroUI dims body copy to `--muted`, which the redesign keeps for hints; running text in a
+       dialog is the secondary ink. */
+    .modal__body {
+        color: var(--wp-fg-secondary);
+    }
+
+    /*
+     * Buttons, as the redesign draws them: 8px corners rather than HeroUI's pills, 13px labels,
+     * and a secondary that is an outlined card rather than a grey fill — beside a filled primary,
+     * a grey one read as disabled.
+     */
+    .modal__dialog .button,
+    .modal__footer .button {
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .modal__dialog .button--primary {
+        font-weight: 700;
+    }
+
+    .modal__dialog .button--secondary {
+        --button-bg: var(--wp-card);
+        --button-bg-hover: var(--wp-card-hover);
+        --button-bg-pressed: var(--wp-card-hover);
+        --button-fg: var(--wp-fg);
+        border: 1px solid var(--wp-border-strong);
+    }
+
+    /* The redesign's field: 38px tall, 13px medium text, on the input surface. */
+    .modal__dialog .select__trigger,
+    .modal__dialog .select__value {
+        min-height: 38px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    .modal__dialog .select__value {
+        min-height: 0;
+    }
+
+    .modal__dialog .input,
+    .modal__dialog .textarea {
+        font-size: 13px;
+    }
 }
 
 /**
- * Make the settings tabs look like tabs.
+ * Tabs, drawn as the redesign's underlined row.
  *
- * HeroUI 3 draws the selected tab's pill with a `Tabs.Indicator` component, which throws outside
- * a `SharedElementTransition` — so nothing marks the selection but a slightly brighter label, and
- * three of those spread across a wide dialog read as column headings rather than as controls.
- * This draws the segmented control the component was going to.
+ * HeroUI 3 draws the selected tab's marker with a `Tabs.Indicator` component, which throws
+ * outside a `SharedElementTransition` — so nothing marks the selection but a slightly brighter
+ * label. This draws the marker the component was going to: an accent rule under the selected
+ * label, on a hairline running the width of the row.
  *
- * Scoped away from `--secondary`, which is the deliberately flat, underlined variant the task
- * activity tabs use.
+ * Both variants alike — the settings tabs and the task's Notes / History are the same control in
+ * the redesign, and two tab styles in one product is one too many.
+ *
+ * Layered with HeroUI's components, so a caller can still pad the row with a utility — the
+ * settings dialog insets it to line up with its fields while the hairline runs edge to edge.
  */
-.tabs:not(.tabs--secondary) {
-    /* Sized to its labels and left-aligned. Left to stretch, three tabs across a 56rem dialog put
-       a third of it under a solid pill, which reads as a banner rather than as a control. */
-    & > .tabs__list-container {
-        @apply inline-flex w-auto self-start rounded-3xl p-1;
-        @apply bg-slate-200 dark:bg-sky-950;
+@layer components {
+    .tabs > .tabs__list-container {
+        @apply w-full self-stretch rounded-none bg-transparent p-0;
+        border-bottom: 1px solid var(--wp-border);
     }
 
-    & .tabs__list {
-        min-width: 0;
+    /* Without scroll buttons the list is the row itself, so it carries the hairline. */
+    .tabs > .tabs__list {
+        @apply w-full;
+        border-bottom: 1px solid var(--wp-border);
     }
 
-    & .tabs__tab {
-        @apply w-auto rounded-3xl px-5;
+    .tabs .tabs__list {
+        @apply min-w-0 gap-[22px] rounded-none bg-transparent p-0;
+    }
+
+    .tabs .tabs__indicator {
+        display: none;
+    }
+
+    .tabs .tabs__tab {
+        @apply h-auto w-auto rounded-none px-0 pb-[11px] pt-0 text-[13px] font-medium;
+        color: var(--wp-fg-secondary);
+        /* An inset shadow rather than a border, so the selected tab is no taller than the rest
+           and the rule sits exactly on the row's hairline. */
+        box-shadow: inset 0 -2px 0 transparent;
 
         &[data-selected="true"] {
-            @apply bg-sky-500 text-white shadow-sm;
+            @apply font-bold;
+            color: var(--wp-fg);
+            box-shadow: inset 0 -2px 0 var(--wp-accent);
         }
 
         &[data-selected="false"]:hover {
-            @apply bg-slate-300 dark:bg-sky-900;
+            color: var(--wp-fg);
         }
     }
 }
@@ -311,12 +608,7 @@
 .changelog-body a,
 .markdown-body a {
     text-decoration: underline;
-    color: var(--color-sky-600);
-}
-
-.dark .changelog-body a,
-.dark .markdown-body a {
-    color: var(--color-sky-300);
+    color: var(--wp-accent);
 }
 
 .changelog-body h2,
@@ -337,12 +629,7 @@
 .changelog-body blockquote,
 .markdown-body blockquote {
     padding-left: 0.75rem;
-    border-left: 2px solid var(--color-slate-300);
-}
-
-.dark .changelog-body blockquote,
-.dark .markdown-body blockquote {
-    border-left-color: var(--color-sky-800);
+    border-left: 2px solid var(--wp-border-strong);
 }
 
 /*
@@ -355,80 +642,65 @@
  */
 .weekpal-tour.driver-popover {
     max-width: 22rem;
-    border-radius: 0.5rem;
-    font-family: Lato, sans-serif;
+    padding: 18px 18px 14px;
+    border: 1px solid var(--wp-border);
+    border-radius: 12px;
+    background-color: var(--wp-modal);
+    color: var(--wp-fg);
+    box-shadow: 0 12px 32px var(--wp-shadow);
+    font-family: var(--font-sans);
 }
 
 .weekpal-tour .driver-popover-title {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--wp-fg);
 }
 
 .weekpal-tour .driver-popover-description {
-    font-size: 0.875rem;
-    line-height: 1.4;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--wp-fg-secondary);
 }
 
 .weekpal-tour .driver-popover-progress-text {
-    font-size: 0.75rem;
-    color: var(--color-slate-500);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--wp-muted);
+}
+
+.weekpal-tour .driver-popover-close-btn {
+    color: var(--wp-muted);
 }
 
 .weekpal-tour .driver-popover-footer button {
-    border-radius: 0.375rem;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.875rem;
+    border: 1px solid var(--wp-border-strong);
+    border-radius: 8px;
+    padding: 0.3rem 0.75rem;
+    background-color: var(--wp-card);
+    color: var(--wp-fg);
+    font-size: 13px;
+    font-weight: 600;
     text-shadow: none;
 }
 
 /* The one that moves the tour forward reads as the one to press. */
 .weekpal-tour .driver-popover-next-btn,
 .weekpal-tour .driver-popover-footer button:last-child {
-    background-color: var(--color-sky-950);
-    color: white;
-    border-color: var(--color-sky-950);
-}
-
-.dark .weekpal-tour.driver-popover,
-.dark .weekpal-tour .driver-popover-arrow {
-    background-color: var(--color-sky-950);
-    color: white;
-}
-
-.dark .weekpal-tour .driver-popover-title,
-.dark .weekpal-tour .driver-popover-description {
-    color: white;
-}
-
-.dark .weekpal-tour .driver-popover-progress-text {
-    color: var(--color-slate-400);
-}
-
-.dark .weekpal-tour .driver-popover-close-btn {
-    color: var(--color-slate-300);
-}
-
-.dark .weekpal-tour .driver-popover-footer button {
-    background-color: var(--color-sky-900);
-    color: white;
-    border-color: var(--color-sky-800);
-}
-
-.dark .weekpal-tour .driver-popover-next-btn,
-.dark .weekpal-tour .driver-popover-footer button:last-child {
-    background-color: white;
-    color: var(--color-sky-950);
-    border-color: white;
+    background-color: var(--wp-accent);
+    color: var(--wp-on-accent);
+    border-color: var(--wp-accent);
+    font-weight: 700;
 }
 
 /*
  * The arrow is drawn with borders, so its colour has to be restated per side rather than set
  * once — each side paints a different one of the four.
  */
-.dark .weekpal-tour .driver-popover-arrow-side-top { border-top-color: var(--color-sky-950); }
-.dark .weekpal-tour .driver-popover-arrow-side-bottom { border-bottom-color: var(--color-sky-950); }
-.dark .weekpal-tour .driver-popover-arrow-side-left { border-left-color: var(--color-sky-950); }
-.dark .weekpal-tour .driver-popover-arrow-side-right { border-right-color: var(--color-sky-950); }
+.weekpal-tour .driver-popover-arrow-side-top { border-top-color: var(--wp-modal); }
+.weekpal-tour .driver-popover-arrow-side-bottom { border-bottom-color: var(--wp-modal); }
+.weekpal-tour .driver-popover-arrow-side-left { border-left-color: var(--wp-modal); }
+.weekpal-tour .driver-popover-arrow-side-right { border-right-color: var(--wp-modal); }
 
 /* The tour draws over everything, including the print sheet's own reset. */
 @media print {
@@ -448,11 +720,7 @@
     padding: 0.5rem;
     border-radius: 0.375rem;
     overflow-x: auto;
-    background-color: var(--color-slate-100);
-}
-
-.dark .markdown-body pre {
-    background-color: var(--color-sky-900);
+    background-color: var(--wp-track);
 }
 
 .markdown-body pre code {
@@ -460,11 +728,7 @@
 }
 
 .markdown-body hr {
-    border-top: 1px solid var(--color-slate-200);
-}
-
-.dark .markdown-body hr {
-    border-top-color: var(--color-sky-900);
+    border-top: 1px solid var(--wp-border);
 }
 
 /* Headings inside a description are only a little larger than its text: this is a note in a

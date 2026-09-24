@@ -43,6 +43,11 @@ class Category extends Base {
         this.eventKeywords = data.eventKeywords ?? data.event_keywords ?? null;
     }
 
+    /** The category's hue as a value, for the redesign's derived chips (`tagStyle`). */
+    get hex(): string {
+        return COLORS[this.color]?.hex ?? "#94a3b8";
+    }
+
     getColorClasses() {
         return COLORS[this.color];
     }

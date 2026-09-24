@@ -119,7 +119,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, isOpen, onOpenChan
                             {/* A project's category is the authority for the tasks in it, so
                                 changing it here is not a filter — it moves work. Said plainly,
                                 rather than discovered afterwards. */}
-                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                            <p className="text-xs text-wp-muted">
                                 {t("projects.category_help")}
                             </p>
                         </Modal.Body>

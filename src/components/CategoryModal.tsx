@@ -174,7 +174,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
 
                         <Modal.Body className="flex flex-col gap-3">
                             {drafts.length > 0 && (
-                                <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-wp-muted">
                                     <span className="w-40 shrink-0">{t("category.color")}</span>
                                     <span className="flex-1 min-w-0">{t("category.name")}</span>
                                     <span className="w-24 shrink-0">{t("category.day_limit")}</span>
@@ -186,7 +186,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                             )}
 
                             {drafts.length === 0 && (
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-wp-muted">
                                     {t("category.empty")}
                                 </p>
                             )}
@@ -214,7 +214,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                                     "w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition",
                                                     COLORS[color].bg,
                                                     draft.color === color
-                                                        ? "ring-2 ring-offset-2 ring-sky-500 dark:ring-offset-slate-900"
+                                                        ? "ring-2 ring-offset-2 ring-wp-accent ring-offset-wp-modal"
                                                         : "opacity-60 hover:opacity-100",
                                                 )}
                                             >
@@ -273,7 +273,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                             onChange={(event) => edit(draft.id, { isPrivate: event.target.checked })}
                                             aria-label={`${t("category.private")}: ${draft.name}`}
                                             title={t("category.private_hint")}
-                                            className="size-4 accent-sky-950 dark:accent-sky-400"
+                                            className="size-4 accent-wp-accent"
                                         />
                                     </div>
 
@@ -282,7 +282,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                         size="sm"
                                         tooltip={t("category.delete")}
                                         onClick={() => { void remove(draft); }}
-                                        iconClass="text-red-600 dark:text-red-400"
+                                        iconClass="text-wp-danger"
                                     />
                                 </div>
 

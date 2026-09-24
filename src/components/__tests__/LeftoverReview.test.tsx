@@ -195,7 +195,7 @@ describe("the weekly review of what was left behind", () => {
         await screen.findByText("Task a");
 
         const lit = screen.getAllByRole("button")
-            .filter((button) => button.className.includes("bg-sky-500"));
+            .filter((button) => button.classList.contains("bg-wp-accent"));
 
         expect(lit).toHaveLength(1);
         expect(lit[0].getAttribute("aria-label")).toMatch(/tuesday/i);

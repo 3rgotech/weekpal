@@ -86,7 +86,7 @@ const LimitReachedModal: React.FC = () => {
                         </Modal.Header>
 
                         <Modal.Body className="flex flex-col gap-3">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-wp-muted">
                                 {t("limits.explain", { planned: inColumn.length, limit })}
                             </p>
 
@@ -95,11 +95,11 @@ const LimitReachedModal: React.FC = () => {
                                     <li
                                         key={task.id}
                                         className={clsx(
-                                            "flex items-center gap-2 py-1.5 border-b border-slate-200 dark:border-slate-600",
+                                            "flex items-center gap-2 py-1.5 border-b border-wp-border",
                                             busy === task.id && "opacity-50",
                                         )}
                                     >
-                                        <span className="flex-1 min-w-0 truncate text-sm dark:text-white">
+                                        <span className="flex-1 min-w-0 truncate text-[13px] font-medium text-wp-fg">
                                             {label(task)}
                                         </span>
 

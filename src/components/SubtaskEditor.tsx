@@ -45,11 +45,11 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
     };
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-1.5">
             <div className="flex items-baseline justify-between">
-                <h4 className="text-sm font-medium dark:text-white">{t("task.subtasks.title")}</h4>
+                <h4 className="text-xs font-semibold text-wp-fg-secondary">{t("task.subtasks.title")}</h4>
                 {total > 0 && (
-                    <span className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
+                    <span className="text-xs font-medium tabular-nums text-wp-muted">
                         {t("task.subtasks.progress", { done, total })}
                     </span>
                 )}
@@ -76,7 +76,7 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
                         value={subtask.title}
                         onChange={(title) => replace(index, { ...subtask, title })}
                     >
-                        <Input className={subtask.completed ? "line-through text-slate-400" : ""} />
+                        <Input className={subtask.completed ? "line-through text-wp-muted" : ""} />
                     </TextField>
                     <IconButton
                         icon="trash"
@@ -109,7 +109,9 @@ const SubtaskEditor: React.FC<SubtaskEditorProps> = ({ subtasks, onChange }) => 
                 </TextField>
                 <IconButton
                     icon="plus"
-                    size="xs"
+                    size="sm"
+                    iconClass="text-wp-fg"
+                    wrapperClass="size-[38px] rounded-lg bg-wp-track hover:bg-wp-border-strong"
                     tooltip={t("task.subtasks.add")}
                     onClick={add}
                 />

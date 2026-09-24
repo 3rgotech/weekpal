@@ -45,18 +45,24 @@
       "front": "Front-loaded",
       "rows": "Two rows",
       "columns": "Two rows, top to bottom"
-    }
+    },
+    "subtaskDisplayHint": "How a task's checklist shows on its card",
+    "autosaved": "Changes save automatically"
   },
   "main": {
     "this_week": "This week",
     "some_day": "Some day",
-    "add_new_task": "Click to add task",
+    "add_new_task": "Add task",
     "this_week_short": "TW",
     "some_day_short": "SD",
     "show_all_tasks": "Showing {{shown}} of {{total}} — show them all",
     "hidden_below_one": "{{count}} more below",
     "hidden_below_other": "{{count}} more below",
-    "day_done": "{{day}} done"
+    "day_done": "{{day}} done",
+    "all_day": "All day",
+    "today": "Today",
+    "this_week_hint": "No day yet — drag onto a day when you're ready",
+    "some_day_hint": "Ideas and not-urgent things"
   },
   "actions": {
     "add_task": "Add task",
@@ -75,7 +81,7 @@
     "visibility_filter": "Change visibility",
     "cancel": "Cancel",
     "save": "Save",
-    "sign_up": "Sign up",
+    "sign_up": "Sign up free",
     "log_in": "Log in",
     "menu": "Menu",
     "install": "Install app",
@@ -86,7 +92,7 @@
   },
   "category": {
     "help": "Everything is shown. Click a category to hide it, or focus one on its own.",
-    "all": "All",
+    "all": "All categories",
     "none": "No category",
     "show_all": "Show all",
     "focus": "Focus on {{name}}",
@@ -183,7 +189,7 @@
       "today": "Today",
       "tomorrow": "Tomorrow",
       "next_monday": "Next Monday",
-      "next_week": "Next week (same day)",
+      "next_week": "Next week, same day",
       "this_week": "This week",
       "some_day": "Some day",
       "duplicate": "Duplicate",
@@ -269,7 +275,17 @@
   "demo": {
     "reset": "Reset demo",
     "reset_confirm": "This clears the demo and loads the sample week again. Nothing you made here is kept.",
-    "reset_action": "Reset the demo"
+    "reset_action": "Reset the demo",
+    "pill": "Demo data",
+    "pill_short": "Demo",
+    "reset_short": "Reset",
+    "title": "You're in demo mode",
+    "subtitle": "Take WeekPal for a spin — nothing here is permanent.",
+    "point_local": "Everything is stored locally, in this browser only.",
+    "point_temporary": "Changes aren't kept once you leave the demo.",
+    "point_sample": "The sample week is pre-loaded to show you around.",
+    "callout": "Ready to keep your week? Sign up — it takes a moment, and the demo data stays behind.",
+    "got_it": "Got it"
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -388,6 +404,7 @@
     "no_time": "no time free",
     "booked": "{{booked}} already booked",
     "batch": "Estimate this day",
+    "batch_short": "Estimate day",
     "skip": "Skip",
     "remaining_one": "{{count}} left",
     "remaining_other": "{{count}} left",
@@ -439,7 +456,7 @@
     "replay": "Show me around again",
     "week": {
       "title": "One week at a time",
-      "body": "This is the week you're planning. The arrows move a week either way, and the dot brings you back to this one."
+      "body": "This is the week you're planning. The arrows move a week either way, and Today brings you back to this one."
     },
     "columns": {
       "title": "A column per day",

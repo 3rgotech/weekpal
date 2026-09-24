@@ -276,15 +276,15 @@ const MainContent: React.FC<MainContentProps> = () => {
       {/* No bar along the bottom here, so the board itself keeps clear of the home indicator —
           and of a notch down the side when a tablet is held in landscape. */}
       <div className="h-full flex flex-row overflow-hidden pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-      <div className="p-2 xl:p-4 flex-1 flex flex-col overflow-hidden">
-        <div className="grow flex flex-col gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
+      <div className="p-3 xl:p-5 flex-1 flex flex-col overflow-hidden">
+        <div className="grow flex flex-col gap-3 overflow-hidden">
           {layout.grid ? (
             <>
               {/* The two-row presets (R14): the days and *this week* as one grid, read along the
                   rows or down the columns, and *Some day* the full width underneath — where its
                   tasks wrap into as many columns as the width allows. */}
               <div
-                className="relative flex-[2] min-h-0 grid gap-2 xl:gap-4"
+                className="relative flex-[2] min-h-0 grid gap-3"
                 style={{
                   gridTemplateColumns: `repeat(${layout.grid.columnCount}, minmax(0, 1fr))`,
                   gridTemplateRows: "repeat(2, minmax(0, 1fr))",
@@ -294,7 +294,7 @@ const MainContent: React.FC<MainContentProps> = () => {
               >
                 <WeekMark done={isWeekDone(allTasks, layout.visible)} shape="frame" />
                 {layout.grid.cells.map((cell) => (
-                  <div className="min-h-0 overflow-hidden rounded-lg" key={cell}>
+                  <div className="min-h-0 overflow-hidden rounded-xl" key={cell}>
                     {cell === "0"
                       ? <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
                       : dayColumn(parseInt(cell, 10) as Weekday)}
@@ -302,7 +302,7 @@ const MainContent: React.FC<MainContentProps> = () => {
                 ))}
               </div>
 
-              <div className="flex-1 min-h-0 overflow-hidden rounded-lg" data-tour="buckets">
+              <div className="flex-1 min-h-0 overflow-hidden rounded-xl" data-tour="buckets">
                 <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
               </div>
             </>
@@ -313,7 +313,7 @@ const MainContent: React.FC<MainContentProps> = () => {
               would otherwise need their spans recomputed from it, and an odd column count has
               no honest halves to span. */}
           <div
-            className="relative flex-[2] min-h-0 grid gap-2 xl:gap-4"
+            className="relative flex-[2] min-h-0 grid gap-3"
             style={{ gridTemplateColumns: columnTemplate(layout) }}
             data-tour="days"
           >
@@ -329,9 +329,9 @@ const MainContent: React.FC<MainContentProps> = () => {
                 scroll its own list: without it a grid item takes its content's height as a
                 minimum and spills past the row. */}
             {layout.columns.map((column) => (
-              <div className="min-h-0 flex flex-col gap-2 xl:gap-4" key={column.days[0]}>
+              <div className="min-h-0 flex flex-col gap-3" key={column.days[0]}>
                 {column.days.map((day) => (
-                  <div className="flex-1 min-h-0 overflow-hidden rounded-lg" key={day}>
+                  <div className="flex-1 min-h-0 overflow-hidden rounded-xl" key={day}>
                     {dayColumn(day)}
                   </div>
                 ))}
@@ -339,11 +339,11 @@ const MainContent: React.FC<MainContentProps> = () => {
             ))}
           </div>
 
-          <div className="flex-1 min-h-0 grid grid-cols-2 gap-2 xl:gap-4" data-tour="buckets">
-            <div className="min-h-0 overflow-hidden rounded-lg">
+          <div className="flex-1 min-h-0 grid grid-cols-2 gap-3" data-tour="buckets">
+            <div className="min-h-0 overflow-hidden rounded-xl">
               <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
             </div>
-            <div className="min-h-0 overflow-hidden rounded-lg">
+            <div className="min-h-0 overflow-hidden rounded-xl">
               <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
             </div>
           </div>
@@ -353,7 +353,7 @@ const MainContent: React.FC<MainContentProps> = () => {
 
         <DragOverlay>
           {activeTask.task ? (
-            <div className="shadow-lg opacity-90">
+            <div className="rounded-lg shadow-wp-pop">
               <DraggableTask
                 task={activeTask.task}
               // dayOfWeek={activeTask.dayOfWeek as DayOfWeek}

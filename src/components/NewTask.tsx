@@ -5,6 +5,7 @@ import { DayOfWeek } from "../types";
 import IconButton from "./IconButton";
 import { useCalendar } from "../contexts/CalendarContext";
 import clsx from "clsx";
+import { Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface NewTaskProps {
@@ -88,15 +89,16 @@ const NewTask = ({ dayOfWeek, projectId }: NewTaskProps) => {
   }, [creatingNewTask]);
 
   return (
-    <li
-      className={clsx(
-        `flex items-center justify-between h-10 rounded-md cursor-text`
-      )}
-    >
+    <li className="list-none">
       <div
         ref={wrapperRef}
-        className="flex w-full items-center py-2 px-2 border-b border-slate-200"
-        onFocusCapture={(e) => {
+        className={clsx(
+          "flex w-full items-center gap-2 rounded-lg border px-3 min-h-[34px] transition-colors",
+          creatingNewTask
+            ? "border-wp-accent bg-wp-card"
+            : "border-wp-border hover:border-wp-border-strong hover:bg-wp-card-hover",
+        )}
+        onFocusCapture={() => {
           if (!creatingNewTask) setCreatingNewTask(true);
         }}
         onBlurCapture={handleFocusOut}
@@ -109,6 +111,7 @@ const NewTask = ({ dayOfWeek, projectId }: NewTaskProps) => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               autoFocus
+              placeholder={t("main.add_new_task")}
               onKeyDown={(e) => {
                 if (e.key === "Escape") {
                   handleCancel();
@@ -116,23 +119,23 @@ const NewTask = ({ dayOfWeek, projectId }: NewTaskProps) => {
                   handleSubmit();
                 }
               }}
-              className="w-full ring-0 outline-hidden bg-transparent text-sm font-medium mt-[3px]"
+              className="w-full py-2 ring-0 outline-hidden bg-transparent text-[13px] font-medium text-wp-fg placeholder:text-wp-muted"
             />
             <IconButton
               icon="plus"
               onClick={handleSubmit}
               size="xs"
-              iconClass={"text-sky-950 dark:text-white"}
-              wrapperClass={"border-slate-200 dark:border-sky-900"}
               tooltip={t("actions.add_task")}
               tooltipPosition="left"
             />
           </>
         ) : (
           <button
-            className="text-sm text-slate-400 dark:text-slate-400 h-full mt-[3px] w-full text-left cursor-text"
+            type="button"
+            className="flex w-full items-center gap-2 py-2 text-left text-[13px] font-medium text-wp-muted cursor-text"
             onClick={() => setCreatingNewTask(true)}
           >
+            <Plus size={14} aria-hidden="true" />
             {t("main.add_new_task")}
           </button>
         )}

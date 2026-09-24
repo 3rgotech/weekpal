@@ -103,17 +103,18 @@ const ImportPanel: React.FC = () => {
 
     if (!adapter) {
         return (
-            <p className="col-span-3 text-sm text-slate-500 dark:text-slate-400">
+            <p className="py-3.5 text-[13px] text-wp-fg-secondary">
                 {t("import.unavailable")}
             </p>
         );
     }
 
     return (
-        <>
-            <h3 className="text-base dark:text-white">{t("import.title")}</h3>
+        /* The settings dialog's row: the name in a fixed column, everything else beside it. */
+        <div className="flex flex-col gap-2 py-3.5 sm:flex-row sm:gap-4">
+            <h3 className="text-[13px] font-semibold text-wp-fg sm:w-[200px] sm:shrink-0 sm:pt-2">{t("import.title")}</h3>
 
-            <div className="col-span-2 flex flex-col gap-2">
+            <div className="min-w-0 flex-1 flex flex-col gap-2">
                 <input
                     ref={input}
                     type="file"
@@ -134,12 +135,12 @@ const ImportPanel: React.FC = () => {
                     </Button>
                 </div>
 
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-wp-muted">
                     {t("import.formats")}
                 </p>
 
                 {error !== null && (
-                    <div className="text-sm text-red-600 dark:text-red-400">
+                    <div className="text-[13px] text-wp-danger">
                         <p>{error}</p>
 
                         {/* The headings the server did not recognise. Shown because they are the
@@ -154,12 +155,12 @@ const ImportPanel: React.FC = () => {
                 )}
 
                 {pending !== null && (
-                    <div className="flex flex-col gap-2 rounded-md border border-slate-200 dark:border-slate-600 p-3">
-                        <p className="text-sm dark:text-white">
+                    <div className="flex flex-col gap-2 rounded-lg border border-wp-border bg-wp-card p-3">
+                        <p className="text-[13px] font-medium text-wp-fg">
                             {t("import.will_import", { n: pending.preview.imported })}
                         </p>
 
-                        <ul className="text-xs text-slate-500 dark:text-slate-400">
+                        <ul className="text-xs text-wp-muted">
                             {/* The line this whole step exists for. Everything undated lands in
                                 one column, and a big number here is worth seeing beforehand. */}
                             {pending.preview.undated > 0 && (
@@ -188,10 +189,10 @@ const ImportPanel: React.FC = () => {
                 )}
 
                 {summary !== null && (
-                    <div className="text-sm dark:text-white">
+                    <div className="text-[13px] font-medium text-wp-fg">
                         <p>{t("import.done", { n: summary.imported })}</p>
 
-                        <ul className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <ul className="mt-1 text-xs font-normal text-wp-muted">
                             {summary.unmatched.length > 0 && (
                                 <li>{t("import.ignored", { headers: summary.unmatched.join(", ") })}</li>
                             )}
@@ -208,7 +209,7 @@ const ImportPanel: React.FC = () => {
                     </div>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 

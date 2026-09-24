@@ -78,9 +78,9 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
     };
 
     return (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between gap-2">
-                <span className="text-sm dark:text-white">{label}</span>
+                <span className="text-xs font-semibold text-wp-fg-secondary">{label}</span>
 
                 {/* Only once there is something to preview. An empty tab that shows an empty box
                     is a control that teaches people it does nothing. */}
@@ -88,7 +88,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
                     <button
                         type="button"
                         onClick={() => setPreviewing((on) => !on)}
-                        className="text-xs underline text-slate-500 dark:text-slate-400"
+                        className="text-xs font-medium underline underline-offset-2 text-wp-muted hover:text-wp-fg-secondary cursor-pointer"
                     >
                         {previewing ? t("task.editor.write") : t("task.editor.preview")}
                     </button>
@@ -97,7 +97,7 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
 
             {previewing ? (
                 <div
-                    className="markdown-body min-h-24 px-2 py-1.5 text-sm rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950 overflow-y-auto max-h-64"
+                    className="markdown-body min-h-24 px-3 py-2.5 text-sm leading-normal text-wp-fg rounded-lg border border-wp-border-strong bg-wp-input overflow-y-auto max-h-64"
                     // Safe by construction rather than by sanitising: `renderMarkdown` escapes
                     // everything the user typed before a single formatting rule runs, so every
                     // tag in here is one it emitted itself.
@@ -105,7 +105,10 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
                 />
             ) : (
                 <>
-                    <div className="flex flex-wrap items-center gap-0.5">
+                    {/* One bordered field, toolbar and text together, as the redesign draws it:
+                        the buttons are part of the editor, not a row of controls above it. */}
+                    <div className="flex flex-col rounded-lg border border-wp-border-strong bg-wp-input focus-within:border-wp-accent">
+                    <div className="flex flex-wrap items-center gap-0.5 px-1.5 py-1 border-b border-wp-border">
                         {TOOLBAR.map(({ format: which, icon: Icon }) => (
                             <button
                                 key={which}
@@ -119,9 +122,9 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
                                     event.preventDefault();
                                     format(which);
                                 }}
-                                className="p-1.5 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-sky-900 focus-visible:outline-2 focus-visible:outline-sky-500"
+                                className="flex h-7 w-[30px] items-center justify-center rounded-md text-wp-fg-secondary cursor-pointer hover:bg-wp-track hover:text-wp-fg focus-visible:outline-2 focus-visible:outline-wp-accent"
                             >
-                                <Icon size={14} />
+                                <Icon size={15} />
                             </button>
                         ))}
                     </div>
@@ -146,10 +149,11 @@ const DescriptionEditor: React.FC<DescriptionEditorProps> = ({
                             event.preventDefault();
                             format(which);
                         }}
-                        className="w-full px-2 py-1.5 text-sm rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950 font-mono"
+                        className="w-full px-3 py-2.5 text-sm leading-normal text-wp-fg placeholder:text-wp-muted bg-transparent rounded-b-lg outline-hidden resize-y"
                     />
+                    </div>
 
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    <p className="text-[11px] text-wp-muted">
                         {t("task.editor.hint")}
                     </p>
                 </>

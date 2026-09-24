@@ -29,7 +29,7 @@ const WeekMark: React.FC<WeekMarkProps> = ({ done, shape }) => {
     }
 
     const stroke = clsx(
-        "week-mark__stroke stroke-slate-900 dark:stroke-white",
+        "week-mark__stroke stroke-wp-strike",
         justFinished ? "week-mark__stroke--drawing" : "week-mark__stroke--drawn",
     );
 
@@ -53,7 +53,7 @@ const WeekMark: React.FC<WeekMarkProps> = ({ done, shape }) => {
             aria-hidden="true"
             data-week-mark="frame"
         >
-            <rect x="0" y="0" width="100%" height="100%" rx="10" fill="none" pathLength={1} strokeWidth={2} className={stroke} />
+            <rect x="0" y="0" width="100%" height="100%" rx="12" fill="none" pathLength={1} strokeWidth={2} className={stroke} />
         </svg>
     );
 };

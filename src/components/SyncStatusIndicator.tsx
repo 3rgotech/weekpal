@@ -82,14 +82,20 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
     if (isDemo) {
         return (
             <>
-                <button
-                    type="button"
-                    className={`flex items-center gap-1.5 text-xs p-1 px-2 bg-black/5 rounded-sm cursor-pointer hover:bg-black/10 ${className}`}
-                    onClick={() => setConfirmingReset(true)}
-                >
-                    <RotateCcw size={14} className="text-sky-600" />
-                    <span className="text-gray-600 dark:text-gray-300">{t("demo.reset")}</span>
-                </button>
+                <span className={`inline-flex items-center gap-1.5 rounded-full bg-wp-warn-soft px-2.5 py-[5px] text-[11px] font-semibold text-wp-warn ${className}`}>
+                    <span className="size-1.5 rounded-full bg-wp-warn" aria-hidden="true" />
+                    <span className="hidden lg:inline">{t("demo.pill")}</span>
+                    <span className="lg:hidden">{t("demo.pill_short")}</span>
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-1 cursor-pointer hover:underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-wp-accent rounded-sm"
+                        onClick={() => setConfirmingReset(true)}
+                        aria-label={t("demo.reset")}
+                    >
+                        <RotateCcw size={11} aria-hidden="true" />
+                        {t("demo.reset_short")}
+                    </button>
+                </span>
 
                 <Modal isOpen={confirmingReset} onOpenChange={setConfirmingReset}>
                     <Modal.Backdrop>
@@ -123,7 +129,7 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
     }
 
     return (
-        <div className={`flex items-center gap-2 text-xs p-1 px-2 bg-black/5 rounded-sm ${className}`}>
+        <div className={`flex items-center gap-2 rounded-full bg-wp-track px-2.5 py-1 text-[11px] font-semibold text-wp-fg-secondary ${className}`}>
             {/*
               * An expired token is the common case now that board tokens are short-lived, and
               * reloading is the actual fix: /app mints a fresh one server-side on every render.
@@ -131,8 +137,8 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
               */}
             {health === 'unauthorized' && (
                 <div className="flex items-center gap-1.5">
-                    <LockKeyhole size={14} className="text-red-500" />
-                    <span className="text-gray-600">
+                    <LockKeyhole size={14} className="text-wp-danger" />
+                    <span>
                         Session expired — reload the page to keep saving
                     </span>
                 </div>
@@ -141,8 +147,8 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
             {/* The retention gate: this week is further back than the plan allows. */}
             {health === 'forbidden' && (
                 <div className="flex items-center gap-1.5">
-                    <TriangleAlert size={14} className="text-amber-500" />
-                    <span className="text-gray-600">
+                    <TriangleAlert size={14} className="text-wp-warn" />
+                    <span>
                         This week is outside your plan&rsquo;s history
                     </span>
                 </div>
@@ -150,15 +156,15 @@ const SyncStatusIndicator: React.FC<SyncStatusIndicatorProps> = ({ className = '
 
             {!isOnline && (
                 <div className="flex items-center gap-1.5">
-                    <CloudOff size={14} className="text-red-500" />
-                    <span className="text-gray-600">Offline</span>
+                    <CloudOff size={14} className="text-wp-danger" />
+                    <span>Offline</span>
                 </div>
             )}
 
             {pendingChanges > 0 && (
                 <div className="flex items-center gap-1.5">
-                    <Clock size={14} className="text-amber-500" />
-                    <span className="text-gray-600">
+                    <Clock size={14} className="text-wp-warn" />
+                    <span>
                         {pendingChanges} change{pendingChanges !== 1 ? 's' : ''} pending
                     </span>
                 </div>

@@ -17,10 +17,8 @@ interface PastDayRecoveryProps {
  * is Thursday is not neutral information, and without a mark it looks exactly like a day that
  * went perfectly.
  *
- * Monochrome, like every status mark added since the roundtable: **colour belongs to
- * categories**, which are the only system on the board doing semantic work. Amber and red are
- * already spoken for by capacity, and this is not a capacity problem — it is a fact about the
- * past, and it is not an error.
+ * A soft amber pill in the redesign, beside the day's name: work left behind is worth noticing,
+ * and it is still not an error — no red, and nothing louder than the "Today" pill it mirrors.
  *
  * A button rather than a label because the recovery *is* the feature. Naming a problem the user
  * then has to solve by dragging four cards would be worse than saying nothing.
@@ -39,10 +37,9 @@ const PastDayRecovery: React.FC<PastDayRecoveryProps> = ({ dayOfWeek, count }) =
             onClick={() => { void recoverDay(dayOfWeek); }}
             title={t("recovery.pull_hint")}
             className="
-                shrink-0 px-1.5 py-0.5 rounded text-xs font-medium
-                text-slate-600 dark:text-slate-300
-                hover:bg-slate-200 dark:hover:bg-sky-900
-                focus-visible:outline-2 focus-visible:outline-sky-500
+                shrink-0 px-2 py-0.5 rounded-full text-[11px] font-bold leading-4 cursor-pointer
+                bg-wp-warn-soft text-wp-warn hover:brightness-95 dark:hover:brightness-125
+                focus-visible:outline-2 focus-visible:outline-wp-accent
             "
         >
             {t("recovery.unfinished", { count })}

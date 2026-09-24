@@ -33,12 +33,12 @@ const HiddenBelow: React.FC<HiddenBelowProps> = ({ count, onReveal }) => {
             onClick={onReveal}
             className="
                 absolute bottom-0 inset-x-0 z-10 flex justify-center pb-1 pt-4
-                text-[0.65rem] font-medium text-slate-500 dark:text-slate-400
-                bg-gradient-to-t from-white dark:from-sky-950 to-transparent
-                focus-visible:outline-2 focus-visible:outline-sky-500
+                text-[11px] font-semibold text-wp-fg-secondary cursor-pointer
+                bg-gradient-to-t from-wp-surface to-transparent
+                focus-visible:outline-2 focus-visible:outline-wp-accent
             "
         >
-            <span className="px-1.5 py-0.5 rounded-full bg-white/80 dark:bg-sky-950/80">
+            <span className="px-2 py-0.5 rounded-full bg-wp-track">
                 {t("main.hidden_below", { count })}
             </span>
         </button>

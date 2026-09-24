@@ -27,7 +27,7 @@ const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onOpenChange }) =
                         </Modal.Header>
 
                         <Modal.Body>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-wp-muted">
                                 {t("shortcuts.intro")}
                             </p>
 
@@ -38,7 +38,7 @@ const ShortcutsHelp: React.FC<ShortcutsHelpProps> = ({ isOpen, onOpenChange }) =
                                             {shortcut.keys.map((key) => (
                                                 <kbd
                                                     key={key}
-                                                    className="px-1.5 py-0.5 rounded-sm border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-xs font-mono"
+                                                    className="px-1.5 py-0.5 rounded-sm border border-wp-border-strong bg-wp-track text-wp-fg text-xs font-mono"
                                                 >
                                                     {key}
                                                 </kbd>

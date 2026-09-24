@@ -32,20 +32,20 @@ describe("the hours gauge", () => {
         expect(container.textContent).not.toContain("~8h");
     });
 
-    it("warns in amber at the limit", () => {
+    it("warns at the limit", () => {
         const { container } = render(<DayHoursGauge hours={{
             planned: 240, available: 240, booked: 240, unestimated: 0, level: "at",
         }} />);
 
-        expect(container.innerHTML).toMatch(/amber/);
+        expect(container.innerHTML).toMatch(/wp-warn/);
     });
 
-    it("warns in red past it", () => {
+    it("warns in danger past it", () => {
         const { container } = render(<DayHoursGauge hours={{
             planned: 600, available: 240, booked: 240, unestimated: 0, level: "over",
         }} />);
 
-        expect(container.innerHTML).toMatch(/red/);
+        expect(container.innerHTML).toMatch(/wp-danger/);
     });
 
     it("reuses the capacity colours rather than inventing a third vocabulary", () => {
@@ -54,7 +54,7 @@ describe("the hours gauge", () => {
             planned: 60, available: 240, booked: 0, unestimated: 0, level: "ok",
         }} />);
 
-        expect(container.innerHTML).not.toMatch(/amber|red/);
+        expect(container.innerHTML).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("says so plainly when a day has no time left", () => {

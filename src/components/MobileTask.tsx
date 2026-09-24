@@ -16,7 +16,8 @@ interface MobileTaskProps {
 /**
  * A task on the vertical board.
  *
- * Three controls, always visible: tick it, open it, or move it. The wide board hides its tick
+ * A card, like the wide board's, with three controls always visible: tick it, open it, or move
+ * it. The wide board hides its tick
  * button until the pointer is over the row and leaves everything else to dragging — neither
  * hovering nor dragging exists here, so every action a task has must be a target you can hit.
  */
@@ -40,20 +41,27 @@ const MobileTask: React.FC<MobileTaskProps> = ({ task }) => {
     <li
       ref={rowRef}
       className={clsx(
-        "flex items-center gap-2 min-h-12 px-2 py-2 border-b border-slate-200 dark:border-slate-600",
-        isActive && "ring-2 ring-sky-500 bg-sky-50 dark:bg-sky-900/40",
+        "flex items-center gap-1.5 rounded-[10px] border py-2.5 pl-3 pr-2 bg-wp-card border-wp-border",
+        isActive && "ring-2 ring-wp-accent",
       )}
       onPointerDown={() => setActiveTaskId(task.id)}
     >
-      <div className="flex-1 flex items-center gap-x-2 min-w-0">
-        <TaskContent task={task} onOpenEscape={openEscape} />
+      <div className="flex-1 flex items-center min-w-0">
+        <TaskContent task={task} onOpenEscape={openEscape} size="md" />
       </div>
 
-      <div className="flex items-center gap-1 shrink-0">
+      <div className="flex items-center gap-1.5 shrink-0">
         <IconButton
           icon="check"
-          iconClass={task.completed ? "text-white" : ""}
-          wrapperClass={task.completed ? "bg-green-500" : ""}
+          iconClass={task.completed ? "text-wp-on-accent" : "text-wp-fg-secondary"}
+          // Filled once ticked, in the accent rather than a green of its own: the board spends
+          // colour on categories and on today, and a third meaning would compete with both.
+          wrapperClass={clsx(
+            "size-8 rounded-full border transition-colors duration-[120ms]",
+            task.completed
+              ? "bg-wp-accent border-wp-accent hover:bg-wp-accent"
+              : "border-wp-border-strong",
+          )}
           onClick={() => (task.completed ? uncompleteTask(task) : completeTask(task))}
           size="sm"
           tooltip={task.completed ? t("actions.uncomplete_task") : t("actions.complete_task")}
@@ -63,9 +71,13 @@ const MobileTask: React.FC<MobileTaskProps> = ({ task }) => {
           onClick={() => open(task)}
           size="sm"
           tooltip={t("actions.edit_task")}
-          iconClass="text-sky-950 dark:text-white"
+          wrapperClass="size-8 rounded-full border border-wp-border-strong"
         />
-        <TaskMenu task={task} size={20} />
+        <TaskMenu
+          task={task}
+          size={16}
+          triggerClassName="inline-flex h-8 w-[26px] items-center justify-center rounded-full"
+        />
       </div>
     </li>
   );

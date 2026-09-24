@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useData } from "../contexts/DataContext";
 import { Dropdown } from "@heroui/react";
 import clsx from "clsx";
-import { CircleSlash2, Crosshair, Pencil, RotateCcw, Tag } from "lucide-react";
+import { ChevronDown, CircleSlash2, Crosshair, ListFilter, Pencil, RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
   NO_CATEGORY_KEY,
@@ -77,9 +77,9 @@ const CategoryFilter: React.FC = () => {
       <Dropdown isOpen={isOpen} onOpenChange={setIsOpen}>
         <Dropdown.Trigger
           aria-label={t("actions.category_filter")}
-          className="h-full flex grow items-center justify-center gap-2 max-w-lg w-56 flex-1 bg-transparent cursor-pointer overflow-hidden"
+          className="flex items-center gap-2 max-w-64 rounded-lg border border-wp-border bg-wp-card py-[7px] pl-3 pr-2.5 text-[13px] font-medium text-wp-fg cursor-pointer overflow-hidden hover:border-wp-border-strong"
         >
-          <Tag className="shrink-0 text-sky-950 dark:text-white" />
+          <ListFilter size={15} className="shrink-0 text-wp-fg-secondary" />
 
           <span className="flex items-center gap-1 min-w-0" data-testid="category-summary">
             {/* Three swatches at most: past that the count is the useful part, and the row has to
@@ -88,21 +88,22 @@ const CategoryFilter: React.FC = () => {
               <span
                 key={selectedCategories[index]}
                 className={clsx(
-                  "w-3 h-3 rounded-full shrink-0",
-                  category ? category.getColorClass("bg") : "bg-slate-400",
+                  "size-2.5 rounded-full shrink-0",
+                  category ? category.getColorClass("bg") : "bg-wp-muted",
                 )}
                 aria-hidden="true"
               />
             ))}
-            <span className="truncate text-sky-950 dark:text-white">{summary}</span>
+            <span className="truncate">{summary}</span>
           </span>
+          <ChevronDown size={14} className="shrink-0 text-wp-muted" />
         </Dropdown.Trigger>
 
         {/* No `Dropdown.Menu`: its items swallow every click inside them for their own
             selection, which is exactly what a per-row Focus button cannot survive. The popover
             takes ordinary children. */}
         <Dropdown.Popover className="p-1 w-64">
-          <p className={clsx("px-2 py-1 text-xs", MENU_ITEM_CLASS)}>{t("category.help")}</p>
+          <p className="px-2 py-1 text-xs text-wp-muted">{t("category.help")}</p>
 
           <button
             type="button"
@@ -113,7 +114,7 @@ const CategoryFilter: React.FC = () => {
             disabled={selectedCategories.length === 0}
             className={clsx(
               "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left cursor-pointer",
-              "hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-default",
+              "hover:bg-wp-track disabled:opacity-40 disabled:cursor-default",
               MENU_ITEM_CLASS,
             )}
           >
@@ -146,7 +147,7 @@ const CategoryFilter: React.FC = () => {
                     }}
                     className={clsx(
                       "flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-md text-left cursor-pointer",
-                      "hover:bg-slate-100 dark:hover:bg-slate-700",
+                      "hover:bg-wp-track",
                       MENU_ITEM_CLASS,
                       // Off is stated twice over — the colour drains out of the swatch and the
                       // label goes italic — because a muted label alone is easy to read as
@@ -165,7 +166,7 @@ const CategoryFilter: React.FC = () => {
                     onClick={() => focus(row.key)}
                     className={clsx(
                       "shrink-0 px-2 rounded-md cursor-pointer",
-                      "hover:bg-slate-100 dark:hover:bg-slate-700",
+                      "hover:bg-wp-track",
                       MENU_ITEM_CLASS,
                     )}
                   >
@@ -177,12 +178,12 @@ const CategoryFilter: React.FC = () => {
           </ul>
 
           {/* Outside the list on purpose: this opens an editor, it does not filter anything. */}
-          <div className="border-t border-slate-200 dark:border-slate-600 mt-1 pt-1">
+          <div className="border-t border-wp-border mt-1 pt-1">
             <button
               type="button"
               className={clsx(
                 "w-full flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer text-left",
-                "hover:bg-slate-100 dark:hover:bg-slate-700",
+                "hover:bg-wp-track",
                 MENU_ITEM_CLASS,
               )}
               onClick={() => {

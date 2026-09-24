@@ -56,8 +56,8 @@ const BatchEstimateRow: React.FC<BatchEstimateRowProps> = ({
                 }
             }}
             className="
-                flex flex-wrap items-center gap-1.5 px-2 py-2 -mt-1 mb-1 rounded-b-md
-                bg-slate-50 dark:bg-sky-950 border-x border-b border-slate-200 dark:border-sky-900
+                flex flex-wrap items-center gap-1.5 px-2.5 py-2 -mt-1 rounded-lg
+                bg-wp-accent-soft border border-wp-border
                 focus:outline-none
             "
         >
@@ -69,9 +69,9 @@ const BatchEstimateRow: React.FC<BatchEstimateRowProps> = ({
                     onClick={() => onChoose(minutes)}
                     className="
                         px-2 py-1 rounded-full text-xs font-medium tabular-nums
-                        bg-slate-200 text-slate-700 hover:bg-slate-300
-                        dark:bg-sky-900 dark:text-slate-200 dark:hover:bg-sky-800
-                        focus-visible:outline-2 focus-visible:outline-sky-500
+                        bg-wp-card text-wp-fg border border-wp-border-strong
+                        hover:bg-wp-card-hover cursor-pointer
+                        focus-visible:outline-2 focus-visible:outline-wp-accent
                     "
                 >
                     <span aria-hidden="true" className="opacity-50 mr-1.5">{index + 1}</span>
@@ -84,12 +84,12 @@ const BatchEstimateRow: React.FC<BatchEstimateRowProps> = ({
             <button
                 type="button"
                 onClick={onSkip}
-                className="px-2 py-1 rounded-full text-xs text-slate-500 dark:text-slate-400 hover:underline"
+                className="px-2 py-1 rounded-full text-xs font-medium text-wp-fg-secondary cursor-pointer hover:underline"
             >
                 {t("estimate.skip")}
             </button>
 
-            <span className={clsx("ml-auto text-xs tabular-nums text-slate-500 dark:text-slate-400")}>
+            <span className={clsx("ml-auto text-xs tabular-nums text-wp-muted")}>
                 {t("estimate.remaining", { count: remaining })}
             </span>
         </div>

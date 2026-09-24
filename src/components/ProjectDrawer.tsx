@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, PanelRightOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { useData } from "../contexts/DataContext";
@@ -47,13 +47,13 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project, isExpanded, onToggle, 
             <div className="flex items-center gap-1">
                 <button
                     type="button"
-                    className="flex-1 min-w-0 flex items-center gap-1 px-1 py-1.5 text-sm text-left rounded-sm cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-white"
+                    className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 text-[13px] font-semibold text-left rounded-md cursor-pointer text-wp-fg hover:bg-wp-track"
                     onClick={onToggle}
                     aria-expanded={isExpanded}
                 >
                     {isExpanded
-                        ? <ChevronDown size={14} className="shrink-0" />
-                        : <ChevronRight size={14} className="shrink-0" />}
+                        ? <ChevronDown size={14} className="shrink-0 text-wp-muted" />
+                        : <ChevronRight size={14} className="shrink-0 text-wp-muted" />}
 
                     {category && (
                         <span
@@ -77,17 +77,17 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project, isExpanded, onToggle, 
                 <div
                     ref={setNodeRef}
                     className={clsx(
-                        "pl-4 rounded-md",
-                        isOver && "bg-sky-50 dark:bg-sky-900/40 ring-1 ring-sky-400",
+                        "pl-2 pt-1 pb-2 rounded-lg",
+                        isOver && "bg-wp-accent-soft ring-1 ring-wp-accent",
                     )}
                 >
                     {tasks.length === 0 && (
-                        <p className="px-1 py-1 text-xs text-slate-400">
+                        <p className="px-1 py-1 text-xs text-wp-muted">
                             {t("projects.no_tasks")}
                         </p>
                     )}
 
-                    <ul>
+                    <ul className="flex flex-col gap-2">
                         <SortableContext items={tasks.map((task) => `task-${task.id}`)}>
                             {tasks.map((task) => (
                                 <DraggableTask key={task.id} task={task} projectId={project.id} />
@@ -149,13 +149,13 @@ const ProjectDrawer: React.FC = () => {
                drawer can spare. */
             <button
                 type="button"
-                className="flex-none flex flex-col items-center gap-3 py-3 px-1.5 border-l border-slate-200 dark:border-slate-600 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                className="flex-none w-10 flex flex-col items-center gap-3.5 py-4 bg-wp-chrome border-l border-wp-border cursor-pointer text-wp-fg-secondary hover:text-wp-fg hover:bg-wp-card-hover"
                 onClick={() => setOpen(true)}
                 aria-label={t("projects.show")}
                 title={t("projects.show")}
             >
-                <ChevronLeft size={20} className="shrink-0 text-sky-950 dark:text-white" />
-                <span className="[writing-mode:vertical-rl] rotate-180 text-sm font-bold uppercase tracking-widest text-sky-950 dark:text-white">
+                <PanelRightOpen size={16} className="shrink-0" />
+                <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-bold uppercase tracking-[1.5px]">
                     {t("projects.title")}
                 </span>
             </button>
@@ -163,9 +163,9 @@ const ProjectDrawer: React.FC = () => {
     }
 
     return (
-        <aside className="flex-none w-72 flex flex-col border-l border-slate-200 dark:border-slate-600 overflow-y-auto">
-            <div className="flex items-center justify-between gap-1 px-3 py-2 border-b border-slate-200 dark:border-slate-600">
-                <h2 className="flex-1 min-w-0 truncate text-sm font-semibold tracking-wide uppercase text-slate-500 dark:text-slate-400">
+        <aside className="flex-none w-72 flex flex-col bg-wp-chrome border-l border-wp-border overflow-y-auto">
+            <div className="flex items-center justify-between gap-1 pl-4 pr-2 h-[52px] border-b border-wp-border">
+                <h2 className="flex-1 min-w-0 truncate text-[11px] font-bold tracking-[1.5px] uppercase text-wp-fg-secondary">
                     {t("projects.title")}
                 </h2>
                 {/* Creating a project is a dialog now. The form that used to sit along the
@@ -178,16 +178,16 @@ const ProjectDrawer: React.FC = () => {
                     onClick={() => edit(null)}
                 />
                 <IconButton
-                    icon="chevronRight"
+                    icon="panelClose"
                     size="sm"
                     tooltip={t("projects.hide")}
                     onClick={() => setOpen(false)}
                 />
             </div>
 
-            <div className="flex-1 flex flex-col gap-1 p-2">
+            <div className="flex-1 flex flex-col gap-1 p-3">
                 {visibleProjects.length === 0 && (
-                    <p className="px-1 py-2 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="px-1 py-2 text-xs text-wp-muted">
                         {t("projects.empty")}
                     </p>
                 )}

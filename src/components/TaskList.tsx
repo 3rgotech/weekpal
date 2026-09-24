@@ -270,7 +270,11 @@ const TaskList: React.FC<TaskProps> = ({
       // `relative` so the stroke can be laid over the column, and `day-strike__host` so hovering
       // anywhere in the day fades the ink rather than only hovering the line itself — which is
       // two pixels wide and diagonal.
-      className="h-full flex flex-col relative day-strike__host"
+      className={clsx(
+        "h-full flex flex-col relative day-strike__host rounded-xl border overflow-hidden transition-colors",
+        isToday ? "bg-wp-surface-today border-wp-accent" : "bg-wp-surface border-wp-border",
+        isOver && !isToday && "border-wp-border-strong",
+      )}
     >
       <DayStrike done={dayIsDone} height={strikeHeight} />
       <TaskListHeader
@@ -308,7 +312,7 @@ const TaskList: React.FC<TaskProps> = ({
       <ul
         ref={scrollRef}
         className={clsx(
-          "h-full overflow-y-auto py-1",
+          "h-full overflow-y-auto px-3 pt-1 pb-3",
           // `content-start` so eight cards in a three-column grid stay card-height instead of
           // stretching to fill the bucket, which is what a grid does with spare vertical room.
           //
@@ -316,7 +320,7 @@ const TaskList: React.FC<TaskProps> = ({
           // this element, so the classes have to be here for there to be anything to read — and
           // the windowed list spans the whole grid rather than sitting in one cell of it.
           multiColumn && "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 content-start",
-          !virtualise && !multiColumn && "space-y-2",
+          !virtualise && !multiColumn && "flex flex-col gap-2",
         )}
       >
         <SortableContext items={taskIds}>

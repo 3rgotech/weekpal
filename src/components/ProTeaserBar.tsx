@@ -21,17 +21,17 @@ const ProTeaserBar: React.FC = () => {
 
     return (
         <div
-            className="flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 text-sm"
+            className="flex items-center justify-between gap-2 px-3 py-1.5 bg-wp-chrome border-b border-wp-border text-[13px] text-wp-fg-secondary"
             role="status"
             data-pro-teaser
         >
-            <p className="min-w-0 text-slate-700 dark:text-slate-200">
+            <p className="min-w-0 text-wp-fg-secondary">
                 {t("teaser.message")}{" "}
                 <a
                     href={href}
                     target="_blank"
                     rel="noopener"
-                    className="font-medium underline underline-offset-2 text-sky-700 dark:text-sky-300"
+                    className="font-medium underline underline-offset-2 text-wp-accent"
                     onClick={follow}
                 >
                     {t("teaser.cta")}
@@ -40,7 +40,7 @@ const ProTeaserBar: React.FC = () => {
 
             <button
                 type="button"
-                className="shrink-0 p-1 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="shrink-0 p-1 rounded-md text-wp-muted hover:text-wp-fg hover:bg-wp-track cursor-pointer"
                 aria-label={t("teaser.dismiss")}
                 onClick={dismiss}
             >

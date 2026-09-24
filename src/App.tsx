@@ -199,7 +199,7 @@ function App() {
                 {splashScreen ? (
                   <SplashScreen />
                 ) : (
-                  <div className="h-screen flex flex-col items-stretch overflow-hidden bg-white dark:bg-slate-800 text-slate-800 dark:text-white print:hidden">
+                  <div className="h-screen flex flex-col items-stretch overflow-hidden bg-wp-bg text-wp-fg print:hidden">
                     <header className="flex-none">
                       {/* The review the inbox button opens is state in `ShortcutsProvider`
                           now — the same state `i` toggles — so neither bar is handed a callback

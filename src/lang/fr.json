@@ -45,18 +45,24 @@
       "front": "Début de semaine en grand",
       "rows": "Deux rangées",
       "columns": "Deux rangées, de haut en bas"
-    }
+    },
+    "subtaskDisplayHint": "Comment la checklist d'une tâche apparaît sur sa carte",
+    "autosaved": "Les changements sont enregistrés automatiquement"
   },
   "main": {
     "this_week": "Cette semaine",
     "some_day": "Un jour",
-    "add_new_task": "Cliquez pour ajouter une tâche",
+    "add_new_task": "Ajouter une tâche",
     "this_week_short": "CS",
     "some_day_short": "UJ",
     "show_all_tasks": "{{shown}} sur {{total}} affichées — tout afficher",
     "hidden_below_one": "{{count}} de plus en dessous",
     "hidden_below_other": "{{count}} de plus en dessous",
-    "day_done": "{{day}} terminé"
+    "day_done": "{{day}} terminé",
+    "all_day": "Journée",
+    "today": "Aujourd'hui",
+    "this_week_hint": "Pas encore de jour — glissez-la sur un jour quand vous serez prêt",
+    "some_day_hint": "Idées et choses pas urgentes"
   },
   "actions": {
     "add_task": "Ajouter la tâche",
@@ -75,7 +81,7 @@
     "visibility_filter": "Changer la visibilité",
     "cancel": "Annuler",
     "save": "Enregistrer",
-    "sign_up": "S'inscrire",
+    "sign_up": "S'inscrire gratuitement",
     "log_in": "Se connecter",
     "menu": "Menu",
     "install": "Installer l'application",
@@ -86,7 +92,7 @@
   },
   "category": {
     "help": "Tout est affiché. Cliquez sur une catégorie pour la masquer, ou isolez-en une.",
-    "all": "Toutes",
+    "all": "Toutes les catégories",
     "none": "Aucune",
     "show_all": "Voir toutes",
     "focus": "Se concentrer sur {{name}}",
@@ -269,7 +275,17 @@
   "demo": {
     "reset": "Réinitialiser la démo",
     "reset_confirm": "La démo est effacée et la semaine d'exemple rechargée. Rien de ce que vous avez créé ici n'est conservé.",
-    "reset_action": "Réinitialiser la démo"
+    "reset_action": "Réinitialiser la démo",
+    "pill": "Données de démo",
+    "pill_short": "Démo",
+    "reset_short": "Réinitialiser",
+    "title": "Vous êtes en mode démo",
+    "subtitle": "Essayez WeekPal — rien ici n'est permanent.",
+    "point_local": "Tout est stocké localement, dans ce navigateur uniquement.",
+    "point_temporary": "Vos changements ne sont pas conservés quand vous quittez la démo.",
+    "point_sample": "La semaine d'exemple est préchargée pour vous faire visiter.",
+    "callout": "Envie de garder votre semaine ? Inscrivez-vous — c'est rapide, et les données de démo restent ici.",
+    "got_it": "Compris"
   },
   "shortcuts": {
     "title": "Raccourcis clavier",
@@ -388,6 +404,7 @@
     "no_time": "aucun temps libre",
     "booked": "{{booked}} déjà réservé",
     "batch": "Estimer cette journée",
+    "batch_short": "Estimer la journée",
     "skip": "Passer",
     "remaining_one": "{{count}} restante",
     "remaining_other": "{{count}} restantes",
@@ -439,7 +456,7 @@
     "replay": "Refaire la visite",
     "week": {
       "title": "Une semaine à la fois",
-      "body": "Voici la semaine que vous planifiez. Les flèches vous déplacent d'une semaine, le point vous ramène à celle-ci."
+      "body": "Voici la semaine que vous planifiez. Les flèches vous déplacent d'une semaine, « Aujourd'hui » vous ramène à celle-ci."
     },
     "columns": {
       "title": "Une colonne par jour",

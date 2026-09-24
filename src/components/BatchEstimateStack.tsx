@@ -39,7 +39,7 @@ const BatchEstimateStack: React.FC<BatchEstimateStackProps> = ({
 
     return (
         <div className="flex-1 flex flex-col justify-center gap-6 px-4 py-6">
-            <div className="flex items-baseline justify-between text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex items-baseline justify-between text-sm text-wp-muted">
                 <span className="tabular-nums">
                     {t("estimate.position", { current: index + 1, total: tasks.length })}
                 </span>
@@ -50,7 +50,7 @@ const BatchEstimateStack: React.FC<BatchEstimateStackProps> = ({
 
             {/* Large and central: the card is the question, and on a phone there is room for it
                 to look like one. */}
-            <p className="text-xl font-medium text-sky-950 dark:text-white break-words">
+            <p className="text-xl font-medium text-wp-fg break-words">
                 {task.title}
             </p>
 
@@ -71,7 +71,7 @@ const BatchEstimateStack: React.FC<BatchEstimateStackProps> = ({
             <button
                 type="button"
                 onClick={onSkip}
-                className="text-sm text-slate-500 dark:text-slate-400 underline"
+                className="text-sm text-wp-muted underline"
             >
                 {t("estimate.skip")}
             </button>

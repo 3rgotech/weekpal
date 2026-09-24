@@ -98,7 +98,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
 
                         <Modal.Body className="flex flex-col gap-4">
                             {sent ? (
-                                <p className="text-sm text-slate-600 dark:text-slate-300">{t("feedback.thanks")}</p>
+                                <p className="text-sm text-wp-fg-secondary">{t("feedback.thanks")}</p>
                             ) : (
                                 <>
                                     {/* Two, not five. A taxonomy is a decision asked of somebody
@@ -112,10 +112,10 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                                                 onClick={() => setKind(option)}
                                                 className={clsx(
                                                     "flex-1 px-3 py-2 rounded-md text-sm font-medium",
-                                                    "focus-visible:outline-2 focus-visible:outline-sky-500",
+                                                    "focus-visible:outline-2 focus-visible:outline-wp-accent",
                                                     kind === option
-                                                        ? "bg-sky-950 text-white dark:bg-white dark:text-sky-950"
-                                                        : "bg-slate-100 text-slate-700 dark:bg-sky-900 dark:text-slate-200",
+                                                        ? "bg-wp-accent text-wp-on-accent"
+                                                        : "bg-wp-track text-wp-fg-secondary hover:text-wp-fg",
                                                 )}
                                             >
                                                 {t(`feedback.kind_${option}`)}
@@ -130,13 +130,13 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                                         onChange={(event) => setMessage(event.target.value)}
                                         aria-label={t("feedback.title")}
                                         placeholder={t(`feedback.placeholder_${kind}`)}
-                                        className="w-full px-2 py-1.5 text-sm rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950"
+                                        className="w-full px-2 py-1.5 text-sm rounded-md border border-wp-border-strong bg-wp-input"
                                     />
 
                                     {/* Shown, not hidden. Attaching the board's own state without
                                         saying so would be collecting device information from
                                         somebody who came here to be helpful. */}
-                                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                                    <div className="text-xs text-wp-muted">
                                         <button
                                             type="button"
                                             onClick={() => setShowDetails((open) => !open)}
@@ -149,7 +149,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                                             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 font-mono">
                                                 {Object.entries(diagnostics).map(([key, value]) => (
                                                     <React.Fragment key={key}>
-                                                        <dt className="text-slate-400">{key}</dt>
+                                                        <dt className="text-wp-muted">{key}</dt>
                                                         <dd className="truncate">{value}</dd>
                                                     </React.Fragment>
                                                 ))}
@@ -160,7 +160,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                                     </div>
 
                                     {failed && (
-                                        <p className="text-sm text-red-600 dark:text-red-400">{t("feedback.error")}</p>
+                                        <p className="text-sm text-wp-danger">{t("feedback.error")}</p>
                                     )}
                                 </>
                             )}

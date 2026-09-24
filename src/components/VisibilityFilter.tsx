@@ -46,9 +46,9 @@ const VisibilityFilter = () => {
                 rather than nesting one button inside another. */}
             <Dropdown.Trigger
                 aria-label={t("actions.visibility_filter")}
-                className={clsx("rounded-full transition-colors border p-2 cursor-pointer", ICON_BUTTON_WRAPPER_CLASS, ICON_BUTTON_CLASS)}
+                className={clsx("inline-flex size-[34px] items-center justify-center transition-colors cursor-pointer", ICON_BUTTON_WRAPPER_CLASS, ICON_BUTTON_CLASS)}
             >
-                <Icon size={24} className={ICON_BUTTON_CLASS} />
+                <Icon size={18} className={ICON_BUTTON_CLASS} />
             </Dropdown.Trigger>
 
             <Dropdown.Popover>

@@ -120,7 +120,9 @@ describe("the board on a phone", () => {
 
         const pills = screen.getAllByRole("button")
             .filter((button) => button.className.includes("flex-1 min-w-0"))
-            .map((button) => button.textContent);
+            // The first line of each cell: the day's letters, or the bucket's initials. The date
+            // under a weekday's letters is a second line and not part of its name.
+            .map((button) => button.querySelector("span")?.textContent);
 
         // Sunday leads, the rest of the week follows, then the two undated buckets.
         expect(pills.slice(-2)).toEqual(["main.this_week_short", "main.some_day_short"]);
@@ -159,15 +161,17 @@ describe("the board on a phone", () => {
 
         data.allTasks = data.tasks;
         const { rerender } = render(<MobileBoard />);
-        expect(screen.queryByText("3")).not.toBeInTheDocument();
+        // By label, not by the text "3": the day strip prints dates, and one of them may be a 3.
+        expect(screen.queryByLabelText("capacity.planned")).toBeNull();
 
         settings.dayCapacity = 3;
         rerender(<MobileBoard />);
 
         // At the limit: named in full for a screen reader, since a bare "3" says nothing.
         const count = screen.getByLabelText("capacity.planned");
-        expect(count.textContent).toBe("3");
-        expect(count.className).toContain("amber");
+        expect(count.textContent).toBe("3/3");
+        // Full is not a warning in the redesign: only past the limit does the ink change.
+        expect(count.innerHTML).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("counts what is left to do, not what was planned", () => {
@@ -181,7 +185,7 @@ describe("the board on a phone", () => {
         data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
-        expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
+        expect(screen.getByLabelText("capacity.planned").textContent).toBe("1/2");
     });
 
     it("counts Some day against its own limit, not the day one", () => {
@@ -197,9 +201,10 @@ describe("the board on a phone", () => {
         fireEvent.click(screen.getByText("main.some_day_short"));
 
         const count = screen.getByLabelText("capacity.planned");
-        expect(count.textContent).toBe("2");
+        expect(count.textContent).toBe("2/2");
         // Two of two is full, and would have been well under the day's ten.
-        expect(count.className).toContain("amber");
+        // Full is not a warning in the redesign: only past the limit does the ink change.
+        expect(count.innerHTML).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("leaves a project's backlog out of the Some day count", () => {
@@ -215,7 +220,7 @@ describe("the board on a phone", () => {
         render(<MobileBoard />);
         fireEvent.click(screen.getByText("main.some_day_short"));
 
-        expect(screen.getByLabelText("capacity.planned").textContent).toBe("1");
+        expect(screen.getByLabelText("capacity.planned").textContent).toBe("1/5");
     });
 
     it("counts the whole list, not the filtered view", () => {
@@ -229,8 +234,9 @@ describe("the board on a phone", () => {
         render(<MobileBoard />);
 
         const count = screen.getByLabelText("capacity.planned");
-        expect(count.textContent).toBe("3");
-        expect(count.className).toContain("amber");
+        expect(count.textContent).toBe("3/3");
+        // Full is not a warning in the redesign: only past the limit does the ink change.
+        expect(count.innerHTML).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("counts only the categories chosen for the day limit", () => {
@@ -245,8 +251,9 @@ describe("the board on a phone", () => {
         render(<MobileBoard />);
 
         const count = screen.getByLabelText("capacity.planned");
-        expect(count.textContent).toBe("1");
-        expect(count.className).toContain("amber");
+        expect(count.textContent).toBe("1/1");
+        // Full is not a warning in the redesign: only past the limit does the ink change.
+        expect(count.innerHTML).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("counts every category when none has been singled out", () => {
@@ -261,7 +268,7 @@ describe("the board on a phone", () => {
 
         render(<MobileBoard />);
 
-        expect(screen.getByLabelText("capacity.planned").textContent).toBe("2");
+        expect(screen.getByLabelText("capacity.planned").textContent).toBe("2/2");
     });
 
     it("counts the undated bucket against its own number", () => {
@@ -275,9 +282,10 @@ describe("the board on a phone", () => {
         fireEvent.click(screen.getByText("main.this_week_short"));
 
         const count = screen.getByLabelText("capacity.planned");
-        expect(count.textContent).toBe("2");
+        expect(count.textContent).toBe("2/2");
         // Two of two is full, and would have been well under the day's ten.
-        expect(count.className).toContain("amber");
+        // Full is not a warning in the redesign: only past the limit does the ink change.
+        expect(count.innerHTML).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("leaves the undated bucket uncounted until it is given a limit", () => {

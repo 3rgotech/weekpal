@@ -22,6 +22,10 @@ import DescriptionEditor from "../components/DescriptionEditor";
 import EstimatePicker from "../components/EstimatePicker";
 import TaskMenu from "../components/TaskMenu";
 import { useVerticalLayout } from "../utils/layout";
+import { X } from "lucide-react";
+
+/** A field's name in the editor: small, heavy and secondary, so the values are what is read. */
+const FIELD_LABEL_CLASS = "text-xs font-semibold text-wp-fg-secondary";
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -119,24 +123,43 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       {children}
       {/* No `Modal.CloseTrigger`: that is how v3 spells the old `hideCloseButton`. */}
       <Modal state={overlay}>
-        <Modal.Backdrop>
+        <Modal.Backdrop variant="blur">
         <Modal.Container size="lg">
-        <Modal.Dialog>
+        {/* A sheet on a phone — pinned to the bottom edge, rounded only at the top, with a
+            grabber — and a card everywhere else. The container's own inset is what would leave a
+            gap under the sheet, so it is cancelled at that width. */}
+        <Modal.Dialog className="max-w-[560px] p-0 overflow-hidden max-sm:-mb-4 max-sm:-mx-4 max-sm:w-screen max-sm:max-w-none max-sm:rounded-b-none max-sm:rounded-t-[20px] max-sm:border-b-0 max-sm:max-h-[92dvh]">
           {task && (
             <>
-              <Modal.Header className="flex flex-row justify-between items-center gap-1">
-                <Modal.Heading className="text-lg font-bold">{t('actions.edit_task')}</Modal.Heading>
-                {/* Not in CREATE mode: there is nothing yet to move, copy or delete. Not on the
-                    vertical layout either, where the row this modal was opened from carries the
-                    same menu — two ⋮ for one task is a question about which one differs. */}
-                {mode === "EDIT" && !vertical && (
-                  <TaskMenu task={task} onAction={closeTask} />
-                )}
+              <div className="flex justify-center pt-2 sm:hidden" aria-hidden="true">
+                <span className="h-1 w-9 rounded-sm bg-wp-border-strong" />
+              </div>
+              <Modal.Header className="flex-row items-center justify-between gap-1 py-2 pr-3 pl-5 sm:pt-4">
+                <Modal.Heading>{t('actions.edit_task')}</Modal.Heading>
+                <div className="flex items-center gap-1">
+                  {/* Not in CREATE mode: there is nothing yet to move, copy or delete. Not on the
+                      vertical layout either, where the row this modal was opened from carries the
+                      same menu — two ⋮ for one task is a question about which one differs. */}
+                  {mode === "EDIT" && !vertical && (
+                    <TaskMenu task={task} onAction={closeTask} />
+                  )}
+                  <button
+                    type="button"
+                    onClick={closeTask}
+                    aria-label={t('actions.close')}
+                    className="flex size-8 items-center justify-center rounded-full bg-wp-track text-wp-fg-secondary cursor-pointer hover:text-wp-fg focus-visible:outline-2 focus-visible:outline-wp-accent"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </Modal.Header>
-              <Modal.Body>
-                <TextField value={data.title} onChange={updateField('title')}>
-                  <Label>{t('task.title')}</Label>
-                  <Input placeholder={t('task.placeholder.title')} />
+              <Modal.Body className="m-0 mt-0 flex flex-col gap-4 px-5 pt-1.5 pb-4 overflow-y-auto">
+                <TextField value={data.title} onChange={updateField('title')} className="gap-1.5">
+                  <Label className={FIELD_LABEL_CLASS}>{t('task.title')}</Label>
+                  <Input
+                    placeholder={t('task.placeholder.title')}
+                    className="h-[42px] text-[15px] font-semibold"
+                  />
                 </TextField>
                 {/* Markdown, written in a textarea with a toolbar rather than in a WYSIWYG
                     surface — see `DescriptionEditor` for the measurement that decided it. What is
@@ -148,7 +171,11 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                   label={t('task.description')}
                   placeholder={t('task.placeholder.description')}
                 />
+                {/* Side by side: two short pickers that are read together — a project decides
+                    the category, so the one explains the other being greyed out. */}
+                <div className="grid grid-cols-2 gap-2.5">
                 <Select
+                  className="min-w-0 gap-1.5"
                   placeholder={t('task.placeholder.project')}
                   value={data.projectId ? `${data.projectId}` : null}
                   onChange={(key: Key | null) => {
@@ -166,7 +193,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     }));
                   }}
                 >
-                  <Label>{t('task.project')}</Label>
+                  <Label className={FIELD_LABEL_CLASS}>{t('task.project')}</Label>
                   <Select.Trigger>
                     <Select.Value />
                     <Select.Indicator />
@@ -183,12 +210,13 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 </Select>
 
                 <Select
+                  className="min-w-0 gap-1.5"
                   placeholder={t('task.placeholder.category')}
                   value={data.categoryId ? `${data.categoryId}` : null}
                   onChange={updateField('categoryId')}
                   isDisabled={!!data.projectId}
                 >
-                  <Label>{t('task.category')}</Label>
+                  <Label className={FIELD_LABEL_CLASS}>{t('task.category')}</Label>
                   <Select.Trigger>
                     {/* `.select__value` is `flex-1` but not a flex container, so an item that
                         renders a swatch beside its name stacks the two. */}
@@ -200,13 +228,14 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                     <ListBox>
                       {categories.map(category => (
                         <ListBox.Item key={category.id} id={category.id} textValue={category.name}>
-                          <div className={clsx("w-6 h-6 rounded-full", category.getColorClass("bg"))}></div>
+                          <span className={clsx("size-2.5 shrink-0 rounded-full", category.getColorClass("bg"))} />
                           <Label>{category.name}</Label>
                         </ListBox.Item>
                       ))}
                     </ListBox>
                   </Select.Popover>
                 </Select>
+                </div>
 
                 {/* Between the category and the subtasks: it is a fact about the whole task, so
                     it belongs above the list of its parts. */}
@@ -223,14 +252,15 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 {/* Only once the task exists. In CREATE mode there is nothing to attach a note
                     to and no history to show — the record reaches the backend on save. */}
                 {mode === "EDIT" && (
-                  <div className="mt-2 border-t border-slate-200 dark:border-slate-600 pt-2">
-                    <TaskActivity task={task} />
-                  </div>
+                  <TaskActivity task={task} />
                 )}
               </Modal.Body>
-              <Modal.Footer>
+              <Modal.Footer className="mt-0 gap-2.5 border-t border-wp-border px-5 pt-3 pb-[22px] sm:pb-4">
                 {/* TODO : save on change */}
-                <Button variant="primary" onPress={saveTask}>
+                <Button variant="secondary" className="flex-1" onPress={closeTask}>
+                  {t('actions.cancel')}
+                </Button>
+                <Button variant="primary" className="flex-1" onPress={saveTask}>
                   {t('actions.save')}
                 </Button>
               </Modal.Footer>

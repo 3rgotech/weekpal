@@ -93,7 +93,7 @@ const SplashScreen = () => {
 
   return (
     <div
-      className="flex flex-col items-center justify-center h-screen w-screen bg-white dark:bg-slate-800"
+      className="flex flex-col items-center justify-center h-screen w-screen bg-wp-bg"
       id="splash-screen"
     >
       <div
@@ -132,7 +132,7 @@ const SplashScreen = () => {
           </style>
         </defs>
         <rect className="empty" width="300" height="300" />
-        <g className="text-sky-950 dark:text-white">
+        <g className="text-wp-fg">
           <path
             id="path1"
             className="bar"
@@ -156,7 +156,7 @@ const SplashScreen = () => {
         className="flex items-center justify-center space-x-4 mt-8 opacity-0 transition-opacity duration-300"
       >
         <SquareCheckAnimation start={start} />
-        <div className="text-lg font-bold text-sky-950 dark:text-white">{t("misc.loading")}</div>
+        <div className="text-lg font-bold text-wp-fg">{t("misc.loading")}</div>
       </div>
     </div>
   );

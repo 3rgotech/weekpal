@@ -28,10 +28,12 @@ const EstimatePicker: React.FC<EstimatePickerProps> = ({ value, onChange, number
     const { t } = useTranslation();
 
     return (
-        <div className="flex flex-col gap-2">
-            <span className="text-sm text-slate-600 dark:text-slate-300">{t("estimate.label")}</span>
+        <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-semibold text-wp-fg-secondary">{t("estimate.label")}</span>
 
-            <div className="flex flex-wrap gap-1.5">
+            {/* One row of pills, the free field last and shaped like them: it is the seventh
+                answer to the same question, not a separate control. */}
+            <div className="flex items-center gap-1.5">
                 {ESTIMATE_CHIPS.map((minutes, index) => {
                     const selected = value === minutes;
 
@@ -48,11 +50,11 @@ const EstimatePicker: React.FC<EstimatePickerProps> = ({ value, onChange, number
                             // to be reachable without a control of its own.
                             onClick={() => onChange(selected ? null : minutes)}
                             className={clsx(
-                                "px-2.5 py-1 rounded-full text-xs font-medium tabular-nums transition-colors",
-                                "focus-visible:outline-2 focus-visible:outline-sky-500",
+                                "flex-1 min-w-0 px-1 py-[7px] rounded-full border text-xs font-semibold tabular-nums transition-colors cursor-pointer",
+                                "focus-visible:outline-2 focus-visible:outline-wp-accent",
                                 selected
-                                    ? "bg-sky-950 text-white dark:bg-white dark:text-sky-950"
-                                    : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-sky-900 dark:text-slate-200 dark:hover:bg-sky-800",
+                                    ? "bg-wp-accent border-wp-accent text-wp-on-accent"
+                                    : "border-wp-border-strong text-wp-fg-secondary hover:bg-wp-track hover:text-wp-fg",
                             )}
                         >
                             {numbered && (
@@ -62,7 +64,6 @@ const EstimatePicker: React.FC<EstimatePickerProps> = ({ value, onChange, number
                         </button>
                     );
                 })}
-            </div>
 
             {/* The escape hatch from the six. Empty means no estimate — which is a real answer,
                 not a missing one, so it is never filled in on the user's behalf. */}
@@ -80,8 +81,9 @@ const EstimatePicker: React.FC<EstimatePickerProps> = ({ value, onChange, number
                         ? Math.min(parsed, MAX_ESTIMATE)
                         : null);
                 }}
-                className="w-32 px-2 py-1 text-sm rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950"
+                className="w-16 sm:w-24 px-2 sm:px-3 py-[7px] rounded-full border border-wp-border-strong bg-transparent text-xs font-medium text-wp-fg placeholder:text-wp-muted outline-hidden focus:border-wp-accent"
             />
+            </div>
         </div>
     );
 };

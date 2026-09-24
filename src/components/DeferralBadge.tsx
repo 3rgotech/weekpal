@@ -38,12 +38,12 @@ const DeferralBadge: React.FC<DeferralBadgeProps> = ({ task, onOpenEscape }) => 
     const description = t("deferral.moved", { count: task.deferralCount });
 
     const className = clsx(
-        "shrink-0 rounded-full text-[0.65rem] leading-none tabular-nums select-none",
+        "shrink-0 rounded-full text-[11px] font-semibold leading-none tabular-nums select-none",
         // Identical box in every tier, so nothing shifts as a task escalates.
         "px-1.5 py-1 min-w-[1.4rem] text-center",
-        tier === "muted" && "text-slate-500 dark:text-slate-400",
-        tier === "pill" && "bg-slate-200 text-slate-700 dark:bg-sky-900 dark:text-slate-200",
-        tier === "heavy" && "bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-medium",
+        tier === "muted" && "text-wp-muted",
+        tier === "pill" && "bg-wp-track text-wp-fg-secondary",
+        tier === "heavy" && "bg-wp-fg text-wp-bg",
     );
 
     if (!hasEscapeHatch(task.deferralCount) || !onOpenEscape) {
@@ -53,7 +53,7 @@ const DeferralBadge: React.FC<DeferralBadgeProps> = ({ task, onOpenEscape }) => 
     return (
         <button
             type="button"
-            className={clsx(className, "hover:opacity-80 focus-visible:outline-2 focus-visible:outline-sky-500")}
+            className={clsx(className, "hover:opacity-80 focus-visible:outline-2 focus-visible:outline-wp-accent")}
             title={t("deferral.escape_hint")}
             aria-label={`${description}. ${t("deferral.escape_hint")}`}
             onPointerDown={(event) => event.stopPropagation()}

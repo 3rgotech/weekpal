@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
+import { Clock3 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { DayOfWeek } from "../types";
 import { useData } from "../contexts/DataContext";
@@ -14,7 +15,7 @@ import EventList from "./EventList";
 import MobileTask from "./MobileTask";
 import NewTask from "./NewTask";
 import VirtualTaskList from "./VirtualTaskList";
-import CapacityCount from "./CapacityCount";
+import CapacityBar from "./CapacityBar";
 import BatchEstimateStack from "./BatchEstimateStack";
 import DayShareBar from "./DayShareBar";
 import { unestimatedIn } from "../utils/batchEstimate";
@@ -120,17 +121,30 @@ const MobileBoard: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col overflow-hidden pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
-      <header
-        data-tour="day"
-        className={clsx(
-          "flex-none px-3 py-2 border-b-2",
-          isToday ? "border-sky-500 text-sky-500" : "border-slate-200 dark:border-slate-600 dark:text-white",
-        )}
-      >
-        <div className="flex items-baseline gap-2">
-        <h2 className="text-lg font-semibold">{dayName}</h2>
-        {dayDate && <span className="text-sm uppercase opacity-80">{dayDate}</span>}
-        <span className="ml-auto flex items-center gap-2">
+      <header data-tour="day" className="flex-none flex flex-col gap-3 px-4 pt-[18px] pb-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex min-w-0 items-center gap-2">
+              <h2
+                className={clsx(
+                  "truncate text-[22px] font-bold tracking-[-0.3px] leading-tight",
+                  isToday ? "text-wp-accent" : "text-wp-fg",
+                )}
+              >
+                {dayName}
+              </h2>
+              {isToday && (
+                <span className="shrink-0 rounded-full bg-wp-accent px-2 py-0.5 text-[11px] font-bold leading-4 text-wp-on-accent">
+                  {t("main.today")}
+                </span>
+              )}
+            </div>
+            {/* The undated buckets have no date to show, so the line says what they are for. */}
+            <span className="truncate text-[13px] font-medium text-wp-muted">
+              {dayDate || (visibleDay === "0" ? t("main.this_week_hint") : visibleDay === "someday" ? t("main.some_day_hint") : "")}
+            </span>
+          </div>
+
           {/* Same trigger as the wide board, in the same place: the number the run is about to
               change. Absent once the day is fully estimated, so there is no button that does
               nothing. */}
@@ -141,21 +155,20 @@ const MobileBoard: React.FC = () => {
                 setStackIndex(0);
                 startEstimating(visibleDay);
               }}
-              className="text-xs underline text-slate-500 dark:text-slate-400"
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-wp-track px-2.5 py-[7px] text-xs font-semibold text-wp-fg-secondary cursor-pointer hover:text-wp-fg"
             >
-              {t("estimate.batch")}
+              <Clock3 size={14} aria-hidden="true" />
+              {t("estimate.batch_short")}
             </button>
           )}
-          <CapacityCount gauges={gauges} />
-        </span>
         </div>
 
-        {/* The same rail as the wide board. A one-day board cannot show the week, so this is the
-            only place it can say "and this is the heavy one" — which is exactly the question the
-            glance asks and the day's own count cannot answer. */}
-        <div className="pt-1.5">
-          <DayShareBar share={dayShare?.get(visibleDay) ?? null} level={worstGauge(gauges)?.level ?? "ok"} />
-        </div>
+        {/* The slots once a limit is set; otherwise the same rail as the wide board. A one-day
+            board cannot show the week, so this is the only place it can say "and this is the
+            heavy one" — the question the glance asks and the day's own count cannot answer. */}
+        {worstGauge(gauges)
+          ? <CapacityBar gauges={gauges} isToday={isToday} className="pr-0" />
+          : <DayShareBar share={dayShare?.get(visibleDay) ?? null} level="ok" />}
       </header>
 
       {/* The stack replaces the list while a run is on: on a phone the column *is* the screen,
@@ -191,19 +204,26 @@ const MobileBoard: React.FC = () => {
       ) : (
       <>
       {settings.showEvents && dayEvents.length > 0 && (
-        <div className="flex-none px-2">
+        <div className="flex-none px-1 pt-0.5">
           <EventList events={dayEvents} />
         </div>
       )}
 
-      <ul ref={scrollRef} className="flex-1 overflow-y-auto px-1">
+      <ul
+        ref={scrollRef}
+        className={clsx(
+          "flex-1 overflow-y-auto px-4 pt-0.5 pb-4",
+          // Positioned rows when windowed, so the gap is the window's to keep, not the list's.
+          !virtualise && "flex flex-col gap-2",
+        )}
+      >
         {virtualise
           ? (
             <VirtualTaskList
               tasks={dayTasks}
               scrollRef={scrollRef}
               renderTask={(task) => <MobileTask task={task} />}
-              estimate={64}
+              estimate={72}
             />
           )
           : dayTasks.map((task) => (

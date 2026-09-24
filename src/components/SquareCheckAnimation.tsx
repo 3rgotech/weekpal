@@ -92,7 +92,7 @@ const SquareCheckAnimation = ({ start }: { start: boolean }) => {
           >
             {/* The empty square follows the theme: it was white, which on the light splash was
                 three invisible boxes sitting beside "Loading…" and pushing it off centre. */}
-            <Square size={32} className="text-slate-300 dark:text-white" strokeWidth={2} />
+            <Square size={32} className="text-wp-check-border" strokeWidth={2} />
           </div>
 
           {/* Check square */}
@@ -102,7 +102,7 @@ const SquareCheckAnimation = ({ start }: { start: boolean }) => {
           >
             <SquareCheckBig
               size={32}
-              className="text-blue-600"
+              className="text-wp-accent"
               strokeWidth={2}
             />
           </div>

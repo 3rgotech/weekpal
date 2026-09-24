@@ -1,7 +1,6 @@
 import React from "react";
 import {
     Button,
-    ButtonGroup,
     Label,
     ListBox,
     Modal,
@@ -10,9 +9,9 @@ import {
 } from "@heroui/react";
 import type { Key } from "react-aria-components";
 import clsx from "clsx";
-import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
+import { Check, Compass, Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Language, LayoutPreset, SubtaskDisplay } from "../types";
+import { Language, LayoutPreset, SubtaskDisplay, Theme } from "../types";
 import { useSettings } from "../contexts/SettingsContext";
 import { useChangelog } from "../contexts/ChangelogContext";
 import { useOnboarding } from "../contexts/OnboardingContext";
@@ -35,9 +34,83 @@ import { useAccount } from "../contexts/AccountContext";
 import { LAYOUT_PRESETS } from "../utils/settings";
 
 /**
+ * One setting: its name (and, where it needs one, a line saying what it does) in a fixed column,
+ * the control beside it, and a hairline under the pair — the redesign's form, which reads as a
+ * list of settings rather than as the grid of floating labels it replaced.
+ *
+ * Stacked on a phone, where a 200px label column would leave the control no room at all.
+ */
+const Row: React.FC<{ label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }> = ({
+    label,
+    hint,
+    children,
+}) => (
+    <div className="flex flex-col gap-2 py-3.5 border-b border-wp-border last:border-b-0 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex flex-col gap-[3px] sm:w-[200px] sm:shrink-0">
+            <h3 className="text-[13px] font-semibold text-wp-fg">{label}</h3>
+            {hint && <p className="text-xs leading-[1.4] text-wp-muted">{hint}</p>}
+        </div>
+        <div className="min-w-0 flex-1">{children}</div>
+    </div>
+);
+
+interface SegmentOption<T> {
+    value: T;
+    label: React.ReactNode;
+    icon?: React.ReactNode;
+}
+
+/**
+ * Two or three mutually exclusive choices, all on screen at once: the redesign's segmented
+ * control, a raised pill on a sunken track. Replaces the button groups whose "selected" was a
+ * solid blue fill — which, next to the dialog's one primary button, read as a second one.
+ */
+function Segmented<T>({ options, value, onChange }: {
+    options: SegmentOption<T>[];
+    value: T;
+    onChange: (value: T) => void;
+}) {
+    return (
+        <div className="inline-flex max-w-full flex-wrap gap-0.5 rounded-[9px] bg-wp-track p-[3px]">
+            {options.map((option) => {
+                const on = option.value === value;
+
+                return (
+                    <button
+                        key={String(option.value)}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => onChange(option.value)}
+                        className={clsx(
+                            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors cursor-pointer",
+                            "focus-visible:outline-2 focus-visible:outline-wp-accent [&_svg]:size-3.5",
+                            on
+                                ? "bg-wp-seg-active text-wp-fg shadow-wp-seg [&_svg]:text-wp-accent"
+                                : "text-wp-fg-secondary hover:text-wp-fg [&_svg]:text-wp-muted",
+                        )}
+                    >
+                        {option.icon}
+                        {option.label}
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+/** The redesign's field: every select in the dialog is the same full-width trigger. */
+const SELECT_CLASS = "w-full";
+
+/*
+ * Each tab scrolls on its own under a fixed header and footer: the limits tab is the longest, and
+ * scrolling the tabs away with it would leave nothing saying which tab you are on.
+ */
+const PANEL_CLASS = "mt-0 px-6 pt-1.5 pb-2.5 max-h-[calc(100dvh-16rem)] overflow-y-auto";
+
+/**
  * The settings dialog.
  *
- * Three tabs rather than one long column: the board's settings outgrew a single scroll once the
+ * Four tabs rather than one long column: the board's settings outgrew a single scroll once the
  * week became configurable and the limits arrived, and a dialog you have to scroll to find the
  * control you came for is one you stop opening.
  *
@@ -64,68 +137,52 @@ const SettingsModal: React.FC = () => {
         <Modal state={overlay}>
             <Modal.Backdrop variant="blur">
                 <Modal.Container size="lg">
-                    <Modal.Dialog>
-                        <Modal.Header className="flex flex-col gap-1">
+                    <Modal.Dialog className="max-w-[640px] p-0 overflow-hidden">
+                        <Modal.Header className="flex-row items-center justify-between pt-[18px] pr-4 pl-6">
                             <Modal.Heading>{t("settings.settings")}</Modal.Heading>
+                            <button
+                                type="button"
+                                onClick={closeSettingsModal}
+                                aria-label={t("actions.close")}
+                                className="flex size-8 items-center justify-center rounded-lg text-wp-fg-secondary cursor-pointer hover:bg-wp-track focus-visible:outline-2 focus-visible:outline-wp-accent"
+                            >
+                                <X size={18} />
+                            </button>
                         </Modal.Header>
-                        <Modal.Body>
+                        <Modal.Body className="m-0 mt-3.5 p-0">
                             {/* No save button, and deliberately none: every control writes as it
                                 is changed — to localStorage first, then to the server — so a tab
                                 can be left at any moment without losing anything, and closing the
-                                dialog is not a decision. */}
-                            {/* The default variant, not `secondary`: secondary is flat, and three
-                                flat labels spread across a wide dialog read as column headings
-                                rather than as something to press. HeroUI's own `Tabs.Indicator`
-                                throws outside a `SharedElementTransition`, so the selected pill
-                                is drawn from `index.css` instead. */}
-                            <Tabs aria-label={t("settings.settings")}>
-                                <Tabs.List aria-label={t("settings.settings")}>
+                                dialog is not a decision. The footer says so. */}
+                            {/* The underlined row is drawn from `index.css`: HeroUI's own
+                                `Tabs.Indicator` throws outside a `SharedElementTransition`. */}
+                            <Tabs aria-label={t("settings.settings")} className="gap-0">
+                                <Tabs.List aria-label={t("settings.settings")} className="px-6">
                                     <Tabs.Tab id="appearance">{t("settings.tab_appearance")}</Tabs.Tab>
                                     <Tabs.Tab id="week">{t("settings.tab_week")}</Tabs.Tab>
                                     <Tabs.Tab id="limits">{t("settings.tab_limits")}</Tabs.Tab>
                                     <Tabs.Tab id="import">{t("settings.tab_import")}</Tabs.Tab>
                                 </Tabs.List>
 
-                <Tabs.Panel id="appearance">
-                    <div className="grid grid-cols-3 gap-x-4 gap-y-6 items-center py-2">
-                  <h3 className="text-base dark:text-white">Theme</h3>
-                  <ButtonGroup size="sm" className="col-span-2 justify-start">
-                    <Button
-                      variant="secondary"
-                      className={clsx({ "bg-sky-500 text-white": settings.theme === "light" })}
-                      onPress={() => updateSettings({ theme: "light" })}
-                    >
-                      <SunIcon />
-                      {t("theme.light")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className={clsx({ "bg-sky-500 text-white": settings.theme === "dark" })}
-                      onPress={() => updateSettings({ theme: "dark" })}
-                    >
-                      <MoonIcon />
-                      {t("theme.dark")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className={clsx({
-                        "bg-sky-500 text-white": settings.theme === "system",
-                      })}
-                      onPress={() => updateSettings({ theme: "system" })}
-                    >
-                      <MonitorIcon />
-                      {t("theme.system")}
-                    </Button>
-                  </ButtonGroup>
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.language")}
-                  </h3>
+                <Tabs.Panel id="appearance" className={PANEL_CLASS}>
+                  <Row label={t("settings.theme")}>
+                    <Segmented<Theme>
+                      value={settings.theme}
+                      onChange={(theme) => updateSettings({ theme })}
+                      options={[
+                        { value: "light", label: t("theme.light"), icon: <SunIcon /> },
+                        { value: "dark", label: t("theme.dark"), icon: <MoonIcon /> },
+                        { value: "system", label: t("theme.system"), icon: <MonitorIcon /> },
+                      ]}
+                    />
+                  </Row>
+                  <Row label={t("settings.language")}>
                   <Select
                     value={settings.language}
                     onChange={(key: Key | null) =>
                       key !== null && updateSettings({ language: String(key) as Language })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                   >
                     <Select.Trigger>
                       {/* No separate flag here: `Select.Value` renders the chosen item's own
@@ -148,9 +205,8 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.subtaskDisplay")}
-                  </h3>
+                  </Row>
+                  <Row label={t("settings.subtaskDisplay")} hint={t("settings.subtaskDisplayHint")}>
                   <Select
                     value={settings.subtaskDisplay}
                     onChange={(key: Key | null) =>
@@ -158,7 +214,7 @@ const SettingsModal: React.FC = () => {
                         subtaskDisplay: String(key) as SubtaskDisplay,
                       })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                   >
                     <Select.Trigger>
                       <Select.Value />
@@ -178,15 +234,14 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.weekHeaderFormat")}
-                  </h3>
+                  </Row>
+                  <Row label={t("settings.weekHeaderFormat")}>
                   <Select
                     value={settings.weekHeaderFormat}
                     onChange={(key: Key | null) =>
                       key !== null && updateSettings({ weekHeaderFormat: `${key}` })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                     isRequired
                   >
                     <Select.Trigger>
@@ -210,15 +265,14 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.dayHeaderFormat")}
-                  </h3>
+                  </Row>
+                  <Row label={t("settings.dayHeaderFormat")}>
                   <Select
                     value={settings.dayHeaderFormat}
                     onChange={(key: Key | null) =>
                       key !== null && updateSettings({ dayHeaderFormat: `${key}` })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                     isRequired
                   >
                     <Select.Trigger>
@@ -235,38 +289,26 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
+                  </Row>
 
                   {/* *(rt §4)* Default off: a finished task stays where it was written, because
                       moving it destroys spatial memory at the one moment the board should be
                       quiet. To-do and done in separate spaces is still a real preference, which
                       is the whole reason this control exists. */}
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.completionResort")}
-                  </h3>
-                  <ButtonGroup size="sm" className="col-span-2 justify-start">
-                    <Button
-                      variant="secondary"
-                      className={clsx({ "bg-sky-500 text-white": !settings.completionResort })}
-                      onPress={() => updateSettings({ completionResort: false })}
-                    >
-                      {t("settings.completionStay")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className={clsx({ "bg-sky-500 text-white": settings.completionResort })}
-                      onPress={() => updateSettings({ completionResort: true })}
-                    >
-                      {t("settings.completionMove")}
-                    </Button>
-                  </ButtonGroup>
-                    </div>
+                  <Row label={t("settings.completionResort")}>
+                    <Segmented
+                      value={settings.completionResort}
+                      onChange={(completionResort) => updateSettings({ completionResort })}
+                      options={[
+                        { value: false, label: t("settings.completionStay") },
+                        { value: true, label: t("settings.completionMove") },
+                      ]}
+                    />
+                  </Row>
                 </Tabs.Panel>
 
-                <Tabs.Panel id="week">
-                    <div className="grid grid-cols-3 gap-x-4 gap-y-6 items-center py-2">
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.weekStartsOn")}
-                  </h3>
+                <Tabs.Panel id="week" className={PANEL_CLASS}>
+                  <Row label={t("settings.weekStartsOn")}>
                   <Select
                     value={`${settings.weekStartsOn}`}
                     onChange={(key: Key | null) =>
@@ -274,7 +316,7 @@ const SettingsModal: React.FC = () => {
                         weekStartsOn: parseInt(`${key}`, 10) as Weekday,
                       })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                     isRequired
                   >
                     <Select.Trigger>
@@ -295,13 +337,12 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.workingDays")}
-                  </h3>
+                  </Row>
                   {/* Listed in this user's own week order, so the row reads the way the board does.
                       Buttons rather than a multi-select: seven options that are all on screen at once
                       are quicker to set than a popover, and this is the setting people revisit. */}
-                  <div className="col-span-2 flex gap-1">
+                  <Row label={t("settings.workingDays")}>
+                  <div className="flex gap-1">
                     {orderedWeekdays(settings.weekStartsOn).map((day) => {
                       const isWorking = settings.workingDays.includes(day);
 
@@ -315,10 +356,11 @@ const SettingsModal: React.FC = () => {
                             workingDays: toggleWorkingDay(settings.workingDays, day),
                           })}
                           className={clsx(
-                            "flex-1 py-1.5 rounded-md text-xs font-semibold uppercase transition-colors",
+                            "flex-1 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-[0.4px] transition-colors cursor-pointer",
+                            "focus-visible:outline-2 focus-visible:outline-wp-accent",
                             isWorking
-                              ? "bg-sky-500 text-white"
-                              : "bg-slate-200 text-slate-600 dark:bg-sky-900 dark:text-slate-300",
+                              ? "bg-wp-accent text-wp-on-accent"
+                              : "bg-wp-track text-wp-muted hover:text-wp-fg-secondary",
                           )}
                         >
                           {nameOf(day, "dd")}
@@ -326,18 +368,20 @@ const SettingsModal: React.FC = () => {
                       );
                     })}
                   </div>
+                  </Row>
                   {/* R14: named layouts, not a grid builder. Pro, and disabled rather than hidden
                       without it — the same treatment as a category's day limit: a control you can
                       see and cannot use says the feature exists, without a word of sales. */}
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.layout")}
-                  </h3>
+                  <Row
+                    label={t("settings.layout")}
+                    hint={!subscribed ? t("settings.layoutPro") : undefined}
+                  >
                   <Select
                     value={subscribed ? settings.layoutPreset : "compressed"}
                     onChange={(key: Key | null) =>
                       key !== null && updateSettings({ layoutPreset: `${key}` as LayoutPreset })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                     isDisabled={!subscribed}
                     aria-label={t("settings.layout")}
                   >
@@ -355,62 +399,34 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                  {!subscribed && (
-                    <p className="col-span-2 col-start-2 -mt-4 text-xs text-slate-500 dark:text-slate-400">
-                      {t("settings.layoutPro")}
-                    </p>
-                  )}
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.nonWorkingDays")}
-                  </h3>
-                  <ButtonGroup size="sm" className="col-span-2 justify-start">
-                    <Button
-                      variant="secondary"
-                      className={clsx({ "bg-sky-500 text-white": settings.showNonWorkingDays })}
-                      onPress={() => updateSettings({ showNonWorkingDays: true })}
-                    >
-                      <Eye />
-                      {t("actions.show")}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className={clsx({ "bg-sky-500 text-white": !settings.showNonWorkingDays })}
-                      onPress={() => updateSettings({ showNonWorkingDays: false })}
-                    >
-                      <EyeOff />
-                      {t("actions.hide")}
-                    </Button>
-                  </ButtonGroup>
-                    </div>
+                  </Row>
+                  <Row label={t("settings.nonWorkingDays")}>
+                    <Segmented
+                      value={settings.showNonWorkingDays}
+                      onChange={(showNonWorkingDays) => updateSettings({ showNonWorkingDays })}
+                      options={[
+                        { value: true, label: t("actions.show"), icon: <Eye /> },
+                        { value: false, label: t("actions.hide"), icon: <EyeOff /> },
+                      ]}
+                    />
+                  </Row>
                 </Tabs.Panel>
 
-                <Tabs.Panel id="limits">
-                    <div className="grid grid-cols-3 gap-x-4 gap-y-6 items-center py-2">
-                  <h3 className="text-base dark:text-white">
-                      {t("settings.hardLimits")}
-                  </h3>
-                  <ButtonGroup size="sm" className="col-span-2 justify-start">
-                      <Button
-                          variant="secondary"
-                          className={clsx({ "bg-sky-500 text-white": !settings.hardLimits })}
-                          onPress={() => updateSettings({ hardLimits: false })}
-                      >
-                          {t("settings.limitsSoft")}
-                      </Button>
-                      <Button
-                          variant="secondary"
-                          className={clsx({ "bg-sky-500 text-white": settings.hardLimits })}
-                          onPress={() => updateSettings({ hardLimits: true })}
-                      >
-                          {t("settings.limitsHard")}
-                      </Button>
-                  </ButtonGroup>
+                <Tabs.Panel id="limits" className={PANEL_CLASS}>
+                  <Row label={t("settings.hardLimits")}>
+                    <Segmented
+                      value={settings.hardLimits}
+                      onChange={(hardLimits) => updateSettings({ hardLimits })}
+                      options={[
+                        { value: false, label: t("settings.limitsSoft") },
+                        { value: true, label: t("settings.limitsHard") },
+                      ]}
+                    />
+                  </Row>
                   {/* *(rt §5)* The denominator for measuring a day in hours instead of tasks.
                       0 is off and is the default — it says nothing until tasks carry estimates,
                       and nobody should have to answer this before seeing the board. */}
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.workingDayHours")}
-                  </h3>
+                  <Row label={t("settings.workingDayHours")}>
                   <Select
                     value={`${settings.workingDayHours}`}
                     onChange={(key: Key | null) =>
@@ -418,9 +434,12 @@ const SettingsModal: React.FC = () => {
                         workingDayHours: parseInt(`${key}`, 10),
                       })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                   >
-                    <Select.Trigger />
+                    <Select.Trigger>
+                      <Select.Value />
+                      <Select.Indicator />
+                    </Select.Trigger>
                     <Select.Popover>
                       <ListBox>
                         {WORKING_DAY_CHOICES.map((choice) => (
@@ -431,10 +450,9 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
+                  </Row>
 
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.dayCapacity")}
-                  </h3>
+                  <Row label={t("settings.dayCapacity")}>
                   <Select
                     value={`${settings.dayCapacity}`}
                     onChange={(key: Key | null) =>
@@ -442,7 +460,7 @@ const SettingsModal: React.FC = () => {
                         dayCapacity: parseInt(`${key}`, 10),
                       })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                     isRequired
                   >
                     <Select.Trigger>
@@ -465,14 +483,12 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
+                  </Row>
                   {/* Only once there is a limit for them to count towards: a list of categories
                       under a switched-off number is a question about nothing. */}
                   {settings.dayCapacity > 0 && (
-                    <>
-                      <h3 className="text-base dark:text-white">
-                        {t("settings.countedCategories")}
-                      </h3>
-                      <div className="col-span-2 flex flex-wrap gap-1">
+                    <Row label={t("settings.countedCategories")}>
+                      <div className="flex flex-wrap gap-1">
                         {[...categories, { id: NO_CATEGORY_KEY, name: t("category.none") }].map((category) => {
                           // An empty set counts everything, so nothing chosen shows as everything
                           // chosen rather than as a day that can never be full.
@@ -492,10 +508,11 @@ const SettingsModal: React.FC = () => {
                                 ),
                               })}
                               className={clsx(
-                                "px-2 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer",
+                                "px-2.5 py-1 rounded-full border text-xs font-semibold transition-colors cursor-pointer",
+                                "focus-visible:outline-2 focus-visible:outline-wp-accent",
                                 counting
-                                  ? "bg-sky-500 text-white"
-                                  : "bg-slate-200 text-slate-500 dark:bg-sky-900 dark:text-slate-400 line-through",
+                                  ? "bg-wp-accent border-wp-accent text-wp-on-accent"
+                                  : "border-wp-border-strong text-wp-muted line-through",
                               )}
                             >
                               {category.name}
@@ -503,11 +520,9 @@ const SettingsModal: React.FC = () => {
                           );
                         })}
                       </div>
-                    </>
+                    </Row>
                   )}
-                  <h3 className="text-base dark:text-white">
-                      {t("settings.thisWeekLimit")}
-                  </h3>
+                  <Row label={t("settings.thisWeekLimit")}>
                   <Select
                       value={`${settings.thisWeekLimit}`}
                       onChange={(key: Key | null) =>
@@ -515,7 +530,7 @@ const SettingsModal: React.FC = () => {
                               thisWeekLimit: parseInt(`${key}`, 10),
                           })
                       }
-                      className="col-span-2"
+                      className={SELECT_CLASS}
                       isRequired
                   >
                       <Select.Trigger>
@@ -538,9 +553,8 @@ const SettingsModal: React.FC = () => {
                           </ListBox>
                       </Select.Popover>
                   </Select>
-                  <h3 className="text-base dark:text-white">
-                    {t("settings.somedayLimit")}
-                  </h3>
+                  </Row>
+                  <Row label={t("settings.somedayLimit")}>
                   <Select
                     value={`${settings.somedayLimit}`}
                     onChange={(key: Key | null) =>
@@ -548,7 +562,7 @@ const SettingsModal: React.FC = () => {
                         somedayLimit: parseInt(`${key}`, 10),
                       })
                     }
-                    className="col-span-2"
+                    className={SELECT_CLASS}
                     isRequired
                   >
                     <Select.Trigger>
@@ -571,62 +585,70 @@ const SettingsModal: React.FC = () => {
                       </ListBox>
                     </Select.Popover>
                   </Select>
-                    </div>
+                  </Row>
                 </Tabs.Panel>
 
-                <Tabs.Panel id="import">
-                    <div className="grid grid-cols-3 gap-x-4 gap-y-6 items-start py-2">
-                        <ImportPanel />
-                    </div>
+                <Tabs.Panel id="import" className={PANEL_CLASS}>
+                    <ImportPanel />
                 </Tabs.Panel>
                             </Tabs>
                         </Modal.Body>
 
                         {/* The one thing in here that is not a setting.
-                            
+
                             It goes in the dialog rather than the toolbar because the toolbar is
                             for things done to this week, and it is the place people already open
                             when they are looking for the app itself rather than their board. The
                             settings dialog closes on the way: two stacked dialogs would leave the
                             release notes sitting on top of a form the user then has to dismiss
                             twice. */}
-                        <Modal.Footer className="justify-start">
-                            {/* Beside the release notes because they are the same kind of thing:
-                                not a setting, but something a person comes to this dialog looking
-                                for. The tour has to be replayable — it runs once, on the day
-                                somebody understands the product least. */}
-                            <Button
-                                variant="secondary"
-                                onPress={() => {
-                                    closeSettingsModal();
-                                    startTour();
-                                }}
-                            >
-                                {t("tour.replay")}
-                            </Button>
-                            {changelogAvailable && (
+                        <Modal.Footer className="mt-0 flex-wrap justify-between gap-3 border-t border-wp-border bg-wp-surface px-6 py-3.5">
+                            <div className="flex flex-wrap items-center gap-2">
+                                {/* Beside the release notes because they are the same kind of
+                                    thing: not a setting, but something a person comes to this
+                                    dialog looking for. The tour has to be replayable — it runs
+                                    once, on the day somebody understands the product least. */}
                                 <Button
                                     variant="secondary"
                                     onPress={() => {
                                         closeSettingsModal();
-                                        openChangelog();
+                                        startTour();
                                     }}
                                 >
-                                    {t("changelog.title")}
+                                    <Compass size={15} className="text-wp-accent" />
+                                    {t("tour.replay")}
                                 </Button>
-                            )}
-                            {/* The one line about Pro (R5). A link, not a prompt: the board sells
-                                nothing, and this is where someone looking for the tier looks. */}
-                            {proUrl && (
-                                <a
-                                    href={proUrl}
-                                    target="_blank"
-                                    rel="noopener"
-                                    className="ml-auto self-center text-sm underline underline-offset-2 text-slate-600 dark:text-slate-300"
-                                >
-                                    {t("settings.pro_line")}
-                                </a>
-                            )}
+                                {changelogAvailable && (
+                                    <Button
+                                        variant="secondary"
+                                        onPress={() => {
+                                            closeSettingsModal();
+                                            openChangelog();
+                                        }}
+                                    >
+                                        {t("changelog.title")}
+                                    </Button>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-wp-muted">
+                                {/* The one line about Pro (R5). A link, not a prompt: the board
+                                    sells nothing, and this is where someone looking for the tier
+                                    looks. */}
+                                {proUrl && (
+                                    <a
+                                        href={proUrl}
+                                        target="_blank"
+                                        rel="noopener"
+                                        className="underline underline-offset-2 text-wp-fg-secondary hover:text-wp-fg"
+                                    >
+                                        {t("settings.pro_line")}
+                                    </a>
+                                )}
+                                <span className="inline-flex items-center gap-1.5">
+                                    <Check size={14} aria-hidden="true" />
+                                    {t("settings.autosaved")}
+                                </span>
+                            </div>
                         </Modal.Footer>
                     </Modal.Dialog>
                 </Modal.Container>

@@ -40,14 +40,14 @@ const DayShareBar: React.FC<DayShareBarProps> = ({ share, level }) => {
             // Decorative: the count beside it and the hours gauge both say this in words, and a
             // screen reader reading a third version of the same fact is being talked over.
             aria-hidden="true"
-            className="h-[3px] w-full rounded-full bg-slate-200/70 dark:bg-sky-900/70 overflow-hidden"
+            className="h-1 w-full rounded-sm bg-wp-track overflow-hidden"
         >
             <div
                 className={clsx(
-                    "h-full rounded-full",
-                    level === "ok" && "bg-slate-400 dark:bg-slate-500",
-                    level === "at" && "bg-amber-500",
-                    level === "over" && "bg-red-500",
+                    "h-full rounded-sm",
+                    level === "ok" && "bg-wp-muted",
+                    level === "at" && "bg-wp-warn",
+                    level === "over" && "bg-wp-danger",
                 )}
                 // A width, not a scale transform: the rail is one element wide and there is
                 // nothing to composite it against.

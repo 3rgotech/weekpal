@@ -35,10 +35,10 @@ const DayHoursGauge: React.FC<DayHoursGaugeProps> = ({ hours }) => {
     return (
         <span
             className={clsx(
-                "shrink-0 text-xs tabular-nums",
-                hours.level === "ok" && "text-slate-500 dark:text-slate-400",
-                hours.level === "at" && "text-amber-600 dark:text-amber-400 font-medium",
-                hours.level === "over" && "text-red-600 dark:text-red-400 font-semibold",
+                "shrink-0 text-xs font-medium tabular-nums",
+                hours.level === "ok" && "text-wp-muted",
+                hours.level === "at" && "text-wp-warn font-semibold",
+                hours.level === "over" && "text-wp-danger font-semibold",
             )}
             title={hours.booked > 0
                 ? t("estimate.booked", { booked: formatEstimate(hours.booked) })

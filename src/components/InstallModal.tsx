@@ -60,7 +60,7 @@ const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onOpenChange }) => 
                         </Modal.Header>
 
                         <Modal.Body className="flex flex-col gap-3">
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-wp-muted">
                                 {t("install.intro")}
                             </p>
 
@@ -77,7 +77,7 @@ const InstallModal: React.FC<InstallModalProps> = ({ isOpen, onOpenChange }) => 
                                 <img
                                     src={ILLUSTRATION}
                                     alt=""
-                                    className="rounded-md border border-slate-200 dark:border-slate-600"
+                                    className="rounded-md border border-wp-border"
                                     onError={() => setIllustrationFailed(true)}
                                 />
                             )}

@@ -23,20 +23,20 @@ interface IconButtonProps {
 /*
  * The glyph, and the room around it.
  *
- * `xs` used to be a 16px icon inside 2px of padding, which is a circle the icon fills edge to
- * edge — the drawer's pencil looked like a button with its border drawn through it. Every size
- * now leaves at least a quarter of its own width as breathing space.
+ * Fixed squares rather than padding, so a row of them lines up whatever glyph each one holds:
+ * `md` is the redesign's 34px toolbar button, `sm` the 28px one in a column header, `xs` the
+ * 24px one inside a card.
  */
 const iconSizes = {
   xs: 14,
-  sm: 18,
-  md: 24,
+  sm: 16,
+  md: 18,
 };
 
 const btnClasses = {
-  xs: "p-1",
-  sm: "p-1.5",
-  md: "p-2",
+  xs: "size-6",
+  sm: "size-7",
+  md: "size-[34px]",
 };
 
 const IconButton: React.FC<IconButtonProps> = ({
@@ -63,18 +63,16 @@ const IconButton: React.FC<IconButtonProps> = ({
       {...otherProps}
       aria-label={accessibleName}
       /*
-       * An explicit border colour, and `cn` rather than `clsx` to apply it.
-       *
-       * The ring used to have no colour of its own and fell through to whatever the cascade
-       * offered — `currentColor` under Tailwind 4, then HeroUI 3's own base reset, which is dark
-       * enough on a dark background to disappear. Naming it fixes that; `cn` is tailwind-merge
-       * aware, so a caller passing its own `border-*` still wins rather than tying with this one.
+       * Borderless by default: the redesign draws a ring only where the button is a target in
+       * its own right (a card's tick), and those callers pass `border` with their own colour.
+       * `cn` is tailwind-merge aware, so a caller's radius or border wins rather than ties.
        */
       className={cn(
         // `cursor-pointer` is explicit: Tailwind 4's reset gives buttons the default arrow, so
         // every icon-only control on the board — the review's tick and bin among them — looked
         // like text rather than something to press.
-        "rounded-full transition-colors border border-slate-300 dark:border-slate-600 cursor-pointer",
+        "inline-flex shrink-0 items-center justify-center rounded-lg transition-colors cursor-pointer",
+        "text-wp-fg-secondary hover:bg-wp-track focus-visible:outline-2 focus-visible:outline-wp-accent",
         btnClasses[size],
         wrapperClass,
         iconClass

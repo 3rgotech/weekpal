@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Chip, Modal, Spinner } from "@heroui/react";
+import { Button, Modal, Spinner } from "@heroui/react";
+import CategoryTag from "./CategoryTag";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
 import { useData } from "../contexts/DataContext";
@@ -268,7 +269,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
           <Modal.Dialog>
             <Modal.Header className="flex flex-col gap-1">
               <Modal.Heading>{t("leftovers.title")}</Modal.Heading>
-              <span className="text-sm font-normal text-slate-500 dark:text-slate-400">
+              <span className="text-sm font-normal text-wp-muted">
                 {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
               </span>
               <LeftoverSummary summary={lastWeekSummary} className="font-normal" />
@@ -282,18 +283,18 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
           )}
 
           {leftoversLoaded && total === 0 && (
-            <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            <p className="py-6 text-center text-sm text-wp-muted">
               {t("leftovers.empty")}
             </p>
           )}
 
           {total > 0 && (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{t("leftovers.intro")}</p>
+            <p className="text-sm text-wp-muted">{t("leftovers.intro")}</p>
           )}
 
           {weeks.map(([weekCode, weekTasks]) => (
             <section key={weekCode} className="flex flex-col gap-1">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.8px] text-wp-muted">
                 {weekHeaderLabel(
                   weekCodeToDate(weekCode).format(settings.weekHeaderFormat),
                   { week: t("misc.week"), of: t("misc.of") },
@@ -311,19 +312,17 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                     <li
                       key={task.id}
                       className={clsx(
-                        "flex flex-col gap-1.5 py-2 border-b border-slate-200 dark:border-slate-600",
+                        "flex flex-col gap-1.5 py-2 border-b border-wp-border",
                         busy === task.id && "opacity-50",
                       )}
                     >
                       <div className="flex items-center gap-2">
-                      <span className="w-24 shrink-0 text-xs text-slate-500 dark:text-slate-400">
+                      <span className="w-24 shrink-0 text-xs text-wp-muted">
                         {undated ? t("main.this_week") : leftoverDate(task).format("ddd D MMM")}
                       </span>
 
                       {category && (
-                        <Chip size="sm" className={clsx("shrink-0 text-xs rounded-md text-white", category.getColorClass("bg"))}>
-                          <Chip.Label>{category.name}</Chip.Label>
-                        </Chip>
+                        <CategoryTag category={category} />
                       )}
 
                       {/* `min-w-0` is what lets a long title truncate instead of pushing the
@@ -358,7 +357,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                 <button
                   type="button"
                   onClick={undo}
-                  className="mr-auto text-sm underline text-slate-600 dark:text-slate-300"
+                  className="mr-auto text-sm underline text-wp-fg-secondary"
                 >
                   {t("leftovers.undo_delete", { title: undoable.title })}
                 </button>

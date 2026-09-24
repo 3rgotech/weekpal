@@ -40,13 +40,13 @@ describe("the share bar", () => {
     });
 
     it("speaks the board's existing capacity language", () => {
-        // Amber and red already mean "too much" here. A new hue would compete with the sixteen
+        // Warn and danger already mean "too much" here. A new hue would compete with the sixteen
         // that mean "category", which is the only thing colour is for on this board.
         const { container: at } = render(<DayShareBar share={1} level="at" />);
         const { container: over } = render(<DayShareBar share={1} level="over" />);
 
-        expect(fill(at)?.className).toContain("amber");
-        expect(fill(over)?.className).toContain("red");
+        expect(fill(at)?.className).toContain("wp-warn");
+        expect(fill(over)?.className).toContain("wp-danger");
     });
 
     it("stays neutral for a day inside its limit", () => {
@@ -54,7 +54,7 @@ describe("the share bar", () => {
         // the bar being relative.
         const { container } = render(<DayShareBar share={1} level="ok" />);
 
-        expect(fill(container)?.className).not.toMatch(/amber|red/);
+        expect(fill(container)?.className).not.toMatch(/wp-warn|wp-danger/);
     });
 
     it("carries no text", () => {
@@ -76,7 +76,7 @@ describe("the share bar", () => {
         // hours to deliver a signal wanted for one second.
         const { container } = render(<DayShareBar share={0.6} level="ok" />);
 
-        expect(container.firstElementChild?.className).toContain("h-[3px]");
+        expect(container.firstElementChild?.className).toContain("h-1");
     });
 
     it("cannot overflow its rail", () => {

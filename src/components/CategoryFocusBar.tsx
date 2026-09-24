@@ -49,25 +49,25 @@ const CategoryFocusBar: React.FC = () => {
 
     return (
         <div
-            className="flex items-center justify-between gap-2 px-3 py-1.5 bg-sky-50 dark:bg-sky-900 border-b border-sky-200 dark:border-sky-800 text-sm"
+            className="flex items-center justify-between gap-2 px-4 py-1.5 bg-wp-accent-soft border-b border-wp-border text-[13px] font-medium"
             role="status"
         >
             <div className="flex items-center gap-2 min-w-0">
                 <span
                     className={clsx(
-                        "w-3 h-3 rounded-full shrink-0",
-                        category ? category.getColorClass("bg") : "bg-slate-400",
+                        "size-2.5 rounded-full shrink-0",
+                        category ? category.getColorClass("bg") : "bg-wp-muted",
                     )}
                     aria-hidden="true"
                 />
-                <span className="truncate text-sky-900 dark:text-sky-100">
+                <span className="truncate text-wp-fg">
                     {t("category.focused", { name })}
                 </span>
             </div>
 
             <button
                 type="button"
-                className="flex items-center gap-1 shrink-0 px-2 py-1 rounded-md text-sky-900 dark:text-sky-100 hover:bg-sky-100 dark:hover:bg-sky-800"
+                className="flex items-center gap-1 shrink-0 px-2 py-1 rounded-md font-semibold text-wp-accent cursor-pointer hover:bg-wp-track"
                 onClick={clearFocus}
             >
                 <X size={14} />

@@ -22,7 +22,7 @@ const UpdateBar: React.FC = () => {
   }
 
   return (
-    <div className="flex-none flex items-center gap-2 px-3 py-2 bg-sky-100 dark:bg-sky-900 text-sky-950 dark:text-white border-b border-sky-200 dark:border-sky-800">
+    <div className="flex-none flex items-center gap-2 px-3 py-2 bg-wp-accent-soft text-wp-fg border-b border-wp-border">
       <RefreshCw size={16} className="shrink-0" />
 
       <p className="flex-1 min-w-0 text-sm">{t("update.available")}</p>
@@ -35,7 +35,7 @@ const UpdateBar: React.FC = () => {
         type="button"
         onClick={dismiss}
         aria-label={t("update.dismiss")}
-        className="p-1 rounded-full text-sky-900/70 dark:text-white/70 hover:bg-sky-200 dark:hover:bg-sky-800"
+        className="p-1 rounded-md text-wp-fg-secondary hover:text-wp-fg hover:bg-wp-track cursor-pointer"
       >
         <X size={16} />
       </button>

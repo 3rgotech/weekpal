@@ -52,15 +52,15 @@ const LeftoverActions: React.FC<LeftoverActionsProps> = ({
                 disabled={busy}
                 onClick={onDone}
                 className="
-                    px-2 py-1 rounded-md text-xs font-medium
-                    text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30
-                    focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
+                    px-2 py-1 rounded-md text-xs font-semibold cursor-pointer
+                    text-wp-accent hover:bg-wp-accent-soft
+                    focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                 "
             >
                 {t("leftovers.complete")}
             </button>
 
-            <span className="w-px h-4 bg-slate-200 dark:bg-sky-900 mx-0.5" aria-hidden="true" />
+            <span className="w-px h-4 bg-wp-border-strong mx-0.5" aria-hidden="true" />
 
             <LeftoverRail task={task} busy={busy} onMoveToDay={onMoveToDay} onMoveToWeek={onMoveToWeek} />
 
@@ -72,9 +72,9 @@ const LeftoverActions: React.FC<LeftoverActionsProps> = ({
                     disabled={busy}
                     onClick={onSomeday}
                     className="
-                        px-2 py-1 rounded-md text-xs
-                        text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-sky-900
-                        focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
+                        px-2 py-1 rounded-md text-xs cursor-pointer
+                        text-wp-fg-secondary hover:bg-wp-track
+                        focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                     "
                 >
                     {t("leftovers.some_day")}
@@ -89,9 +89,9 @@ const LeftoverActions: React.FC<LeftoverActionsProps> = ({
                 aria-label={t("leftovers.delete")}
                 title={t("leftovers.delete")}
                 className="
-                    ml-auto p-1 rounded text-slate-300 dark:text-slate-600
-                    hover:text-red-600 dark:hover:text-red-400
-                    focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
+                    ml-auto p-1 rounded text-wp-muted cursor-pointer
+                    hover:text-wp-danger
+                    focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                 "
             >
                 <X size={14} />

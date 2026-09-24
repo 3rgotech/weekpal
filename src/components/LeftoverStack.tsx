@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
-import { Button, Chip, Spinner } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
+import CategoryTag from "./CategoryTag";
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -120,11 +121,11 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
         <div className="h-full flex flex-col overflow-hidden" data-testid="leftover-stack">
             <header className="flex-none px-4 pt-3 pb-2 flex flex-col gap-1">
                 <div className="flex items-baseline justify-between gap-3">
-                    <h2 className="text-lg font-semibold text-sky-950 dark:text-white">{t("leftovers.title")}</h2>
+                    <h2 className="text-lg font-bold tracking-[-0.2px] text-wp-fg">{t("leftovers.title")}</h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-sm underline text-slate-500 dark:text-slate-400"
+                        className="text-sm underline text-wp-muted"
                     >
                         {tasks.length === 0 ? t("leftovers.done") : t("leftovers.later")}
                     </button>
@@ -141,7 +142,7 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
 
             {loaded && !task && (
                 <div className="flex-1 flex flex-col justify-center gap-4 px-4">
-                    <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-center text-sm text-wp-muted">
                         {t("leftovers.empty")}
                     </p>
 
@@ -151,10 +152,10 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                             {shape.map((entry) => (
                                 <li
                                     key={entry.day}
-                                    className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2 rounded-lg bg-slate-100 dark:bg-sky-950"
+                                    className="flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2 rounded-lg bg-wp-track"
                                 >
-                                    <span className="text-[0.65rem] uppercase text-slate-500 dark:text-slate-400">{entry.label}</span>
-                                    <span className="text-base font-semibold tabular-nums text-sky-950 dark:text-white">{entry.count}</span>
+                                    <span className="text-[10px] font-bold tracking-[0.8px] uppercase text-wp-muted">{entry.label}</span>
+                                    <span className="text-base font-semibold tabular-nums text-wp-fg">{entry.count}</span>
                                 </li>
                             ))}
                         </ul>
@@ -171,7 +172,7 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                         onTouchStart={onTouchStart}
                         onTouchEnd={onTouchEnd}
                     >
-                        <div className="flex items-baseline justify-between text-sm text-slate-500 dark:text-slate-400 mb-2">
+                        <div className="flex items-baseline justify-between text-sm text-wp-muted mb-2">
                             <span className="tabular-nums">
                                 {t("leftovers.position", { current: position + 1, total: tasks.length })}
                             </span>
@@ -193,21 +194,19 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                             key={task.id}
                             className={clsx(
                                 "relative flex flex-col gap-4 p-4 rounded-xl border",
-                                "border-slate-200 bg-white dark:border-sky-900 dark:bg-slate-900",
-                                "shadow-sm",
+                                "border-wp-border bg-wp-card",
+                                "shadow-wp-pop",
                                 busy === task.id && "opacity-50",
                             )}
                             aria-busy={busy === task.id}
                         >
                             <div className="flex items-center gap-2 pr-8">
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                <span className="text-xs text-wp-muted">
                                     {undated ? t("main.this_week") : leftoverDate(task).format("ddd D MMM")}
                                 </span>
 
                                 {category && (
-                                    <Chip size="sm" className={clsx("shrink-0 text-xs rounded-md text-white", category.getColorClass("bg"))}>
-                                        <Chip.Label>{category.name}</Chip.Label>
-                                    </Chip>
+                                    <CategoryTag category={category} />
                                 )}
 
                                 <DeferralBadge task={task} />
@@ -221,15 +220,15 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                                 aria-label={t("leftovers.delete")}
                                 title={t("leftovers.delete")}
                                 className="
-                                    absolute top-3 right-3 p-1 rounded text-slate-300 dark:text-slate-600
-                                    hover:text-red-600 dark:hover:text-red-400
-                                    focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
+                                    absolute top-3 right-3 p-1 rounded text-wp-muted
+                                    hover:text-wp-danger
+                                    focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                                 "
                             >
                                 <X size={16} />
                             </button>
 
-                            <p className="text-xl font-medium text-sky-950 dark:text-white break-words">
+                            <p className="text-xl font-medium text-wp-fg break-words">
                                 {task.title}
                             </p>
 
@@ -240,8 +239,8 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                                     onClick={() => onDone(task)}
                                     className="
                                         px-3 py-2 rounded-md text-sm font-medium
-                                        text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30
-                                        focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
+                                        text-wp-accent hover:bg-wp-accent-soft
+                                        focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                                     "
                                 >
                                     {t("leftovers.complete")}
@@ -255,8 +254,8 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                                         onClick={() => onSomeday(task)}
                                         className="
                                             px-3 py-2 rounded-md text-sm
-                                            text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-sky-900
-                                            focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50
+                                            text-wp-fg-secondary hover:bg-wp-track
+                                            focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                                         "
                                     >
                                         {t("leftovers.some_day")}
@@ -266,7 +265,7 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                         </article>
 
                         {tasks.length > 1 && (
-                            <p className="mt-3 text-center text-xs text-slate-400 dark:text-slate-500">
+                            <p className="mt-3 text-center text-xs text-wp-muted">
                                 {t("leftovers.swipe_hint")}
                             </p>
                         )}
@@ -279,7 +278,7 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                             <button
                                 type="button"
                                 onClick={onUndo}
-                                className="w-full py-2 rounded-md text-sm underline bg-slate-100 dark:bg-sky-950 text-slate-700 dark:text-slate-200"
+                                className="w-full py-2 rounded-md text-sm underline bg-wp-track text-wp-fg"
                             >
                                 {t("leftovers.undo_delete", { title: undoable.title })}
                             </button>
@@ -289,7 +288,7 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                     {/* Pinned at the bottom, where a thumb is, and padded past the home indicator
                         the same way `DayNav` is. */}
                     <nav
-                        className="flex-none border-t border-slate-200 dark:border-sky-900 bg-slate-100 dark:bg-sky-950 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+                        className="flex-none border-t border-wp-border bg-wp-chrome px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
                         aria-label={t("leftovers.rail")}
                     >
                         <LeftoverRail
@@ -309,7 +308,7 @@ const LeftoverStack: React.FC<LeftoverStackProps> = ({
                     <button
                         type="button"
                         onClick={onUndo}
-                        className="w-full py-2 rounded-md text-sm underline bg-slate-100 dark:bg-sky-950 text-slate-700 dark:text-slate-200"
+                        className="w-full py-2 rounded-md text-sm underline bg-wp-track text-wp-fg"
                     >
                         {t("leftovers.undo_delete", { title: undoable.title })}
                     </button>

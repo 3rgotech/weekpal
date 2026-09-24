@@ -92,15 +92,15 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
     };
 
     const notesTab = (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
             {notes.length === 0 && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">{t("task.notes.empty")}</p>
+                <p className="text-xs text-wp-muted">{t("task.notes.empty")}</p>
             )}
 
             {notes.map((note) => (
                 <div
                     key={note.id}
-                    className="rounded-lg border border-slate-200 dark:border-slate-600 p-3"
+                    className="rounded-lg border border-wp-border bg-wp-card p-3"
                 >
                     {editingId === note.id ? (
                         <div className="flex flex-col gap-2">
@@ -112,7 +112,7 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
                                 <TextArea rows={2} />
                             </TextField>
                             <div className="flex flex-row gap-2 justify-end">
-                                <Button size="sm" variant="tertiary" onPress={() => setEditingId(null)}>
+                                <Button size="sm" variant="secondary" onPress={() => setEditingId(null)}>
                                     {t("actions.cancel")}
                                 </Button>
                                 <Button size="sm" variant="primary" onPress={() => saveEdit(note)}>
@@ -126,7 +126,7 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
                                 {/* Notes are plain text, rendered as text — `whitespace-pre-wrap`
                                     keeps the line breaks someone typed without interpreting
                                     anything in the body as markup. */}
-                                <p className="text-sm whitespace-pre-wrap break-words dark:text-white">
+                                <p className="text-[13px] leading-normal whitespace-pre-wrap break-words text-wp-fg">
                                     {note.body}
                                 </p>
                                 <div className="flex flex-row gap-1 shrink-0">
@@ -149,7 +149,7 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
                                     />
                                 </div>
                             </div>
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-[11px] font-medium text-wp-muted">
                                 {note.createdAt ? dayjs(note.createdAt).fromNow() : ""}
                                 {note.updatedAt ? ` · ${t("task.notes.edited")}` : ""}
                             </p>
@@ -186,33 +186,33 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
     };
 
     const historyTab = (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2.5">
             {loadingHistory && <Spinner size="sm" />}
 
             {!loadingHistory && historyFailed && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-wp-muted">
                     {t("task.history.unavailable")}
                 </p>
             )}
 
             {!loadingHistory && !historyFailed && history?.length === 0 && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">{t("task.history.empty")}</p>
+                <p className="text-xs text-wp-muted">{t("task.history.empty")}</p>
             )}
 
             {!loadingHistory &&
                 (history ?? []).map((entry) => (
                     <div key={entry.id} className="flex flex-col gap-1">
                         <div className="flex flex-row justify-between items-baseline gap-2">
-                            <span className="text-sm font-medium dark:text-white">
+                            <span className="text-[13px] font-semibold text-wp-fg">
                                 {t(`task.history.event.${entry.event}`)}
                             </span>
-                            <span className="text-xs text-slate-400 shrink-0">
+                            <span className="text-[11px] font-medium text-wp-muted shrink-0">
                                 {entry.createdAt ? dayjs(entry.createdAt).fromNow() : ""}
                             </span>
                         </div>
 
                         {entry.changedFields().length > 0 && (
-                            <ul className="text-xs text-slate-500 dark:text-slate-400 flex flex-col gap-0.5">
+                            <ul className="text-xs text-wp-fg-secondary flex flex-col gap-0.5">
                                 {entry.changedFields().map((field) => (
                                     <li key={field}>
                                         <span className="font-medium">
@@ -247,8 +247,8 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
                 <Tabs.Tab id="notes">{t("task.notes.title")}</Tabs.Tab>
                 <Tabs.Tab id="history">{t("task.history.title")}</Tabs.Tab>
             </Tabs.List>
-            <Tabs.Panel id="notes">{notesTab}</Tabs.Panel>
-            <Tabs.Panel id="history">{historyTab}</Tabs.Panel>
+            <Tabs.Panel id="notes" className="mt-0 px-0 pt-2.5 pb-0">{notesTab}</Tabs.Panel>
+            <Tabs.Panel id="history" className="mt-0 px-0 pt-2.5 pb-0">{historyTab}</Tabs.Panel>
         </Tabs>
     );
 };

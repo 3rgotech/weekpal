@@ -129,12 +129,12 @@ const ShareWeekModal: React.FC<ShareWeekModalProps> = ({ isOpen, onOpenChange })
                         </Modal.Header>
 
                         <Modal.Body>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-wp-muted">
                                 {t("share.intro")}
                             </p>
 
                             {privateCount > 0 && (
-                                <p className="text-sm text-slate-500 dark:text-slate-400 pt-1">
+                                <p className="text-sm text-wp-muted pt-1">
                                     {t("share.private_note", { count: privateCount })}
                                 </p>
                             )}
@@ -150,14 +150,14 @@ const ShareWeekModal: React.FC<ShareWeekModalProps> = ({ isOpen, onOpenChange })
                                             value={share.url}
                                             aria-label={t("share.title")}
                                             onFocus={(event) => event.currentTarget.select()}
-                                            className="flex-1 min-w-0 px-2 py-1.5 text-sm rounded-md border border-slate-300 dark:border-sky-900 bg-slate-50 dark:bg-sky-950"
+                                            className="flex-1 min-w-0 px-2 py-1.5 text-sm rounded-md border border-wp-border-strong bg-wp-track text-wp-fg"
                                         />
                                         <Button size="sm" variant="primary" onPress={copyLink}>
                                             {copied ? t("share.copied") : t("share.copy")}
                                         </Button>
                                     </div>
 
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="text-xs text-wp-muted">
                                         {share.view_count > 0
                                             ? t("share.views", { count: share.view_count })
                                             : t("share.no_views")}
@@ -180,7 +180,7 @@ const ShareWeekModal: React.FC<ShareWeekModalProps> = ({ isOpen, onOpenChange })
                                         autoComplete="new-password"
                                         value={password}
                                         onChange={(event) => setPassword(event.target.value)}
-                                        className="px-2 py-1.5 rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950"
+                                        className="px-2 py-1.5 rounded-md border border-wp-border-strong bg-wp-input"
                                     />
                                 </label>
 
@@ -189,7 +189,7 @@ const ShareWeekModal: React.FC<ShareWeekModalProps> = ({ isOpen, onOpenChange })
                                     <select
                                         value={expiry}
                                         onChange={(event) => setExpiry(event.target.value)}
-                                        className="px-2 py-1.5 rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950"
+                                        className="px-2 py-1.5 rounded-md border border-wp-border-strong bg-wp-input"
                                     >
                                         {EXPIRY_CHOICES.map((choice) => (
                                             <option key={choice.key} value={choice.key}>
@@ -208,19 +208,19 @@ const ShareWeekModal: React.FC<ShareWeekModalProps> = ({ isOpen, onOpenChange })
                                         placeholder={t("share.max_views_any")}
                                         value={maxViews}
                                         onChange={(event) => setMaxViews(event.target.value)}
-                                        className="px-2 py-1.5 rounded-md border border-slate-300 dark:border-sky-900 bg-white dark:bg-sky-950"
+                                        className="px-2 py-1.5 rounded-md border border-wp-border-strong bg-wp-input"
                                     />
                                 </label>
 
                                 {share && (
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    <p className="text-xs text-wp-muted">
                                         {t("share.replace_warning")}
                                     </p>
                                 )}
                             </div>
 
                             {failed && (
-                                <p className="text-sm text-red-600 dark:text-red-400 pt-3">{t("share.error")}</p>
+                                <p className="text-sm text-wp-danger pt-3">{t("share.error")}</p>
                             )}
                         </Modal.Body>
 

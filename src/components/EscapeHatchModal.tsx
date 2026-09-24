@@ -59,7 +59,7 @@ const EscapeHatchModal: React.FC<EscapeHatchModalProps> = ({ task, onClose }) =>
                         <Modal.Body>
                             {/* Names the task, and states the count as a fact about it. Never a
                                 second-person verb — the mark describes the task, not the person. */}
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                            <p className="text-sm text-wp-muted">
                                 {t("deferral.escape_intro", {
                                     title: task.title,
                                     count: task.deferralCount,

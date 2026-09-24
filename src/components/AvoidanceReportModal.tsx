@@ -65,15 +65,15 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
                             {loading && <Spinner />}
 
                             {failed && (
-                                <p className="text-sm text-red-600 dark:text-red-400">{t("avoidance.error")}</p>
+                                <p className="text-sm text-wp-danger">{t("avoidance.error")}</p>
                             )}
 
                             {!loading && !failed && report === null && (
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{t("avoidance.pro_only")}</p>
+                                <p className="text-sm text-wp-muted">{t("avoidance.pro_only")}</p>
                             )}
 
                             {report !== null && !report.has_enough_data && (
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                <p className="text-sm text-wp-muted">
                                     {t("avoidance.too_early")}
                                 </p>
                             )}
@@ -82,7 +82,7 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
                                 <>
                                     {/* The one line a weekly email would carry. If this does not
                                         sting, the report does not sting. */}
-                                    <p className="text-base text-sky-950 dark:text-white">
+                                    <p className="text-base text-wp-fg">
                                         {t("avoidance.headline", {
                                             moves: report.moves,
                                             open: report.open,
@@ -92,7 +92,7 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
 
                                     {report.most_deferred.length > 0 && (
                                         <section className="flex flex-col gap-2">
-                                            <h3 className="text-sm font-semibold text-sky-950 dark:text-white">
+                                            <h3 className="text-sm font-semibold text-wp-fg">
                                                 {t("avoidance.most_deferred")}
                                             </h3>
                                             <ul className="flex flex-col gap-1">
@@ -102,7 +102,7 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
                                                         <span className="flex-1 min-w-0 truncate">{row.title}</span>
                                                         {/* A fact about the card, in the badge's own
                                                             achromatic language. */}
-                                                        <span className="shrink-0 tabular-nums text-xs text-slate-500 dark:text-slate-400">
+                                                        <span className="shrink-0 tabular-nums text-xs text-wp-muted">
                                                             {t("avoidance.moved", { count: row.moves })}
                                                         </span>
                                                     </li>
@@ -113,7 +113,7 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
 
                                     {report.by_category.length > 0 && (
                                         <section className="flex flex-col gap-2">
-                                            <h3 className="text-sm font-semibold text-sky-950 dark:text-white">
+                                            <h3 className="text-sm font-semibold text-wp-fg">
                                                 {t("avoidance.by_category")}
                                             </h3>
                                             {/* The finding nobody knows about themselves: a board
@@ -125,7 +125,7 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
                                                         <span className="flex-1 min-w-0 truncate">
                                                             {row.category ?? t("avoidance.uncategorised")}
                                                         </span>
-                                                        <span className="shrink-0 tabular-nums text-xs text-slate-500 dark:text-slate-400">
+                                                        <span className="shrink-0 tabular-nums text-xs text-wp-muted">
                                                             {t("avoidance.completion", { percent: row.completion })}
                                                         </span>
                                                     </li>
@@ -136,14 +136,14 @@ const AvoidanceReportModal: React.FC<AvoidanceReportModalProps> = ({ adapter, is
 
                                     {report.longest_chains.length > 0 && (
                                         <section className="flex flex-col gap-2">
-                                            <h3 className="text-sm font-semibold text-sky-950 dark:text-white">
+                                            <h3 className="text-sm font-semibold text-wp-fg">
                                                 {t("avoidance.longest")}
                                             </h3>
                                             <ul className="flex flex-col gap-1">
                                                 {report.longest_chains.map((row) => (
                                                     <li key={row.id} className="flex items-center gap-2 text-sm">
                                                         <span className="flex-1 min-w-0 truncate">{row.title}</span>
-                                                        <span className="shrink-0 tabular-nums text-xs text-slate-500 dark:text-slate-400">
+                                                        <span className="shrink-0 tabular-nums text-xs text-wp-muted">
                                                             {new Date(row.first_seen).toLocaleDateString()}
                                                         </span>
                                                     </li>

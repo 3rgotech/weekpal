@@ -60,7 +60,7 @@ const ChangelogModal: React.FC<ChangelogModalProps> = ({
 
                         <Modal.Body className="flex flex-col gap-6 max-h-[60vh] overflow-y-auto">
                             {shown.length === 0 && (
-                                <p className="text-sm text-slate-600 dark:text-slate-300">
+                                <p className="text-sm text-wp-fg-secondary">
                                     {failed ? t("changelog.unavailable") : t("changelog.empty")}
                                 </p>
                             )}
@@ -68,29 +68,29 @@ const ChangelogModal: React.FC<ChangelogModalProps> = ({
                             {shown.map((entry) => (
                                 <article key={entry.id} className="flex flex-col gap-2">
                                     <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                        <h3 className="text-base font-semibold dark:text-white">{entry.title}</h3>
+                                        <h3 className="text-[15px] font-bold text-wp-fg">{entry.title}</h3>
                                         {/* Empty for everything written before the 1.0.0 tag, and
                                             absent rather than blank when it is: a version badge
                                             with nothing in it reads as a missing value. */}
                                         {entry.version && (
-                                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-sky-100 text-sky-900 dark:bg-sky-900 dark:text-sky-100">
+                                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-wp-accent-soft text-wp-accent">
                                                 v{entry.version}
                                             </span>
                                         )}
                                         {entry.publishedAt && (
                                             <time
                                                 dateTime={entry.publishedAt}
-                                                className="text-xs text-slate-500 dark:text-slate-400"
+                                                className="text-xs text-wp-muted"
                                             >
                                                 {dayjs(entry.publishedAt).format("LL")}
                                             </time>
                                         )}
                                     </header>
 
-                                    <p className="text-sm text-slate-600 dark:text-slate-300">{entry.description}</p>
+                                    <p className="text-sm text-wp-fg-secondary">{entry.description}</p>
 
                                     <div
-                                        className="changelog-body text-sm text-slate-700 dark:text-slate-200"
+                                        className="changelog-body text-sm text-wp-fg-secondary"
                                         // Sanitised server-side, by `SafeHtml::forBoard`.
                                         dangerouslySetInnerHTML={{ __html: entry.body }}
                                     />

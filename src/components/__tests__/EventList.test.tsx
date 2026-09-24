@@ -42,7 +42,8 @@ describe("collapsed", () => {
         render(<EventList events={[detailed()]} />);
 
         expect(screen.queryByText("Sprint review")).toBeTruthy();
-        expect(screen.queryByText("14:00 - 15:00")).toBeTruthy();
+        expect(screen.queryByText("14:00")).toBeTruthy();
+        expect(screen.queryByText("15:00")).toBeTruthy();
         expect(screen.queryByText("Priya Raman")).toBeNull();
         expect(screen.queryByText("Room 4")).toBeNull();
     });

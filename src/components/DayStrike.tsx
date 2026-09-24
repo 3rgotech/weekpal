@@ -58,7 +58,7 @@ const DayStrike: React.FC<DayStrikeProps> = ({ done, height }) => {
                 strokeWidth={2}
                 strokeLinecap="round"
                 className={clsx(
-                    "day-strike__line stroke-slate-900 dark:stroke-white",
+                    "day-strike__line stroke-wp-strike",
                     justFinished ? "day-strike__line--drawing" : "day-strike__line--drawn",
                 )}
             />

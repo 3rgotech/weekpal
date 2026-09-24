@@ -75,12 +75,12 @@ const LeftoverRail: React.FC<LeftoverRailProps> = ({
                         // deciding is concerned.
                         aria-label={date.format("dddd D MMMM")}
                         className={clsx(
-                            "rounded-md tabular-nums",
-                            "focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50",
+                            "rounded-md tabular-nums cursor-pointer",
+                            "focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50",
                             bar ? "flex-1 min-w-0 py-2.5 text-sm rounded-full" : "min-w-7 px-1.5 py-1 text-xs",
                             isOriginal
-                                ? "bg-sky-500 text-white font-semibold"
-                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-sky-900",
+                                ? "bg-wp-accent text-wp-on-accent font-semibold"
+                                : "text-wp-fg-secondary hover:bg-wp-track",
                         )}
                     >
                         {isOriginal ? date.format("D") : date.format("dd").charAt(0)}
@@ -93,8 +93,8 @@ const LeftoverRail: React.FC<LeftoverRailProps> = ({
                 disabled={busy}
                 onClick={onMoveToWeek}
                 className={clsx(
-                    "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-sky-900",
-                    "focus-visible:outline-2 focus-visible:outline-sky-500 disabled:opacity-50",
+                    "text-wp-fg-secondary hover:bg-wp-track cursor-pointer",
+                    "focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50",
                     bar ? "flex-1 min-w-0 py-2.5 text-sm rounded-full" : "px-2 py-1 rounded-md text-xs",
                 )}
             >

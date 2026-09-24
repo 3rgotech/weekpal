@@ -34,7 +34,7 @@ const DayEstimate: React.FC<DayEstimateProps> = ({ tasks }) => {
     }
 
     return (
-        <span className="shrink-0 text-xs tabular-nums text-slate-500 dark:text-slate-400">
+        <span className="shrink-0 text-xs font-medium tabular-nums text-wp-muted">
             {label} {t("estimate.planned")}
             {total.partial && (
                 <> · {t("estimate.unestimated", { count: total.unestimated })}</>

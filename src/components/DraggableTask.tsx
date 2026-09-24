@@ -65,7 +65,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? undefined : transition,
     opacity: isDragging ? 0.5 : 1,
-    boxShadow: isDragging ? "0px 4px 10px rgba(0,0,0,0.2)" : "none",
+    boxShadow: isDragging ? "0 12px 32px var(--wp-shadow)" : undefined,
   };
 
   return (
@@ -81,41 +81,47 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
         data-flip-key={task.id}
         className={clsx(
           className,
-          "group flex items-center justify-between min-h-10 rounded-md transition-colors",
-          isActive && "ring-2 ring-sky-500 bg-sky-50 dark:bg-sky-900/40"
+          "group flex items-center gap-2.5 rounded-lg border py-2.5 pl-3 pr-2.5 transition-colors",
+          "bg-wp-card border-wp-border hover:bg-wp-card-hover hover:border-wp-border-strong",
+          isActive && "ring-2 ring-wp-accent",
         )}
         // Pointing at a task with the mouse and then acting on it with the keyboard is one
         // gesture, not two: clicking anywhere on the row selects it.
         onPointerDown={() => setActiveTaskId(task.id)}
       >
-        <div className="flex-1 flex items-center gap-x-2 min-h-10 px-2 py-1.5 overflow-hidden focus:outline-hidden border-b border-slate-200">
-          <div
-            {...attributes}
-            {...listeners}
-            className="flex flex-1 items-center gap-x-1"
-            style={{ cursor }}
-          >
-            <TaskContent task={task} onOpenEscape={openEscape} />
-          </div>
-          <div className="group-hover:flex hidden items-center">
-            <IconButton
-              icon="check"
-              iconClass={task.completed ? "text-white" : ""}
-              // Fills rather than switches: 120ms, the first beat of the ceremony, and the one
-              // the finger is still on.
-              wrapperClass={clsx("transition-colors duration-[120ms]", task.completed && "bg-green-500")}
-              onClick={() => {
-                if (task.completed) {
-                  uncompleteTask(task);
-                } else {
-                  completeTask(task);
-                }
-              }}
-              size="xs"
-              tooltip={task.completed ? t("actions.uncomplete_task") : t("actions.complete_task")}
-              tooltipPosition="left"
-            />
-          </div>
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex flex-1 min-w-0 items-center focus:outline-hidden"
+          style={{ cursor }}
+        >
+          <TaskContent task={task} onOpenEscape={openEscape} />
+        </div>
+        {/* On hover only, and kept in the layout while hidden so the title does not re-wrap
+            the moment the pointer arrives. */}
+        <div className="invisible group-hover:visible group-focus-within:visible">
+          <IconButton
+            icon="check"
+            iconClass={task.completed ? "text-wp-on-accent" : "text-wp-fg-secondary"}
+            // Fills rather than switches: 120ms, the first beat of the ceremony, and the one
+            // the finger is still on.
+            wrapperClass={clsx(
+              "size-[26px] rounded-full border transition-colors duration-[120ms]",
+              task.completed
+                ? "bg-wp-accent border-wp-accent hover:bg-wp-accent"
+                : "border-wp-border-strong hover:bg-wp-track",
+            )}
+            onClick={() => {
+              if (task.completed) {
+                uncompleteTask(task);
+              } else {
+                completeTask(task);
+              }
+            }}
+            size="xs"
+            tooltip={task.completed ? t("actions.uncomplete_task") : t("actions.complete_task")}
+            tooltipPosition="left"
+          />
         </div>
       </li>
     </>

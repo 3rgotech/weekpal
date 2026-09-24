@@ -30,23 +30,23 @@ const LeftoverSummary: React.FC<LeftoverSummaryProps> = ({ summary, className })
     }
 
     return (
-        <div className={clsx("text-sm text-slate-500 dark:text-slate-400", className)}>
+        <div className={clsx("text-sm text-wp-muted", className)}>
             <button
                 type="button"
                 onClick={() => setExpanded((open) => !open)}
                 aria-expanded={expanded}
-                className="text-left tabular-nums hover:text-slate-700 dark:hover:text-slate-200 focus-visible:outline-2 focus-visible:outline-sky-500 rounded"
+                className="text-left tabular-nums hover:text-wp-fg focus-visible:outline-2 focus-visible:outline-wp-accent rounded"
             >
                 {t("leftovers.last_week", { done: summary.done, moved: summary.moved })}
             </button>
 
             {expanded && (
                 <dl className="mt-1 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs tabular-nums">
-                    <dt className="font-semibold text-slate-700 dark:text-slate-200">{summary.done}</dt>
+                    <dt className="font-semibold text-wp-fg">{summary.done}</dt>
                     <dd>{t("leftovers.last_week_done", { count: summary.done })}</dd>
-                    <dt className="font-semibold text-slate-700 dark:text-slate-200">{summary.moved}</dt>
+                    <dt className="font-semibold text-wp-fg">{summary.moved}</dt>
                     <dd>{t("leftovers.last_week_moved", { count: summary.moved })}</dd>
-                    <dt className="font-semibold text-slate-700 dark:text-slate-200">{summary.left}</dt>
+                    <dt className="font-semibold text-wp-fg">{summary.left}</dt>
                     <dd>{t("leftovers.last_week_left", { count: summary.left })}</dd>
                 </dl>
             )}

@@ -22,40 +22,33 @@ const WeekSelector: React.FC = () => {
   return (
     /* `data-tour` rather than a class or an id: the tour points at things by intent, and a
        selector written against styling breaks the first time the styling changes. */
-    <div className="flex items-stretch" data-tour="week">
-      <div className="flex items-center justify-center border-r border-slate-300 dark:border-sky-900">
-        <div className="px-3 xl:px-8 min-w-0 truncate">
-          <span className="font-bold">{title1}</span>
-          <span className=""> - {title2}</span>
-        </div>
+    <div className="flex min-w-0 items-center gap-1" data-tour="week">
+      <IconButton
+        icon="chevronLeft"
+        onClick={goToPreviousWeek}
+        iconClass={ICON_BUTTON_CLASS}
+        wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+        tooltip={t("actions.previous_week")}
+      />
+      <div className="flex min-w-0 items-baseline gap-2 px-1.5 truncate">
+        <span className="shrink-0 text-[15px] font-bold text-wp-fg">{title1}</span>
+        {title2 && <span className="truncate text-sm font-medium text-wp-fg-secondary">{title2}</span>}
       </div>
-      <div className="flex items-center justify-center size-12 xl:size-16 border-r border-slate-300 dark:border-sky-900">
-        <IconButton
-          icon="chevronLeft"
-          onClick={goToPreviousWeek}
-          iconClass={ICON_BUTTON_CLASS}
-          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-          tooltip={t("actions.previous_week")}
-        />
-      </div>
-      <div className="flex items-center justify-center size-12 xl:size-16 border-r border-slate-300 dark:border-sky-900">
-        <IconButton
-          icon="dot"
-          onClick={goToToday}
-          iconClass={ICON_BUTTON_CLASS}
-          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-          tooltip={t("actions.this_week")}
-        />
-      </div>
-      <div className="flex items-center justify-center size-12 xl:size-16 border-r border-slate-300 dark:border-sky-900">
-        <IconButton
-          icon="chevronRight"
-          onClick={goToNextWeek}
-          iconClass={ICON_BUTTON_CLASS}
-          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
-          tooltip={t("actions.next_week")}
-        />
-      </div>
+      <IconButton
+        icon="chevronRight"
+        onClick={goToNextWeek}
+        iconClass={ICON_BUTTON_CLASS}
+        wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+        tooltip={t("actions.next_week")}
+      />
+      <button
+        type="button"
+        onClick={goToToday}
+        title={t("actions.this_week")}
+        className="ml-1 shrink-0 rounded-lg border border-wp-border-strong px-3 py-1.5 text-xs font-semibold text-wp-fg cursor-pointer hover:bg-wp-track focus-visible:outline-2 focus-visible:outline-wp-accent"
+      >
+        {t("main.today")}
+      </button>
     </div>
   );
 };
