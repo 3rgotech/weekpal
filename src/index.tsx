@@ -1,12 +1,10 @@
 import React, { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import "./css/index.css";
-// Lato for the standalone dev server only. Embedded, the board is served by weekpal-api, which
-// hosts the font itself: a library build would inline every face as base64 into weekpal.css.
-import "@fontsource/lato/400.css";
-import "@fontsource/lato/400-italic.css";
-import "@fontsource/lato/700.css";
-import "@fontsource/lato/700-italic.css";
+// Plus Jakarta Sans for the standalone dev server only. Embedded, the board is served by
+// weekpal-api, which hosts the font itself: a library build would inline every face as base64
+// into weekpal.css.
+import "@fontsource-variable/plus-jakarta-sans/wght.css";
 import App from "./App";
 // import reportWebVitals from "./reportWebVitals";
 
