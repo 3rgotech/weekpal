@@ -19,7 +19,20 @@ class ProjectStore extends BaseStore implements IProjectStore {
             await this.pull();
         }
 
-        return this.db.projects.orderBy('name').toArray();
+        const projects = await this.db.projects.orderBy('name').toArray();
+
+        // With no server to count for us, the local rows are the whole backlog: count them here,
+        // so a demo board's drawer says how full each list is the same way a synced one does.
+        if (!this.adapter) {
+            const waiting = (await this.db.somedayTasks.toArray())
+                .filter((task) => task.projectId && !task.completedAt);
+
+            projects.forEach((project) => {
+                project.backlogCount = waiting.filter((task) => task.projectId === project.id).length;
+            });
+        }
+
+        return projects;
     }
 
     /** Full-set reconcile, as for categories: the server's list is the complete live set. */

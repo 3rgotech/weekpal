@@ -222,7 +222,9 @@
     "no_category": "Aucune catégorie",
     "edit": "Modifier le projet",
     "name": "Nom du projet",
-    "category_help": "La catégorie d'un projet s'applique à toutes ses tâches."
+    "category_help": "La catégorie d'un projet s'applique à toutes ses tâches.",
+    "waiting_one": "{{count}} tâche pas encore planifiée",
+    "waiting_other": "{{count}} tâches pas encore planifiées"
   },
   "visibility": {
     "show_completed_tasks": "Afficher les tâches complétées",

@@ -34,6 +34,11 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project, isExpanded, onToggle, 
 
     const category = categories.find((c) => c.id === project.categoryId);
     const tasks = backlogs[project.id] ?? [];
+    // The loaded backlog once there is one — it follows every drag in and out — and the count the
+    // project list arrived with until then.
+    const waiting = project.id in backlogs
+        ? tasks.filter((task) => !task.completed).length
+        : project.backlogCount;
 
     // The list is a drop target whether or not it holds anything — an empty project is exactly
     // where a task most often wants to go.
@@ -63,6 +68,15 @@ const ProjectRow: React.FC<ProjectRowProps> = ({ project, isExpanded, onToggle, 
                     )}
 
                     <span className="truncate">{project.name}</span>
+
+                    {waiting !== null && (
+                        <span
+                            className="ml-auto shrink-0 rounded-full bg-wp-track px-2 py-0.5 text-[11px] font-bold leading-4 text-wp-fg-secondary tabular-nums"
+                            title={t("projects.waiting", { count: waiting })}
+                        >
+                            {waiting}
+                        </span>
+                    )}
                 </button>
 
                 <IconButton

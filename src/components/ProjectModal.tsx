@@ -47,7 +47,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, isOpen, onOpenChan
             project.categoryId = categoryId;
             await saveProject(project);
         } else {
-            await saveProject(new Project({ name: trimmed, categoryId }));
+            // Nothing can be in a list that did not exist a moment ago.
+            await saveProject(new Project({ name: trimmed, categoryId, backlogCount: 0 }));
         }
 
         onOpenChange(false);

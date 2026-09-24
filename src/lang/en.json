@@ -232,7 +232,9 @@
     "no_category": "No category",
     "edit": "Edit project",
     "name": "Project name",
-    "category_help": "A project's category applies to every task in it."
+    "category_help": "A project's category applies to every task in it.",
+    "waiting_one": "{{count}} task not scheduled yet",
+    "waiting_other": "{{count}} tasks not scheduled yet"
   },
   "leftovers": {
     "title": "Left behind",

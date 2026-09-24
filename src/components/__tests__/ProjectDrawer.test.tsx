@@ -63,6 +63,40 @@ beforeEach(() => {
     data.focusedCategory = null;
 });
 
+describe("the count beside a project", () => {
+    const count = () => screen.queryByTitle("projects.waiting");
+
+    it("shows how many tasks the list arrived with, before its backlog is opened", () => {
+        data.projects = [new Project({ id: "p1", name: "Kitchen", categoryId: null, backlogCount: 4 })];
+
+        openDrawer();
+
+        expect(count()?.textContent).toBe("4");
+        expect(data.loadBacklog).not.toHaveBeenCalled();
+    });
+
+    it("follows the loaded backlog once there is one, leaving finished tasks out", () => {
+        // The loaded list moves with every drag in and out; the listing's number does not.
+        data.projects = [new Project({ id: "p1", name: "Kitchen", categoryId: null, backlogCount: 4 })];
+        data.backlogs = {
+            p1: [
+                new SomedayTask({ id: "t1", title: "Regrout the tiles", projectId: "p1" }),
+                new SomedayTask({ id: "t2", title: "Paint", projectId: "p1", completedAt: "2026-03-02T10:00:00Z" }),
+            ],
+        };
+
+        openDrawer();
+
+        expect(count()?.textContent).toBe("1");
+    });
+
+    it("says nothing when nothing has counted the list", () => {
+        openDrawer();
+
+        expect(count()).toBeNull();
+    });
+});
+
 describe("the projects drawer", () => {
     it("loads a backlog when its project is opened", () => {
         openDrawer();
