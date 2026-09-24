@@ -28,8 +28,13 @@ jest.mock("../../adapter", () => ({
     default: { createAdapters: () => ({ importAdapter: null }) },
 }));
 
+// Same reason: `env.ts` reads `import.meta`. The Pro page address is the one value used here.
+let proUrl: string | undefined = "https://weekpal.test/pro";
+jest.mock("../../utils/env", () => ({ getEnvConfig: () => ({ proUrl }) }));
+
 beforeEach(() => {
     jest.clearAllMocks();
+    proUrl = "https://weekpal.test/pro";
     Object.assign(settings, DEFAULT_SETTINGS);
     settings.dayCapacityCategories = [];
     data.categories = [new Category({ id: "work", name: "Work", color: "sky" })];
@@ -43,6 +48,21 @@ describe("the settings dialog", () => {
         expect(screen.getByText("settings.tab_week")).toBeTruthy();
         expect(screen.getByText("settings.tab_limits")).toBeTruthy();
         expect(screen.getByText("settings.tab_import")).toBeTruthy();
+    });
+
+    it("carries one line pointing at the Pro page, and no more", () => {
+        render(<SettingsModal />);
+
+        const links = screen.getAllByRole("link", { name: "settings.pro_line" });
+        expect(links).toHaveLength(1);
+        expect(links[0]).toHaveAttribute("href", "https://weekpal.test/pro");
+    });
+
+    it("drops the Pro line when there is no Pro page to point at", () => {
+        proUrl = undefined;
+        render(<SettingsModal />);
+
+        expect(screen.queryByRole("link", { name: "settings.pro_line" })).toBeNull();
     });
 
     it("has no save button — every change is written as it is made", () => {

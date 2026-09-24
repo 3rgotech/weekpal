@@ -30,6 +30,7 @@ import { DAY_CAPACITIES, SOMEDAY_LIMITS, THIS_WEEK_LIMITS, toggleCountedCategory
 import { WORKING_DAY_CHOICES } from "../utils/hours";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 import ImportPanel from "./ImportPanel";
+import { getEnvConfig } from "../utils/env";
 
 /**
  * The settings dialog.
@@ -45,6 +46,7 @@ import ImportPanel from "./ImportPanel";
  */
 const SettingsModal: React.FC = () => {
     const { t } = useTranslation();
+    const proUrl = getEnvConfig().proUrl;
     const { settings, updateSettings, settingsOverlay: overlay, closeSettingsModal } = useSettings();
     const { available: changelogAvailable, openChangelog } = useChangelog();
     const { startTour } = useOnboarding();
@@ -575,6 +577,18 @@ const SettingsModal: React.FC = () => {
                                 >
                                     {t("changelog.title")}
                                 </Button>
+                            )}
+                            {/* The one line about Pro (R5). A link, not a prompt: the board sells
+                                nothing, and this is where someone looking for the tier looks. */}
+                            {proUrl && (
+                                <a
+                                    href={proUrl}
+                                    target="_blank"
+                                    rel="noopener"
+                                    className="ml-auto self-center text-sm underline underline-offset-2 text-slate-600 dark:text-slate-300"
+                                >
+                                    {t("settings.pro_line")}
+                                </a>
                             )}
                         </Modal.Footer>
                     </Modal.Dialog>

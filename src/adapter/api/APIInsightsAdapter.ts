@@ -1,4 +1,4 @@
-import { AvoidanceReport, IInsightsAdapter } from '../../types';
+import { AvoidanceReport, IInsightsAdapter, ProTeaserDecision, ProTeaserOutcome } from '../../types';
 import { APIBaseAdapter } from './APIBaseAdapter';
 
 /**
@@ -26,6 +26,18 @@ class APIInsightsAdapter extends APIBaseAdapter implements IInsightsAdapter {
 
             throw error;
         }
+    }
+
+    async reviewed(week: string): Promise<ProTeaserDecision> {
+        const response = await this.getClient()
+            .post('insights/teaser/reviewed', { json: { week } })
+            .json<{ data: ProTeaserDecision }>();
+
+        return response.data;
+    }
+
+    async respond(signature: string, outcome: ProTeaserOutcome): Promise<void> {
+        await this.getClient().post('insights/teaser/respond', { json: { signature, outcome } });
     }
 }
 

@@ -35,7 +35,8 @@
     "completionStay": "La laisser sur place",
     "completionMove": "La descendre en bas",
     "workingDayHours": "Journée de travail",
-    "off": "Désactivé"
+    "off": "Désactivé",
+    "pro_line": "WeekPal Pro : ce qu'il ajoute"
   },
   "main": {
     "this_week": "Cette semaine",
@@ -456,5 +457,10 @@
       "title": "Tout le reste",
       "body": "Ce que vous avez laissé derrière, vos réglages, et le bouton pour me signaler un problème."
     }
+  },
+  "teaser": {
+    "message": "Vos reports suivent un schéma.",
+    "cta": "Vous voulez le voir ?",
+    "dismiss": "Pas intéressé"
   }
 }

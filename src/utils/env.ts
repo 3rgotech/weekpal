@@ -24,6 +24,13 @@ declare global {
         SIGNUP_URL?: string;
         LOGIN_URL?: string;
         /**
+         * The host application's Pro page.
+         *
+         * The board never sells Pro itself: one line in the settings and the single post-review
+         * teaser point here. Absent when the board runs standalone, and both then hide.
+         */
+        PRO_URL?: string;
+        /**
          * Where the board asks for a new bearer token when its own expires.
          *
          * Set by the Blade view that embeds the board, and absent in demo and test mode, which
@@ -49,6 +56,7 @@ export interface EnvConfig {
     accountUrl: Url;
     signupUrl: Url;
     loginUrl: Url;
+    proUrl: Url;
     tokenUrl: Url;
     buildId: string | undefined;
 }
@@ -60,6 +68,7 @@ export function getEnvConfig(): EnvConfig {
     let accountUrl: Url;
     let signupUrl: Url;
     let loginUrl: Url;
+    let proUrl: Url;
     let tokenUrl: Url;
     let buildId: string | undefined;
 
@@ -82,6 +91,10 @@ export function getEnvConfig(): EnvConfig {
 
         if (window.LOGIN_URL) {
             loginUrl = window.LOGIN_URL;
+        }
+
+        if (window.PRO_URL) {
+            proUrl = window.PRO_URL;
         }
 
         if (window.TOKEN_URL) {
@@ -130,5 +143,5 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, tokenUrl, buildId };
+    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, proUrl, tokenUrl, buildId };
 }

@@ -35,7 +35,8 @@
     "completionStay": "Leave it in place",
     "completionMove": "Move it to the bottom",
     "workingDayHours": "Working day",
-    "off": "Off"
+    "off": "Off",
+    "pro_line": "WeekPal Pro: what it adds"
   },
   "main": {
     "this_week": "This week",
@@ -456,5 +457,10 @@
       "title": "Everything else",
       "body": "What you left behind, your settings, and the button for telling me something's broken."
     }
+  },
+  "teaser": {
+    "message": "Your deferrals have a pattern.",
+    "cta": "Want to see it?",
+    "dismiss": "Not interested"
   }
 }

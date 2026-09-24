@@ -418,9 +418,21 @@ export interface IFeedbackAdapter {
   ): Promise<void>;
 }
 
+/** Whether the one Pro teaser shows after a review, and the pattern it is about. */
+export interface ProTeaserDecision {
+  show: boolean;
+  signature: string | null;
+}
+
+export type ProTeaserOutcome = "clicked" | "dismissed";
+
 export interface IInsightsAdapter {
   /** Null when the account has no plan — "part of Pro" is not an error. */
   avoidance(weeks?: number): Promise<AvoidanceReport | null>;
+  /** A Leftover Review of `week` closed; the server decides whether the teaser shows. */
+  reviewed(week: string): Promise<ProTeaserDecision>;
+  /** The person followed the teaser, or dismissed it. Ignoring it needs no call. */
+  respond(signature: string, outcome: ProTeaserOutcome): Promise<void>;
 }
 
 export interface IShareAdapter {
