@@ -33,10 +33,12 @@ const WeekMark: React.FC<WeekMarkProps> = ({ done, shape }) => {
         justFinished ? "week-mark__stroke--drawing" : "week-mark__stroke--drawn",
     );
 
+    // Both shapes stay inside the box they mark: the board's grid sits in a container that clips
+    // anything outside it, so a stroke drawn in the gap around the days would never be seen.
     if (shape === "rule") {
         return (
             <svg
-                className="week-mark week-mark--rule absolute left-0 -top-1.5 xl:-top-2.5 w-full h-0.5 overflow-visible pointer-events-none"
+                className="week-mark week-mark--rule absolute left-0 top-0 w-full h-0.5 overflow-visible pointer-events-none"
                 aria-hidden="true"
                 data-week-mark="rule"
             >
@@ -47,7 +49,7 @@ const WeekMark: React.FC<WeekMarkProps> = ({ done, shape }) => {
 
     return (
         <svg
-            className="week-mark week-mark--frame absolute -inset-1 xl:-inset-2 w-[calc(100%+0.5rem)] h-[calc(100%+0.5rem)] xl:w-[calc(100%+1rem)] xl:h-[calc(100%+1rem)] overflow-visible pointer-events-none"
+            className="week-mark week-mark--frame absolute inset-px w-[calc(100%-2px)] h-[calc(100%-2px)] overflow-visible pointer-events-none"
             aria-hidden="true"
             data-week-mark="frame"
         >
