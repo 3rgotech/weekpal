@@ -113,8 +113,12 @@
 
     /* HeroUI renders modals and menu popovers into portals appended to `body`, outside the React
        tree — so a print fired with the task menu open would put the menu on the paper. They are
-       siblings of `#root`, which is what this reaches. */
-    body > *:not(#root) {
+       siblings of the board's root, which is what this reaches.
+
+       Two roots: `#root` on the standalone dev page, `#weekpal-root` where WeekPal embeds the
+       board. Naming only the first hid the embedded board itself, and every print from
+       weekpal.com came out blank. */
+    body > *:not(#root):not(#weekpal-root) {
         display: none !important;
     }
 }
