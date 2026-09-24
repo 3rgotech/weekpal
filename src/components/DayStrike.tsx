@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
+import { useJustFinished } from "../utils/useJustFinished";
 import clsx from "clsx";
 
 interface DayStrikeProps {
@@ -31,30 +32,8 @@ interface DayStrikeProps {
  * Monochrome, because colour belongs to categories.
  */
 const DayStrike: React.FC<DayStrikeProps> = ({ done, height }) => {
-    /*
-     * Whether this component watched the day *become* done.
-     *
-     * Starts false and only ever turns true when `done` goes false → true while mounted, which
-     * is exactly the case that deserves the draw. Mounting with `done` already true — a reload,
-     * a week navigated back to — leaves it false and the stroke is simply there.
-     */
-    const [justFinished, setJustFinished] = useState(false);
-    const wasDone = useRef(done);
-
-    useEffect(() => {
-        if (done && !wasDone.current) {
-            setJustFinished(true);
-        }
-
-        // Unticking a task, or adding one, clears the mark. If the day is finished again later
-        // it has genuinely been finished again, and the stroke redraws — that is a second
-        // achievement, not a replay of the first.
-        if (!done) {
-            setJustFinished(false);
-        }
-
-        wasDone.current = done;
-    }, [done]);
+    // Drawn only when this session watched the day become done; otherwise it is already ink.
+    const justFinished = useJustFinished(done);
 
     if (!done || height <= 0) {
         return null;
