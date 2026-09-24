@@ -9,7 +9,7 @@ import { OnboardingProvider } from "./contexts/OnboardingContext";
 import CannotLoadTheApp from "./CannotLoadTheApp";
 import { CalendarProvider } from "./contexts/CalendarContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
-import { AccountProvider } from "./contexts/AccountContext";
+import { AccountProvider, useAccount } from "./contexts/AccountContext";
 import SettingsModal from "./components/SettingsModal";
 import LimitReachedModal from "./components/LimitReachedModal";
 import EscapeHatch from "./components/EscapeHatch";
@@ -41,6 +41,13 @@ declare global {
     API_URL?: string;
   }
 }
+
+/** The calendar, told whether this account may use the named layouts (R14, Pro). */
+const AccountAwareCalendar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { subscribed } = useAccount();
+
+  return <CalendarProvider allowLayoutPresets={subscribed}>{children}</CalendarProvider>;
+};
 
 function App() {
   // Which board renders, not merely how it looks: the wide one mounts a drag-and-drop context
@@ -158,7 +165,7 @@ function App() {
               lets itself in on load — the leftover review and the release notes both stand down
               while the tour has the floor. */}
           <OnboardingProvider>
-          <CalendarProvider>
+          <AccountAwareCalendar>
             <DataProvider
               taskAdapter={taskAdapter}
               categoryAdapter={categoryAdapter}
@@ -229,7 +236,7 @@ function App() {
                 </ProTeaserProvider>
               </TaskModalProvider>
             </DataProvider>
-          </CalendarProvider>
+          </AccountAwareCalendar>
           </OnboardingProvider>
         </SettingsProvider>
         </AccountProvider>

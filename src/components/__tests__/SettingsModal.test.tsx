@@ -65,6 +65,14 @@ describe("the settings dialog", () => {
         expect(screen.queryByRole("link", { name: "settings.pro_line" })).toBeNull();
     });
 
+    it("offers the named layouts, and says they are Pro to an account without it", () => {
+        render(<SettingsModal />);
+        fireEvent.click(screen.getByText("settings.tab_week"));
+
+        expect(screen.getAllByText("settings.layout").length).toBeGreaterThan(0);
+        expect(screen.getByText("settings.layoutPro")).toBeTruthy();
+    });
+
     it("has no save button — every change is written as it is made", () => {
         // The dialog can be closed, or a tab left, at any moment without losing anything. A save
         // button would imply the opposite, and there is nothing for it to do.

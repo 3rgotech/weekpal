@@ -36,7 +36,16 @@
     "completionMove": "La descendre en bas",
     "workingDayHours": "Journée de travail",
     "off": "Désactivé",
-    "pro_line": "WeekPal Pro : ce qu'il ajoute"
+    "pro_line": "WeekPal Pro : ce qu'il ajoute",
+    "layout": "Disposition",
+    "layoutPro": "Les dispositions font partie de Pro.",
+    "layouts": {
+      "compressed": "Week-end compressé",
+      "classic": "Sept colonnes",
+      "front": "Début de semaine en grand",
+      "rows": "Deux rangées",
+      "columns": "Deux rangées, de haut en bas"
+    }
   },
   "main": {
     "this_week": "Cette semaine",

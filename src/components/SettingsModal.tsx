@@ -12,7 +12,7 @@ import type { Key } from "react-aria-components";
 import clsx from "clsx";
 import { Eye, EyeOff, MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Language, SubtaskDisplay } from "../types";
+import { Language, LayoutPreset, SubtaskDisplay } from "../types";
 import { useSettings } from "../contexts/SettingsContext";
 import { useChangelog } from "../contexts/ChangelogContext";
 import { useOnboarding } from "../contexts/OnboardingContext";
@@ -31,6 +31,8 @@ import { WORKING_DAY_CHOICES } from "../utils/hours";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 import ImportPanel from "./ImportPanel";
 import { getEnvConfig } from "../utils/env";
+import { useAccount } from "../contexts/AccountContext";
+import { LAYOUT_PRESETS } from "../utils/settings";
 
 /**
  * The settings dialog.
@@ -47,6 +49,7 @@ import { getEnvConfig } from "../utils/env";
 const SettingsModal: React.FC = () => {
     const { t } = useTranslation();
     const proUrl = getEnvConfig().proUrl;
+    const { subscribed } = useAccount();
     const { settings, updateSettings, settingsOverlay: overlay, closeSettingsModal } = useSettings();
     const { available: changelogAvailable, openChangelog } = useChangelog();
     const { startTour } = useOnboarding();
@@ -323,6 +326,40 @@ const SettingsModal: React.FC = () => {
                       );
                     })}
                   </div>
+                  {/* R14: named layouts, not a grid builder. Pro, and disabled rather than hidden
+                      without it — the same treatment as a category's day limit: a control you can
+                      see and cannot use says the feature exists, without a word of sales. */}
+                  <h3 className="text-base dark:text-white">
+                    {t("settings.layout")}
+                  </h3>
+                  <Select
+                    value={subscribed ? settings.layoutPreset : "compressed"}
+                    onChange={(key: Key | null) =>
+                      key !== null && updateSettings({ layoutPreset: `${key}` as LayoutPreset })
+                    }
+                    className="col-span-2"
+                    isDisabled={!subscribed}
+                    aria-label={t("settings.layout")}
+                  >
+                    <Select.Trigger>
+                      <Select.Value />
+                      <Select.Indicator />
+                    </Select.Trigger>
+                    <Select.Popover>
+                      <ListBox>
+                        {LAYOUT_PRESETS.map((preset) => (
+                          <ListBox.Item key={preset} id={preset} textValue={t(`settings.layouts.${preset}`)}>
+                            <Label>{t(`settings.layouts.${preset}`)}</Label>
+                          </ListBox.Item>
+                        ))}
+                      </ListBox>
+                    </Select.Popover>
+                  </Select>
+                  {!subscribed && (
+                    <p className="col-span-2 col-start-2 -mt-4 text-xs text-slate-500 dark:text-slate-400">
+                      {t("settings.layoutPro")}
+                    </p>
+                  )}
                   <h3 className="text-base dark:text-white">
                     {t("settings.nonWorkingDays")}
                   </h3>

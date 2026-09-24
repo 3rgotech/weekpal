@@ -1,5 +1,5 @@
 import { Dayjs } from "dayjs";
-import { DayOfWeek } from "../types";
+import { DayOfWeek, LayoutPreset } from "../types";
 
 /** An ISO weekday: Monday is 1, Sunday is 7. The numbering `tasks.day_of_week` is stored in. */
 export type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -108,6 +108,19 @@ export interface WeekColumn {
     /** The days drawn in this column. More than one only for days that are not worked. */
     days: Weekday[];
     working: boolean;
+    /** Relative width against the other columns — 1 unless a preset widens some (Front-Loaded). */
+    weight: number;
+}
+
+/**
+ * The two-row presets' grid: the days and *this week* as cells of one grid, with *Some day*
+ * spanning the full width underneath. `flow` is the reading order — along each row, or down
+ * each column.
+ */
+export interface WeekGrid {
+    cells: DayOfWeek[];
+    columnCount: number;
+    flow: "row" | "column";
 }
 
 export interface WeekLayout {
@@ -116,31 +129,89 @@ export interface WeekLayout {
     visible: Weekday[];
     /** How many columns wide the board is — never more than seven. */
     columnCount: number;
+    /**
+     * Set by the two-row presets, which draw the days and *this week* as one grid instead of a
+     * row of columns over the two buckets. `columns` is still filled in (one per day) for
+     * whatever does not draw the grid — the printed sheet keeps its own shape.
+     */
+    grid: WeekGrid | null;
 }
 
+/**
+ * The board's shape, from the working days and the named preset (R14).
+ *
+ * - `compressed` — the board everyone has: a column per working day, the days off stacked into
+ *   the columns between them.
+ * - `classic` — a column for every day on the board, nothing stacked.
+ * - `front` — the first three days in wide columns, the rest in a 2×2 grid (pairs stacked).
+ * - `rows` / `columns` — the days and *this week* as a two-row grid, read along the rows or
+ *   down the columns, with *Some day* the full width underneath.
+ *
+ * Working-day choice is free and every preset respects it; the presets are Pro, and the caller
+ * passes `compressed` for an account without a plan.
+ */
 export function weekLayout(
     workingDays: Weekday[],
     showNonWorkingDays: boolean,
     weekStartsOn: Weekday,
+    preset: LayoutPreset = "compressed",
 ): WeekLayout {
     const visible = orderedWeekdays(weekStartsOn)
         .filter((day) => showNonWorkingDays || workingDays.includes(day));
 
-    const columns = visible.reduce<WeekColumn[]>((built, day) => {
-        const working = workingDays.includes(day);
-        const last = built[built.length - 1];
+    const single = (day: Weekday, weight = 1): WeekColumn => ({ days: [day], working: workingDays.includes(day), weight });
 
-        // Only non-working days join the column before them, and only another non-working one.
-        if (!working && last !== undefined && !last.working) {
-            last.days.push(day);
+    let columns: WeekColumn[];
+    let grid: WeekGrid | null = null;
 
-            return built;
+    if (preset === "classic" || preset === "rows" || preset === "columns") {
+        columns = visible.map((day) => single(day));
+
+        if (preset !== "classic") {
+            const cells: DayOfWeek[] = [...visible.map((day) => `${day}` as DayOfWeek), "0"];
+            grid = { cells, columnCount: Math.ceil(cells.length / 2), flow: preset === "rows" ? "row" : "column" };
         }
+    } else if (preset === "front" && visible.length > 3) {
+        // Three wide columns, then the rest paired top-and-bottom: Thu over Sat, Fri over Sun.
+        // Paired in reading order across the pair of columns, so the grid reads left to right.
+        const rest = visible.slice(3);
+        const pairColumns = Math.ceil(rest.length / 2);
+        const paired: WeekColumn[] = Array.from({ length: pairColumns }, (_, index) => {
+            const days = [rest[index], rest[index + pairColumns]].filter((day): day is Weekday => day !== undefined);
 
-        return [...built, { days: [day], working }];
-    }, []);
+            return { days, working: days.every((day) => workingDays.includes(day)), weight: 1 };
+        });
 
-    return { columns, visible, columnCount: columns.length };
+        columns = [...visible.slice(0, 3).map((day) => single(day, 2)), ...paired];
+    } else if (preset === "front") {
+        columns = visible.map((day) => single(day));
+    } else {
+        columns = visible.reduce<WeekColumn[]>((built, day) => {
+            const working = workingDays.includes(day);
+            const last = built[built.length - 1];
+
+            // Only non-working days join the column before them, and only another non-working one.
+            if (!working && last !== undefined && !last.working) {
+                last.days.push(day);
+
+                return built;
+            }
+
+            return [...built, { days: [day], working, weight: 1 }];
+        }, []);
+    }
+
+    return { columns, visible, columnCount: columns.length, grid };
+}
+
+/** The `grid-template-columns` for a row of columns, honouring their weights. */
+export function columnTemplate(layout: WeekLayout): string {
+    // Equal columns keep the short form the board has always used.
+    if (layout.columns.every((column) => column.weight === 1)) {
+        return `repeat(${layout.columnCount}, minmax(0, 1fr))`;
+    }
+
+    return layout.columns.map((column) => `minmax(0, ${column.weight}fr)`).join(" ");
 }
 
 /**

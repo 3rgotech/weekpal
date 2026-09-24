@@ -10,7 +10,7 @@ import { useCalendar } from "../contexts/CalendarContext";
 import { useSettings } from "../contexts/SettingsContext";
 import useDayJs from "../utils/dayjs";
 import { weekHeaderLabel } from "../utils/settings";
-import { Weekday, dateOfDay } from "../utils/week";
+import { Weekday, columnTemplate, dateOfDay } from "../utils/week";
 import iconDark from "../assets/icon_dark.svg";
 
 /**
@@ -214,7 +214,7 @@ const PrintSheet: React.FC = () => {
 
             <div
                 className="grid gap-x-5"
-                style={{ gridTemplateColumns: `repeat(${layout.columnCount}, minmax(0, 1fr))` }}
+                style={{ gridTemplateColumns: columnTemplate(layout) }}
             >
                 {layout.columns.map((column) => (
                     <div className="flex flex-col gap-5" key={column.days[0]}>

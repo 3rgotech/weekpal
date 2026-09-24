@@ -23,6 +23,14 @@ export interface Subtask {
   completed: boolean;
 }
 
+/**
+ * The named week layouts (R14). Names, not geometry: `compressed` stacks the days off into one
+ * column, `classic` gives every day its own, `front` gives the first three days wide columns and
+ * the rest a 2×2 grid, `rows` and `columns` put the days and *this week* in a two-row grid read
+ * along the rows or down the columns. Must match `App\Support\BoardSettings::LAYOUT_PRESETS`.
+ */
+export type LayoutPreset = "compressed" | "classic" | "front" | "rows" | "columns";
+
 export interface Settings {
   /**
    * Which version of the first-run tour this account has finished, or 0 for none.
@@ -109,6 +117,8 @@ export interface Settings {
   workingDayHours: number;
   /** Reconciled with the API in contract §5; no UI reads it yet. */
   subtaskDisplay: SubtaskDisplay;
+  /** The named week layout (R14). Pro: drawn only with a plan, kept regardless. */
+  layoutPreset: LayoutPreset;
 }
 
 export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";

@@ -29,6 +29,7 @@ describe("DEFAULT_SETTINGS", () => {
     "completionResort",
     "workingDayHours",
     "subtaskDisplay",
+    "layoutPreset",
     "onboardingVersion",
   ];
 
@@ -167,5 +168,17 @@ describe("onboardingVersion", () => {
     for (const bad of ["3", 1.5, true, null, {}]) {
       expect(withDefaults({ onboardingVersion: bad }).onboardingVersion).toBe(0);
     }
+  });
+});
+
+describe("layoutPreset", () => {
+  it("defaults to the board everyone has", () => {
+    expect(DEFAULT_SETTINGS.layoutPreset).toBe("compressed");
+    expect(withDefaults({}).layoutPreset).toBe("compressed");
+  });
+
+  it("keeps a known preset and replaces anything else", () => {
+    expect(withDefaults({ layoutPreset: "front" }).layoutPreset).toBe("front");
+    expect(withDefaults({ layoutPreset: "grid-builder" }).layoutPreset).toBe("compressed");
   });
 });

@@ -26,6 +26,7 @@ import { Weekday, dateOfDay } from "./utils/week";
 import { dropOrder } from "./utils/taskMoves";
 import WeekMark from "./components/WeekMark";
 import { isWeekDone } from "./utils/weekDone";
+import { columnTemplate } from "./utils/week";
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
@@ -277,13 +278,43 @@ const MainContent: React.FC<MainContentProps> = () => {
       <div className="h-full flex flex-row overflow-hidden pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <div className="p-2 xl:p-4 flex-1 flex flex-col overflow-hidden">
         <div className="grow flex flex-col gap-2 xl:gap-4 mb-2 xl:mb-4 overflow-hidden">
+          {layout.grid ? (
+            <>
+              {/* The two-row presets (R14): the days and *this week* as one grid, read along the
+                  rows or down the columns, and *Some day* the full width underneath — where its
+                  tasks wrap into as many columns as the width allows. */}
+              <div
+                className="relative flex-[2] min-h-0 grid gap-2 xl:gap-4"
+                style={{
+                  gridTemplateColumns: `repeat(${layout.grid.columnCount}, minmax(0, 1fr))`,
+                  gridTemplateRows: "repeat(2, minmax(0, 1fr))",
+                  gridAutoFlow: layout.grid.flow,
+                }}
+                data-tour="days"
+              >
+                <WeekMark done={isWeekDone(allTasks, layout.visible)} shape="frame" />
+                {layout.grid.cells.map((cell) => (
+                  <div className="min-h-0 overflow-hidden rounded-lg" key={cell}>
+                    {cell === "0"
+                      ? <TaskList title={t("main.this_week")} dayOfWeek={"0"} />
+                      : dayColumn(parseInt(cell, 10) as Weekday)}
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex-1 min-h-0 overflow-hidden rounded-lg" data-tour="buckets">
+                <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
+              </div>
+            </>
+          ) : (
+            <>
           {/* Two rows in a 2:1 split, as a flex column rather than the three-row grid this
               replaces: with the number of day columns now a setting, the buckets underneath
               would otherwise need their spans recomputed from it, and an odd column count has
               no honest halves to span. */}
           <div
             className="relative flex-[2] min-h-0 grid gap-2 xl:gap-4"
-            style={{ gridTemplateColumns: `repeat(${layout.columnCount}, minmax(0, 1fr))` }}
+            style={{ gridTemplateColumns: columnTemplate(layout) }}
             data-tour="days"
           >
             {/* R9: off the unfiltered list, like the day strike — a week is not finished because
@@ -316,6 +347,8 @@ const MainContent: React.FC<MainContentProps> = () => {
               <TaskList title={t("main.some_day")} dayOfWeek={"someday"} />
             </div>
           </div>
+            </>
+          )}
         </div>
 
         <DragOverlay>

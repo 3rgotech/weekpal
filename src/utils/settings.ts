@@ -1,4 +1,4 @@
-import { Language, Settings, SubtaskDisplay } from "../types";
+import { Language, LayoutPreset, Settings, SubtaskDisplay } from "../types";
 import { normaliseDayCapacity } from "./capacity";
 import {
     DEFAULT_WEEK_STARTS_ON,
@@ -6,6 +6,9 @@ import {
     normaliseWeekStart,
     normaliseWorkingDays,
 } from "./week";
+
+/** Every named layout, in the order the settings offer them. */
+export const LAYOUT_PRESETS: LayoutPreset[] = ["compressed", "classic", "front", "rows", "columns"];
 
 /**
  * Must stay in step with `App\Support\BoardSettings::defaults()` on the server.
@@ -35,6 +38,8 @@ export const DEFAULT_SETTINGS: Settings = {
     completionResort: false,
     workingDayHours: 0,
     subtaskDisplay: "percentage",
+    // The board everyone has had: the days off stacked into one column. Presets are Pro (R14).
+    layoutPreset: "compressed",
     // Nobody has finished a tour they have not been shown. A browser with no stored settings and
     // an account that predates the field both land here, and both are offered it.
     onboardingVersion: 0,
@@ -62,6 +67,9 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
         thisWeekLimit: normaliseDayCapacity(stored?.thisWeekLimit),
         // Anything unreadable is read as "has seen none". Offering a tour twice is a small cost;
         // a hand-edited localStorage silently suppressing it forever is a support conversation.
+        layoutPreset: LAYOUT_PRESETS.includes(stored?.layoutPreset as LayoutPreset)
+            ? (stored!.layoutPreset as LayoutPreset)
+            : "compressed",
         onboardingVersion: Number.isInteger(stored?.onboardingVersion)
             ? (stored!.onboardingVersion as number)
             : 0,

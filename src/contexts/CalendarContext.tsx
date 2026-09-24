@@ -33,7 +33,12 @@ interface CalendarContextProps {
 
 const CalendarContext = createContext<CalendarContextProps | undefined>(undefined);
 
-const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+/**
+ * `allowLayoutPresets` is whether the account may use the named layouts (R14) — Pro. Passed in
+ * from `App` rather than read from the account context here, which would pull the adapter
+ * factory, and `import.meta` with it, into every test that renders the calendar.
+ */
+const CalendarProvider: React.FC<{ allowLayoutPresets?: boolean; children: ReactNode }> = ({ allowLayoutPresets = false, children }) => {
   const { settings } = useSettings();
   const dayjs = useDayJs(settings.language);
   const [currentDate, setCurrentDate] = useState(dayjs());
@@ -58,9 +63,12 @@ const CalendarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const thisWeek = weekCodeOf(dayjs(), weekStartsOn);
   const firstDayOfWeek = weekStart(currentDate, weekStartsOn);
 
+  // Without a plan the board keeps the layout everyone has; the stored choice waits (R14).
+  const preset = allowLayoutPresets ? settings.layoutPreset : "compressed";
+
   const layout = useMemo(
-    () => weekLayout(workingDays, showNonWorkingDays, weekStartsOn),
-    [workingDays, showNonWorkingDays, weekStartsOn],
+    () => weekLayout(workingDays, showNonWorkingDays, weekStartsOn, preset),
+    [workingDays, showNonWorkingDays, weekStartsOn, preset],
   );
 
   /** Null for the two undated buckets, which are the whole point of their being undated. */

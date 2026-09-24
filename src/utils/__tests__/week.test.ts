@@ -13,6 +13,7 @@ import {
     weekAnchor,
     weekCodeOf,
     weekLayout,
+    columnTemplate,
     weekStart,
 } from "../week";
 
@@ -232,5 +233,47 @@ describe("normalising what came out of storage", () => {
         expect(normaliseWeekStart(0)).toBe(1);
         expect(normaliseWeekStart("sunday")).toBe(1);
         expect(normaliseWeekStart(undefined)).toBe(1);
+    });
+});
+
+describe("named layouts (R14)", () => {
+    const workweek = [1, 2, 3, 4, 5] as const;
+    const days = (layout: ReturnType<typeof weekLayout>) => layout.columns.map((column) => column.days);
+
+    it("compressed stacks the days off together, as the board always has", () => {
+        expect(days(weekLayout([...workweek], true, 1, "compressed"))).toEqual([[1], [2], [3], [4], [5], [6, 7]]);
+    });
+
+    it("classic gives every day a column of its own", () => {
+        expect(days(weekLayout([...workweek], true, 1, "classic"))).toEqual([[1], [2], [3], [4], [5], [6], [7]]);
+    });
+
+    it("front-loaded widens the first three days and pairs the rest in a 2×2 grid", () => {
+        const layout = weekLayout([...workweek], true, 1, "front");
+
+        expect(days(layout)).toEqual([[1], [2], [3], [4, 6], [5, 7]]);
+        expect(layout.columns.map((column) => column.weight)).toEqual([2, 2, 2, 1, 1]);
+        expect(columnTemplate(layout)).toBe("minmax(0, 2fr) minmax(0, 2fr) minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr)");
+    });
+
+    it("front-loaded with three days or fewer is simply a column each", () => {
+        expect(days(weekLayout([1, 2, 3], false, 1, "front"))).toEqual([[1], [2], [3]]);
+    });
+
+    it("two rows puts the days and this week in one grid, read along the rows or down the columns", () => {
+        const rows = weekLayout([...workweek], true, 1, "rows");
+        const columns = weekLayout([...workweek], true, 1, "columns");
+
+        expect(rows.grid).toEqual({ cells: ["1", "2", "3", "4", "5", "6", "7", "0"], columnCount: 4, flow: "row" });
+        expect(columns.grid?.flow).toBe("column");
+    });
+
+    it("two rows shrinks to fit a shorter week", () => {
+        expect(weekLayout([...workweek], false, 1, "rows").grid?.columnCount).toBe(3);
+    });
+
+    it("respects the chosen working days and week start in every preset", () => {
+        expect(weekLayout([2, 3, 4, 5, 6], false, 2, "classic").visible).toEqual([2, 3, 4, 5, 6]);
+        expect(weekLayout([...workweek], true, 1, "compressed").grid).toBeNull();
     });
 });
