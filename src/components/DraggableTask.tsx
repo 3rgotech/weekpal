@@ -108,6 +108,15 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
         <div
           className="invisible group-hover:visible group-focus-within:visible"
           onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            // Ticked with a mouse, the card lets go of it: left selected and focused, the ring
+            // and the button stayed drawn over the day's finishing stroke. From the keyboard
+            // (`detail` 0) focus stays put, since that is where the next key goes.
+            if (event.detail > 0) {
+              setActiveTaskId(null);
+              (document.activeElement as HTMLElement | null)?.blur();
+            }
+          }}
         >
           <IconButton
             icon="check"
