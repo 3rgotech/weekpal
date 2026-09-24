@@ -10,6 +10,8 @@ import { boardDayOrder } from "../utils/week";
 import IconButton from "./IconButton";
 import { useData } from "../contexts/DataContext";
 import { isDayDone } from "../utils/dayDone";
+import WeekMark from "./WeekMark";
+import { isWeekDone } from "../utils/weekDone";
 
 interface DayNavProps {
   visibleDay: DayOfWeek;
@@ -130,7 +132,10 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
         />
       </div>
 
-      <div className="flex items-stretch gap-0.5 px-1 pb-1">
+      <div className="relative flex items-stretch gap-0.5 px-1 pb-1">
+        {/* R9 on a phone: the pills are the only place the week still exists, so the rule that
+            joins the finished days runs above them. */}
+        <WeekMark done={isWeekDone(allTasks, layout.visible)} shape="rule" />
         {buckets.map(pill)}
       </div>
     </nav>

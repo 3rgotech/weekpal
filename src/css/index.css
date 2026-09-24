@@ -209,6 +209,31 @@
     transition: transform 220ms linear;
 }
 
+/*
+| The full-week mark (R9): the same stroke as the day strike, slower because it travels further —
+| across the board, or all the way round its frame. Drawn once; afterwards it is ink.
+*/
+.week-mark {
+    opacity: 0.55;
+}
+
+.week-mark__stroke {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+
+.week-mark--rule .week-mark__stroke--drawing {
+    animation: day-strike-draw 600ms ease-out forwards;
+}
+
+.week-mark--frame .week-mark__stroke--drawing {
+    animation: day-strike-draw 900ms ease-out forwards;
+}
+
+.week-mark__stroke--drawn {
+    stroke-dashoffset: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
     /*
     | The end state, arrived at instantly.
@@ -222,7 +247,8 @@
         transition: none;
     }
 
-    .day-strike__line--drawing {
+    .day-strike__line--drawing,
+    .week-mark__stroke--drawing {
         animation: none;
         stroke-dashoffset: 0;
     }

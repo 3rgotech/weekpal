@@ -24,6 +24,8 @@ import { useTranslation } from "react-i18next";
 import useDayJs from "./utils/dayjs";
 import { Weekday, dateOfDay } from "./utils/week";
 import { dropOrder } from "./utils/taskMoves";
+import WeekMark from "./components/WeekMark";
+import { isWeekDone } from "./utils/weekDone";
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
@@ -32,7 +34,7 @@ const MainContent: React.FC<MainContentProps> = () => {
     settings: { dayHeaderFormat, weekStartsOn },
   } = useSettings();
   const { firstDayOfWeek, layout } = useCalendar();
-  const { tasks, moveTask, findTask, moveTaskToProject } = useData();
+  const { tasks, allTasks, moveTask, findTask, moveTaskToProject } = useData();
   const { open: openTaskModal } = useTaskModal();
   const dayjs = useDayJs();
   const [activeTask, setActiveTask] = useState<{
@@ -280,10 +282,17 @@ const MainContent: React.FC<MainContentProps> = () => {
               would otherwise need their spans recomputed from it, and an odd column count has
               no honest halves to span. */}
           <div
-            className="flex-[2] min-h-0 grid gap-2 xl:gap-4"
+            className="relative flex-[2] min-h-0 grid gap-2 xl:gap-4"
             style={{ gridTemplateColumns: `repeat(${layout.columnCount}, minmax(0, 1fr))` }}
             data-tour="days"
           >
+            {/* R9: off the unfiltered list, like the day strike — a week is not finished because
+                the categories on screen are. A rule when the days sit in one row; the frame when
+                some are stacked, since a horizontal stroke would have nothing to span. */}
+            <WeekMark
+              done={isWeekDone(allTasks, layout.visible)}
+              shape={layout.columns.every((column) => column.days.length === 1) ? "rule" : "frame"}
+            />
             {/* One element per column, whether it holds one day or a run of days that are not
                 worked — the weekend's stacked pair generalised. `min-h-0` is what makes a cell
                 scroll its own list: without it a grid item takes its content's height as a
