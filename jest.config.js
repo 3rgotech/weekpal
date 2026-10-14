@@ -4,17 +4,26 @@ module.exports = {
     "**/__tests__/**/*.+(ts|tsx|js)",
     "**/?(*.)+(spec|test).+(ts|tsx|js)",
   ],
+  // swc, not ts-jest: TypeScript 7 no longer ships the JS compiler API ts-jest is built on. Tests
+  // are transpiled only — type checking is `npm run tsc`'s job, as it already was under ts-jest
+  // with isolatedModules. swc hoists jest.mock() above the imports only when it is called on the
+  // global `jest`: a test that mocks modules must not import `jest` from @jest/globals, or its
+  // mocks run after the real modules have already loaded.
   transform: {
-    "^.+\\.(ts|tsx)$": [
-      "ts-jest",
+    "^.+\\.(t|j)sx?$": [
+      "@swc/jest",
       {
-        tsconfig: "tsconfig.json",
-      },
-    ],
-    "^.+\\.(js|jsx)$": [
-      "babel-jest",
-      {
-        configFile: "./babel.config.jest.js",
+        jsc: {
+          parser: { syntax: "typescript", tsx: true },
+          // tsconfig's "jsx": "react" — the classic runtime, React.createElement.
+          transform: {
+            react: { runtime: "classic" },
+            // import.meta only parses as ESM, and jest runs CommonJS. Vite's env lives in
+            // process.env under test, which src/utils/env.ts already falls back to.
+            optimizer: { globals: { vars: { "import.meta.env": "process.env" } } },
+          },
+        },
+        module: { type: "commonjs" },
       },
     ],
   },

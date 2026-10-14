@@ -1,5 +1,5 @@
 import "fake-indexeddb/auto";
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import TaskStore from "../TaskStore";
 import { ITaskAdapter, WeekSummary } from "../../types";
 
@@ -11,7 +11,7 @@ jest.mock("../../utils/connectivity", () => ({
     isReachable: jest.fn(() => true),
 }));
 
-const { isReachable } = jest.requireMock("../../utils/connectivity") as { isReachable: jest.Mock<() => boolean> };
+const { isReachable } = jest.requireMock("../../utils/connectivity") as { isReachable: jest.Mock<boolean, []> };
 
 const summary: WeekSummary = { week: "2026w36", done: 14, moved: 5, left: 2 };
 

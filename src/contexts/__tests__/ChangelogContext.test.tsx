@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { ChangelogProvider, useChangelog } from "../ChangelogContext";
 import { ChangelogEntry } from "../../types";
 
 const adapter = {
-    list: jest.fn<() => Promise<ChangelogEntry[]>>(),
-    markRead: jest.fn<() => Promise<void>>(),
+    list: jest.fn<Promise<ChangelogEntry[]>, []>(),
+    markRead: jest.fn<Promise<void>, []>(),
 };
 
 let provided: { changelogAdapter: typeof adapter | null; leftoversLoaded: boolean } = {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import DescriptionEditor from "../DescriptionEditor";
@@ -7,7 +7,7 @@ jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-const onChange = jest.fn<(value: string) => void>();
+const onChange = jest.fn<void, [string]>();
 
 const editor = (value = "") => render(
     <DescriptionEditor

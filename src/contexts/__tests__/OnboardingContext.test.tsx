@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { OnboardingProvider, useOnboarding } from "../OnboardingContext";
@@ -8,7 +8,7 @@ jest.mock("react-i18next", () => ({
     useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-const updateSettings = jest.fn<(patch: Record<string, unknown>) => void>();
+const updateSettings = jest.fn<void, [Record<string, unknown>]>();
 
 let settings = { onboardingVersion: 0 };
 let settingsLoaded = true;
