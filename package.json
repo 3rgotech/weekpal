@@ -80,7 +80,6 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.3",
     "vite-plugin-env-compatible": "^2.0.1",
-    "vite-tsconfig-paths": "^6.1.1",
     "web-vitals": "^6.2.1"
   }
 }

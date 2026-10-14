@@ -3,7 +3,6 @@ import { readFileSync, existsSync } from "node:fs";
 import { defineConfig, loadEnv, Plugin, createFilter, transformWithOxc } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import tsconfigPaths from "vite-tsconfig-paths";
 import envCompatible from 'vite-plugin-env-compatible';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -15,7 +14,6 @@ export default defineConfig(({ mode }) => {
 		plugins: [
 			tailwindcss(),
 			react(),
-			tsconfigPaths(),
 			envCompatible(),
 			envPlugin(),
 			devServerPlugin(),
