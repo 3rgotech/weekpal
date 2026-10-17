@@ -8,6 +8,7 @@ import BaseStore from "./BaseStore";
 import { deviceId } from "../utils/deviceId";
 import { newId } from "../utils/id";
 import { claimPosition, dirtyBetween } from "../utils/taskDirty";
+import { cachedEventsAreStale, markEventsFresh } from "../utils/calendarFence";
 
 class TaskStore extends BaseStore implements ITaskStore {
 
@@ -250,6 +251,13 @@ class TaskStore extends BaseStore implements ITaskStore {
      * never a local edit to protect.
      */
     private async reconcileEvents(weekCode: string, events: Event[]): Promise<void> {
+        // A calendar changed since these were cached: every week's events may belong to one that
+        // is gone, not only this week's. The other weeks refill as they are opened.
+        if (cachedEventsAreStale()) {
+            await this.db.events.clear();
+            markEventsFresh();
+        }
+
         const stale = (await this.db.events.where('weekCode').equals(weekCode).toArray())
             .map((event) => event.id);
 

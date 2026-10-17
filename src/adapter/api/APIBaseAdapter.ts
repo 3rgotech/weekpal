@@ -1,6 +1,7 @@
 import ky from 'ky';
 import { boardToken, refreshBoardToken } from '../../utils/boardToken';
 import { checkBuildFence } from '../../utils/buildFence';
+import { checkCalendarFence } from '../../utils/calendarFence';
 import { lastSyncedAt } from '../../utils/resyncFence';
 
 export abstract class APIBaseAdapter {
@@ -57,6 +58,7 @@ export abstract class APIBaseAdapter {
                         // On every response, including the ones that fail: a stale tab's
                         // requests are exactly the ones most likely to be rejected.
                         checkBuildFence(response);
+                        checkCalendarFence(response);
 
                         if (response.status !== 401 || request.headers.get('X-WeekPal-Retried')) {
                             return response;

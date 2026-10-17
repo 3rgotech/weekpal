@@ -1,5 +1,6 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
 import { subscribeToTabMessages } from "../utils/tabLeader";
+import { subscribeToCalendarChanges } from "../utils/calendarFence";
 import { recoverableTasks } from "../utils/recovery";
 import { dayShares } from "../utils/dayLoad";
 import { boardDayOrder } from "../utils/week";
@@ -479,8 +480,29 @@ const DataProvider: React.FC<DataProviderProps> = ({
       if (categoryStore) {
         void categoryStore.list().then(setCategories);
       }
+
+      // The leader may have dropped events with a removed calendar (see calendarFence.ts).
+      void eventStore.list(currentWeek).then(setEvents);
     });
-  }, [taskStore, categoryStore, currentWeek]);
+  }, [taskStore, categoryStore, eventStore, currentWeek]);
+
+  /*
+   * A calendar was added, re-filed or removed elsewhere. The fence has already lifted the pull
+   * throttle; re-reading the week pulls it, and the pull drops the stale events.
+   */
+  useEffect(() => {
+    return subscribeToCalendarChanges(() => {
+      if (!taskStore) {
+        return;
+      }
+
+      void taskStore.list(currentWeek).then((weekTasks) => {
+        setTasks(weekTasks);
+
+        return eventStore.list(currentWeek).then(setEvents);
+      });
+    });
+  }, [taskStore, eventStore, currentWeek]);
 
   const findTask = (taskId: string) => {
     return tasks.find((task) => task.id === taskId)

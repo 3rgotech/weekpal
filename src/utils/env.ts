@@ -46,6 +46,8 @@ declare global {
          * would otherwise be told to reload continuously.
          */
         BUILD_ID?: string;
+        /** Which version of the account's calendars the page saw. See `calendarFence.ts`. */
+        CALENDARS_VERSION?: string | null;
     }
 }
 

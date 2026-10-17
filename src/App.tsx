@@ -32,6 +32,7 @@ import { startTabLeadership } from "./utils/tabLeader";
 import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
+import { noteCalendarsVersion } from "./utils/calendarFence";
 import { startMonitoring } from "./utils/monitoring";
 import { ProTeaserProvider } from "./contexts/ProTeaserContext";
 import ProTeaserBar from "./components/ProTeaserBar";
@@ -70,6 +71,10 @@ function App() {
     // in, and the first read happens as soon as a store pulls.
     configureBoardToken(env.apiKey, env.tokenUrl);
     configureBuildFence(env.buildId);
+
+    // Before the first pull, so a calendar removed since this browser last looked takes its
+    // events with it on this load rather than on the next one.
+    noteCalendarsVersion(window.CALENDARS_VERSION);
 
     // Claim the sync lock here too, and for the same reason: `SyncService` is built by the first
     // store a child creates, and a tab that has not decided whether it leads by then would flush
