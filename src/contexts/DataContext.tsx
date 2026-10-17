@@ -442,20 +442,27 @@ const DataProvider: React.FC<DataProviderProps> = ({
   };
 
   useEffect(() => {
-    if (taskStore) {
-      taskStore.list(currentWeek).then((dbTasks) => {
+    // Events after tasks, not beside them: the task pull is what writes the week's events, so
+    // reading them in parallel showed whatever was cached before it, and a calendar removed
+    // since stayed on screen until something else made the board read them again.
+    const tasksPulled = taskStore
+      ? taskStore.list(currentWeek).then((dbTasks) => {
         setTasks(dbTasks);
-      });
-    }
+      })
+      : Promise.resolve();
+
     if (categoryStore) {
       categoryStore.list().then((dbCategories) => {
         setCategories(dbCategories);
       });
     }
     if (eventStore) {
-      eventStore.list(currentWeek).then((dbEvents) => {
-        setEvents(dbEvents);
-      });
+      void tasksPulled
+        .catch(() => undefined)
+        .then(() => eventStore.list(currentWeek))
+        .then((dbEvents) => {
+          setEvents(dbEvents);
+        });
     }
   }, [taskStore, categoryStore, eventStore, currentWeek, selectedCategories]);
 
