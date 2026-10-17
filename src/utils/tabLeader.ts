@@ -27,13 +27,18 @@ const CHANNEL_NAME = 'weekpal-tabs';
  * `flush`: a follower has queued a write and wants the leader to send it now, rather than at
  * whatever the leader's next trigger would have been.
  *
+ * `calendars`: a calendar was added, re-filed or removed on the host's Settings page, which is
+ * on the same origin and posts to this channel. Every board tab drops its cached events.
+ *
  * `changed`: the leader has pulled or written back, so the shared database no longer matches
  * what a follower is showing. Followers re-read Dexie; nothing is sent with the message, because
  * the database *is* the message and shipping a copy of a row invites the two to disagree.
  */
 export type TabMessage =
     | { kind: 'flush' }
-    | { kind: 'changed' };
+    | { kind: 'changed' }
+    /** Posted by the host's Settings → Calendars page, not by a board tab. See calendarFence.ts. */
+    | { kind: 'calendars'; version: string };
 
 type LeadershipListener = (isLeader: boolean) => void;
 type MessageListener = (message: TabMessage) => void;

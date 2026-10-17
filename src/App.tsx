@@ -28,11 +28,11 @@ import AdapterFactory from "./adapter";
 import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProjectAdapter } from "./types";
 import { getEnvConfig } from "./utils/env";
 import { configureConnectivity } from "./utils/connectivity";
-import { startTabLeadership } from "./utils/tabLeader";
+import { startTabLeadership, subscribeToTabMessages } from "./utils/tabLeader";
 import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
-import { noteCalendarsVersion } from "./utils/calendarFence";
+import { calendarsChangedElsewhere, noteCalendarsVersion } from "./utils/calendarFence";
 import { startMonitoring } from "./utils/monitoring";
 import { ProTeaserProvider } from "./contexts/ProTeaserContext";
 import ProTeaserBar from "./components/ProTeaserBar";
@@ -80,6 +80,11 @@ function App() {
     // store a child creates, and a tab that has not decided whether it leads by then would flush
     // its opening writes regardless of how many other tabs are already open.
     startTabLeadership();
+    subscribeToTabMessages((message) => {
+      if (message.kind === "calendars") {
+        calendarsChangedElsewhere(message.version);
+      }
+    });
   }, []);
 
   const [indexedDBAvailable, setIndexedDBAvailable] = useState(true);

@@ -43,8 +43,8 @@ function write(key: string, value: string | null): void {
  * Absent is never news: a demo board, the offline shell and a server without the header all say
  * nothing, and saying nothing must not wipe a working cache.
  */
-export function noteCalendarsVersion(version: string | null | undefined): boolean {
-    if (!version || read(VERSION_KEY) === version) {
+export function noteCalendarsVersion(version: string | null | undefined, force = false): boolean {
+    if (!version || (!force && read(VERSION_KEY) === version)) {
         return false;
     }
 
@@ -58,6 +58,17 @@ export function noteCalendarsVersion(version: string | null | undefined): boolea
     }
 
     return true;
+}
+
+/**
+ * The host's Settings page changed a calendar while this tab was open.
+ *
+ * Forced, because the version lives in localStorage, which every tab shares: the first tab to
+ * hear would record it, and every other open tab would then find it already known and go on
+ * showing the removed calendar's events. Each tab re-reads its own week instead.
+ */
+export function calendarsChangedElsewhere(version: string): void {
+    noteCalendarsVersion(version, true);
 }
 
 /** Compare a response's calendars version against the last one seen. */
