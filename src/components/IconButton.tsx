@@ -11,6 +11,8 @@ interface IconButtonProps {
   icon: keyof typeof icons;
   /** A tooltip is not an accessible name — buttons that are icon-only need this too. */
   'aria-label'?: string;
+  /** For a button whose action takes a moment, such as the week refresh. */
+  'aria-busy'?: boolean;
   onClick?: () => void;
   size?: "xs" | "sm" | "md";
   iconClass?: string;

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useData } from "../contexts/DataContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import IconButton from "./IconButton";
 import { useSettings } from "../contexts/SettingsContext";
@@ -13,6 +14,18 @@ const WeekSelector: React.FC = () => {
   const { currentDate, goToPreviousWeek, goToNextWeek, goToToday } =
     useCalendar();
   const dayjs = useDayJs(settings.language);
+  const { reloadBoard } = useData();
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Ignored while one is running: a second press would only queue the same requests again.
+  const refresh = () => {
+    if (refreshing) {
+      return;
+    }
+
+    setRefreshing(true);
+    void reloadBoard().finally(() => setRefreshing(false));
+  };
 
   const [title1, title2] = weekHeaderLabel(
     dayjs(currentDate).format(settings.weekHeaderFormat),
@@ -49,6 +62,15 @@ const WeekSelector: React.FC = () => {
       >
         {t("main.today")}
       </button>
+      <IconButton
+        icon="refresh"
+        onClick={refresh}
+        iconClass={`${ICON_BUTTON_CLASS} ${refreshing ? "animate-spin" : ""}`}
+        wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+        tooltip={t("actions.refresh_week")}
+        aria-label={t("actions.refresh_week")}
+        aria-busy={refreshing}
+      />
     </div>
   );
 };

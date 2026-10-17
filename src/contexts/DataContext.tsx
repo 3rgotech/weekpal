@@ -356,9 +356,21 @@ const DataProvider: React.FC<DataProviderProps> = ({
     }
   }, [categoryStore]);
 
+  /*
+   * Read the week again from the server, now: after an import, and from the refresh button.
+   *
+   * The stores pull at most once every five minutes, which is exactly wrong when someone has
+   * just asked. Queued edits go first, so the answer includes them rather than overwriting what
+   * is on screen with the server's older copy; offline, that send does nothing and the board is
+   * read from what it holds. Events last, because the task pull is what writes them.
+   */
   const reloadBoard = async () => {
-    // The stores pull at most once every five minutes; an import has just written straight to the
-    // server, so that throttle is exactly wrong here.
+    try {
+      await taskStore?.syncPendingChanges();
+    } catch {
+      // The queue retries on its own; a refresh must still read what there is.
+    }
+
     BaseStore.resetThrottle("tasks", "categories", "projects");
 
     if (categoryStore) {
@@ -368,6 +380,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
     if (taskStore) {
       setTasks(await taskStore.list(currentWeek));
     }
+
+    setEvents(await eventStore.list(currentWeek));
   };
 
   const saveCategory = async (category: Category) => {

@@ -88,7 +88,8 @@
     "close": "Fermer",
     "show": "Afficher",
     "hide": "Masquer",
-    "share": "Partager cette semaine"
+    "share": "Partager cette semaine",
+    "refresh_week": "Actualiser cette semaine"
   },
   "category": {
     "help": "Tout est affiché. Cliquez sur une catégorie pour la masquer, ou isolez-en une.",
