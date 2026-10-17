@@ -32,6 +32,7 @@ import { startTabLeadership } from "./utils/tabLeader";
 import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
+import { startMonitoring } from "./utils/monitoring";
 import { ProTeaserProvider } from "./contexts/ProTeaserContext";
 import ProTeaserBar from "./components/ProTeaserBar";
 
@@ -58,6 +59,10 @@ function App() {
   // in `useEffect` left `SyncStatusIndicator` probing before it knew where the API was — and
   // silently treating the board as reachable because no URL was set.
   useMemo(() => {
+    // First, so a failure in anything below is reported. Not at module load: the host page sets
+    // its window globals after the bundle's script tag has run.
+    startMonitoring();
+
     const env = getEnvConfig();
     configureConnectivity({ baseApiUrl: env.baseApiUrl, dataSource: env.dataSource });
 

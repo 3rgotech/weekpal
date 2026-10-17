@@ -1,3 +1,4 @@
+import { setMonitoringUser } from "../utils/monitoring";
 import React, { createContext, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { Account } from "../types";
 import AdapterFactory from "../adapter";
@@ -44,6 +45,9 @@ const AccountProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
             .then((loaded) => {
                 if (!cancelled) {
                     setAccount(loaded);
+                    // The page names the account too, but a board started offline from the
+                    // cached shell only learns it here.
+                    setMonitoringUser(loaded.id);
                 }
             })
             .catch((error) => {

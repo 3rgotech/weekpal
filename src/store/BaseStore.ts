@@ -1,3 +1,4 @@
+import { setOutboxReader } from "../utils/monitoring";
 import SyncService from "../utils/SyncService";
 import { ICategoryAdapter, INoteAdapter, IProjectAdapter, ITaskAdapter, PendingChange } from "../types";
 import { WeekpalDB } from "./db";
@@ -42,6 +43,13 @@ class BaseStore {
     constructor(kind: keyof AdapterRegistry | null, adapter?: ITaskAdapter | ICategoryAdapter | IProjectAdapter | INoteAdapter | null) {
         BaseStore.database ??= new WeekpalDB();
         this.db = BaseStore.database;
+
+        // Error reports carry the outbox's size; this is the one place that owns the database.
+        const db = BaseStore.database;
+        setOutboxReader(async () => ({
+            pending: await db.pendingChanges.filter((change) => !change.deadLettered).count(),
+            deadLetters: await db.pendingChanges.filter((change) => change.deadLettered === true).count(),
+        }));
 
         if (kind !== null) {
             BaseStore.adapters = { ...BaseStore.adapters, [kind]: adapter ?? null };
