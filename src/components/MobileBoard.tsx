@@ -17,7 +17,8 @@ import NewTask from "./NewTask";
 import VirtualTaskList from "./VirtualTaskList";
 import CapacityBar from "./CapacityBar";
 import BatchEstimateStack from "./BatchEstimateStack";
-import DayShareBar from "./DayShareBar";
+import DayProgressBar from "./DayProgressBar";
+import { dayProgress } from "../utils/dayProgress";
 import { unestimatedIn } from "../utils/batchEstimate";
 import { boardDayOrder } from "../utils/week";
 
@@ -39,7 +40,7 @@ const MobileBoard: React.FC = () => {
   const dayjs = useDayJs(settings.language);
   const {
     tasks, allTasks, events, categories,
-    estimatingDay, startEstimating, stopEstimating, estimateTask, dayShare,
+    estimatingDay, startEstimating, stopEstimating, estimateTask,
   } = useData();
   const { dateOf, layout } = useCalendar();
 
@@ -163,12 +164,11 @@ const MobileBoard: React.FC = () => {
           )}
         </div>
 
-        {/* The slots once a limit is set; otherwise the same rail as the wide board. A one-day
-            board cannot show the week, so this is the only place it can say "and this is the
-            heavy one" — the question the glance asks and the day's own count cannot answer. */}
+        {/* The slots once a limit is set; otherwise how far through its tasks the day is, as on
+            the wide board. */}
         {worstGauge(gauges)
           ? <CapacityBar gauges={gauges} isToday={isToday} className="pr-0" />
-          : <DayShareBar share={dayShare?.get(visibleDay) ?? null} level="ok" />}
+          : <DayProgressBar progress={dayProgress(allTasks, visibleDay)} isToday={isToday} className="pr-0" />}
       </header>
 
       {/* The stack replaces the list while a run is on: on a phone the column *is* the screen,

@@ -31,7 +31,6 @@ const data = {
     deleteTask: jest.fn(),
     // The real provider always supplies this. Mocked here so the board is exercised against the
     // shape it actually receives rather than against a convenient subset.
-    dayShare: new Map<string, number>(),
 };
 
 const modal = { open: jest.fn(), openNewTask: jest.fn() };

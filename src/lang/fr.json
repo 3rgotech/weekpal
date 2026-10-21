@@ -320,7 +320,8 @@
   },
   "capacity": {
     "planned": "Prévu : {{planned}} sur {{limit}}",
-    "category": "{{name}} : {{planned}} sur {{limit}}"
+    "category": "{{name}} : {{planned}} sur {{limit}}",
+    "progress": "Tâches terminées : {{done}} sur {{total}}"
   },
   "limits": {
     "full": "Cette colonne est pleine",

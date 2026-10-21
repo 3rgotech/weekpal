@@ -5,6 +5,7 @@ import { DayOfWeek } from "../types";
 import DraggableTask from "./DraggableTask";
 import { useDroppable, useDndContext } from "@dnd-kit/core";
 import TaskListHeader from "./TaskListHeader";
+import { dayProgress } from "../utils/dayProgress";
 import VirtualTaskList from "./VirtualTaskList";
 import NewTask from "./NewTask";
 import { useCalendar } from "../contexts/CalendarContext";
@@ -45,7 +46,7 @@ const TaskList: React.FC<TaskProps> = ({
   const { subscribed } = useAccount();
   const {
     tasks, allTasks, events, categories,
-    estimatingDay, startEstimating, stopEstimating, estimateTask, dayShare,
+    estimatingDay, startEstimating, stopEstimating, estimateTask,
   } = useData();
   const { activeTaskId, setActiveTaskId } = useShortcuts();
   const dayjs = useDayJs(settings.language);
@@ -301,7 +302,7 @@ const TaskList: React.FC<TaskProps> = ({
           startEstimating(dayOfWeek);
         } : undefined}
         estimating={estimating}
-        share={dayShare?.get(dayOfWeek) ?? null}
+        progress={dayProgress(allTasks, dayOfWeek)}
       />
       {/* `showEvents` had been declared in the settings type and read by nothing since the
           board was written, so the switch existed and did not work. */}

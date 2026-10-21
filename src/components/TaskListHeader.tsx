@@ -11,7 +11,8 @@ import { DayHours } from "../utils/hours";
 import Task from "../data/task";
 import { useTranslation } from "react-i18next";
 import { Gauge, worstGauge } from "../utils/capacity";
-import DayShareBar from "./DayShareBar";
+import DayProgressBar from "./DayProgressBar";
+import { DayProgress } from "../utils/dayProgress";
 
 interface TaskListHeaderProps {
   title: string;
@@ -35,8 +36,8 @@ interface TaskListHeaderProps {
   onEstimate?: () => void;
   /** True while this column is the one being estimated. */
   estimating?: boolean;
-  /** This day's load against the heaviest day on screen, or null where there is nothing to compare. */
-  share?: number | null;
+  /** The day's tasks and how many are done, or null where there is nothing to show. */
+  progress?: DayProgress | null;
 }
 
 const TaskListHeader: React.FC<TaskListHeaderProps> = ({
@@ -50,7 +51,7 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
   hours = null,
   onEstimate,
   estimating = false,
-  share = null,
+  progress = null,
 }) => {
   const { openNewTask } = useTaskModal();
   const { t } = useTranslation();
@@ -161,10 +162,11 @@ const TaskListHeader: React.FC<TaskListHeaderProps> = ({
 
       {/* Under the name rather than behind the tasks: *(rt §10)* nothing is painted behind text,
           because a wash is a readability tax paid all day for a signal wanted for one second.
-          The slots when the day has a limit; otherwise the day's weight against the heaviest. */}
+          The slots against the limit when the day has one; otherwise how far through its tasks
+          the day is. */}
       {hasLimit
         ? <CapacityBar gauges={gauges} isToday={isToday} />
-        : <DayShareBar share={share} level="ok" />}
+        : <DayProgressBar progress={progress} isToday={isToday} />}
     </div>
   );
 };

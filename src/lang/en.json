@@ -320,7 +320,8 @@
   },
   "capacity": {
     "planned": "Planned: {{planned}} of {{limit}}",
-    "category": "{{name}}: {{planned}} of {{limit}}"
+    "category": "{{name}}: {{planned}} of {{limit}}",
+    "progress": "Tasks done: {{done}} of {{total}}"
   },
   "limits": {
     "full": "That column is full",
