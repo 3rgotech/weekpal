@@ -123,7 +123,8 @@ const PANEL_CLASS =
  */
 const SettingsModal: React.FC = () => {
     const { t } = useTranslation();
-    const proUrl = getEnvConfig().proUrl;
+    const { proUrl, pricingUrl } = getEnvConfig();
+    const proLineUrl = pricingUrl ?? proUrl;
     const { subscribed } = useAccount();
     const { settings, updateSettings, settingsOverlay: overlay, closeSettingsModal } = useSettings();
     const { available: changelogAvailable, openChangelog } = useChangelog();
@@ -636,9 +637,9 @@ const SettingsModal: React.FC = () => {
                                 {/* The one line about Pro (R5). A link, not a prompt: the board
                                     sells nothing, and this is where someone looking for the tier
                                     looks. */}
-                                {proUrl && (
+                                {proLineUrl && (
                                     <a
-                                        href={proUrl}
+                                        href={proLineUrl}
                                         target="_blank"
                                         rel="noopener"
                                         className="underline underline-offset-2 text-wp-fg-secondary hover:text-wp-fg"

@@ -31,6 +31,14 @@ declare global {
          */
         PRO_URL?: string;
         /**
+         * The pricing section of the host application's landing page.
+         *
+         * Where the settings line about Pro opens: the plans side by side, rather than the Pro
+         * page the post-review teaser opens at its Avoidance Report section. Absent when the board
+         * runs standalone, and the line then falls back to the Pro page.
+         */
+        PRICING_URL?: string;
+        /**
          * Where the board asks for a new bearer token when its own expires.
          *
          * Set by the Blade view that embeds the board, and absent in demo and test mode, which
@@ -59,6 +67,7 @@ export interface EnvConfig {
     signupUrl: Url;
     loginUrl: Url;
     proUrl: Url;
+    pricingUrl: Url;
     tokenUrl: Url;
     buildId: string | undefined;
 }
@@ -71,6 +80,7 @@ export function getEnvConfig(): EnvConfig {
     let signupUrl: Url;
     let loginUrl: Url;
     let proUrl: Url;
+    let pricingUrl: Url;
     let tokenUrl: Url;
     let buildId: string | undefined;
 
@@ -97,6 +107,10 @@ export function getEnvConfig(): EnvConfig {
 
         if (window.PRO_URL) {
             proUrl = window.PRO_URL;
+        }
+
+        if (window.PRICING_URL) {
+            pricingUrl = window.PRICING_URL;
         }
 
         if (window.TOKEN_URL) {
@@ -145,5 +159,5 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, proUrl, tokenUrl, buildId };
+    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, proUrl, pricingUrl, tokenUrl, buildId };
 }
