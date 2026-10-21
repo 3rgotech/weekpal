@@ -161,3 +161,27 @@ describe("what IndexedDB will store", () => {
         expect(new WeeklyTask(stored).weekCode).toBe("2026w35");
     });
 });
+
+describe("Task.update", () => {
+  const weekly = () => new WeeklyTask({ title: "Plan", weekCode: "2026w43", dayOfWeek: "3", order: 0, subtasks: [] });
+
+  it("moves the task into a project, and out of it again", () => {
+    // The editor's project picker sent this field and update() dropped it: the category the
+    // project implies was saved, the project never was.
+    const task = weekly();
+
+    task.update({ projectId: "01930000-0000-7000-8000-0000000000aa" });
+    expect(task.projectId).toBe("01930000-0000-7000-8000-0000000000aa");
+
+    task.update({ projectId: null });
+    expect(task.projectId).toBeNull();
+  });
+
+  it("leaves the project alone when the field is not mentioned", () => {
+    const task = weekly();
+    task.update({ projectId: "01930000-0000-7000-8000-0000000000aa" });
+
+    task.update({ title: "Plan the week" });
+    expect(task.projectId).toBe("01930000-0000-7000-8000-0000000000aa");
+  });
+});

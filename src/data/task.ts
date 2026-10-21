@@ -10,6 +10,8 @@ interface TaskUpdateData {
     subtasks?: Array<Subtask>;
     /** Null is a real value here — it is the user clearing an estimate, not omitting one. */
     estimatedMinutes?: number | null;
+    /** Null is a real value here too — it takes the task out of its project. */
+    projectId?: string | null;
 }
 
 abstract class Task extends Base {
@@ -62,6 +64,11 @@ abstract class Task extends Base {
          */
         if (data.estimatedMinutes !== undefined) {
             this.estimatedMinutes = data.estimatedMinutes;
+        }
+        // Missing until the editor began saving as you go: picking a project there changed the
+        // category it implies, and never the project itself.
+        if (data.projectId !== undefined) {
+            this.projectId = data.projectId;
         }
     }
 
