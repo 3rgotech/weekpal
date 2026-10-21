@@ -103,9 +103,11 @@ const SELECT_CLASS = "w-full";
 
 /*
  * Each tab scrolls on its own under a fixed header and footer: the limits tab is the longest, and
- * scrolling the tabs away with it would leave nothing saying which tab you are on.
+ * scrolling the tabs away with it would leave nothing saying which tab you are on. The safe areas
+ * come off too: the dialog is kept clear of them, and the panel must leave the footer room.
  */
-const PANEL_CLASS = "mt-0 px-6 pt-1.5 pb-2.5 max-h-[calc(100dvh-16rem)] overflow-y-auto";
+const PANEL_CLASS =
+    "mt-0 px-6 pt-1.5 pb-2.5 max-h-[calc(100dvh-16rem-env(safe-area-inset-top)-env(safe-area-inset-bottom))] overflow-y-auto";
 
 /**
  * The settings dialog.

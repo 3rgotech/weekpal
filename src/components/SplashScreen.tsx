@@ -93,7 +93,7 @@ const SplashScreen = () => {
 
   return (
     <div
-      className="flex flex-col items-center justify-center h-screen w-screen bg-wp-bg"
+      className="flex flex-col items-center justify-center h-dvh w-screen bg-wp-bg"
       id="splash-screen"
     >
       <div

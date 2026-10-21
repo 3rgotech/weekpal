@@ -285,6 +285,19 @@ body {
         color: var(--wp-fg);
     }
 
+    /* HeroUI keeps 16px (40px from `sm`) around a dialog, which on a phone put the top of a tall
+       one — its heading and its close button — under the status bar, where nothing can be tapped.
+       Never less than the device's safe areas, then. */
+    .modal__container:not(.modal__container--full) {
+        padding-top: max(1rem, env(safe-area-inset-top));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+
+        @variant sm {
+            padding-top: max(2.5rem, env(safe-area-inset-top));
+            padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+        }
+    }
+
     .modal__heading {
         font-size: 18px;
         font-weight: 700;

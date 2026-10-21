@@ -23,7 +23,7 @@ const CannotLoadTheApp: React.FC<CannotLoadTheAppProps> = ({ reason }) => {
 
     // Default error message
     return (
-        <div className="h-screen w-screen flex items-center justify-center bg-wp-bg text-wp-fg">
+        <div className="h-dvh w-screen flex items-center justify-center bg-wp-bg text-wp-fg">
             <div className="flex flex-col justify-center gap-y-4 w-full max-w-xl">
                 <Logo />
                 <Alert status="danger">
