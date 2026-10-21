@@ -198,7 +198,8 @@
       "ordered": "Liste numérotée",
       "quote": "Citation",
       "hint": "Markdown : **gras**, *italique*, - listes, [liens](https://…)"
-    }
+    },
+    "autosaved": "Les changements sont enregistrés automatiquement"
   },
   "misc": {
     "of": "de",

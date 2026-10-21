@@ -208,7 +208,8 @@
       "ordered": "Numbered list",
       "quote": "Quote",
       "hint": "Markdown: **bold**, *italic*, - lists, [links](https://…)"
-    }
+    },
+    "autosaved": "Changes save automatically"
   },
   "misc": {
     "of": "of",

@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import React, { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import {
   Button,
   Input,
@@ -22,10 +22,19 @@ import DescriptionEditor from "../components/DescriptionEditor";
 import EstimatePicker from "../components/EstimatePicker";
 import TaskMenu from "../components/TaskMenu";
 import { useVerticalLayout } from "../utils/layout";
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 
 /** A field's name in the editor: small, heavy and secondary, so the values are what is read. */
 const FIELD_LABEL_CLASS = "text-xs font-semibold text-wp-fg-secondary";
+
+/** How long typing may pause before an existing task's edits are saved. */
+const AUTOSAVE_DELAY = 700;
+
+/** The fields of `next` that differ from `previous`. */
+const changedFields = (previous: Record<string, any>, next: Record<string, any>): Record<string, any> =>
+  Object.fromEntries(
+    Object.entries(next).filter(([field, value]) => JSON.stringify(value) !== JSON.stringify(previous[field])),
+  );
 
 interface TaskModalContextProps {
   task: Task | null;
@@ -47,10 +56,14 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const vertical = useVerticalLayout();
   const overlay = useOverlayState();
   const { isOpen } = overlay;
+  /** What the editor last wrote to the task, so a save carries only what changed since. */
+  const saved = useRef<Record<string, any>>({});
 
   const open = (task: Task) => {
+    const serialized = task.serialize();
     setTask(task);
-    setData(task.serialize());
+    setData(serialized);
+    saved.current = serialized;
     setMode("EDIT");
     overlay.open();
   };
@@ -71,15 +84,54 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setMode(null);
   }
 
-  useEffect(() => {
-    // Throttle the data update to avoid too many re-renders
-    // TODO : store updated task
-    // const timeout = setTimeout(() => {
-    //   console.log('data updated', data);
-    // }, 500);
+  /*
+   * An existing task saves as it is edited: a short pause after typing, and on the way out.
+   *
+   * Only the fields changed since the last save are written, never the whole form. The ⋮ menu
+   * can move or delete the task while the editor is open, and a form snapshot written after a
+   * move would put the task back on the day it was opened on. A title emptied on the way to a
+   * new one is not saved — the rest of the change is.
+   *
+   * A new task still waits for its Save button: saving as you type would create one, and an
+   * editor closed half-way would leave an untitled task behind.
+   */
+  const persist = (current: Record<string, any>) => {
+    if (!task || mode !== "EDIT") {
+      return;
+    }
 
-    // return () => clearTimeout(timeout);
+    const changes = changedFields(saved.current, current);
+
+    if ("title" in changes && !`${changes.title ?? ""}`.trim()) {
+      delete changes.title;
+    }
+
+    if (Object.keys(changes).length === 0) {
+      return;
+    }
+
+    task.update(changes);
+    updateTask(task);
+    saved.current = { ...saved.current, ...changes };
+  };
+
+  useEffect(() => {
+    if (mode !== "EDIT") {
+      return;
+    }
+
+    const timeout = setTimeout(() => persist(data), AUTOSAVE_DELAY);
+
+    return () => clearTimeout(timeout);
   }, [data]);
+
+  // Closed by the backdrop or Escape rather than by a button of ours: what was typed is kept.
+  useEffect(() => {
+    if (!isOpen && mode === "EDIT") {
+      persist(data);
+      reset();
+    }
+  }, [isOpen]);
 
   const updateField = (field: keyof Task) => (value: string | Key | null) => {
     let transformedValue;
@@ -98,22 +150,26 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setData(prevData => ({ ...prevData, [field]: transformedValue }));
   }
 
+  /** Adds a new task. An existing one has already saved itself. */
   const saveTask = () => {
     if (!task) {
       return;
     }
     task.update(data);
-    if (mode === "CREATE") {
-      addTask(task as WeeklyTask | SomedayTask);
-    }
-    if (mode === "EDIT") {
-      updateTask(task);
-    }
+    addTask(task as WeeklyTask | SomedayTask);
     overlay.close();
     reset();
   }
 
+  /** Closes the editor, keeping an existing task's edits and dropping a new task. */
   const closeTask = () => {
+    persist(data);
+    overlay.close();
+    reset();
+  };
+
+  /** Closes after a ⋮ menu action, which saved the edits first and may have deleted the task. */
+  const dismissTask = () => {
     overlay.close();
     reset();
   };
@@ -141,7 +197,7 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                       vertical layout either, where the row this modal was opened from carries the
                       same menu — two ⋮ for one task is a question about which one differs. */}
                   {mode === "EDIT" && !vertical && (
-                    <TaskMenu task={task} onAction={closeTask} />
+                    <TaskMenu task={task} onBeforeAction={() => persist(data)} onAction={dismissTask} />
                   )}
                   <button
                     type="button"
@@ -256,13 +312,26 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 )}
               </Modal.Body>
               <Modal.Footer className="mt-0 gap-2.5 border-t border-wp-border px-5 pt-3 pb-[22px] sm:pb-4">
-                {/* TODO : save on change */}
-                <Button variant="secondary" className="flex-1" onPress={closeTask}>
-                  {t('actions.cancel')}
-                </Button>
-                <Button variant="primary" className="flex-1" onPress={saveTask}>
-                  {t('actions.save')}
-                </Button>
+                {mode === "EDIT" ? (
+                  <>
+                    <span className="flex flex-1 items-center gap-1.5 text-xs font-medium text-wp-muted">
+                      <Check size={14} aria-hidden="true" />
+                      {t('task.autosaved')}
+                    </span>
+                    <Button variant="secondary" onPress={closeTask}>
+                      {t('actions.close')}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="secondary" className="flex-1" onPress={closeTask}>
+                      {t('actions.cancel')}
+                    </Button>
+                    <Button variant="primary" className="flex-1" onPress={saveTask}>
+                      {t('actions.save')}
+                    </Button>
+                  </>
+                )}
               </Modal.Footer>
             </>
           )}

@@ -49,6 +49,8 @@ const MOVE_ICONS: Record<TaskMove, React.ComponentType<{ size?: number; classNam
 
 interface TaskMenuProps {
   task: Task;
+  /** Called before any action — the modal saves what is typed, so the action sees it. */
+  onBeforeAction?: () => void;
   /** Called after any action that settles the task — the modal uses it to close itself. */
   onAction?: () => void;
   size?: number;
@@ -67,7 +69,7 @@ interface TaskMenuProps {
  * Each destination that is a date says which one — "Tomorrow · 25 Sep" — so the choice is made
  * against the calendar rather than against a mental count of days.
  */
-const TaskMenu: React.FC<TaskMenuProps> = ({ task, onAction, size = 16, triggerClassName }) => {
+const TaskMenu: React.FC<TaskMenuProps> = ({ task, onBeforeAction, onAction, size = 16, triggerClassName }) => {
   const { t } = useTranslation();
   const dayjs = useDayJs();
   const { relocateTask, duplicateTask, deleteTask } = useData();
@@ -99,6 +101,7 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onAction, size = 16, triggerC
   };
 
   const run = async (action: () => void | Promise<void>) => {
+    onBeforeAction?.();
     await action();
     onAction?.();
   };
