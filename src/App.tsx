@@ -215,6 +215,12 @@ function App() {
                   <SplashScreen />
                 ) : (
                   <div className="h-dvh flex flex-col items-stretch overflow-hidden bg-wp-bg text-wp-fg print:hidden">
+                    {/* Paints nothing new: the top bar's own colour, over the bar's empty top
+                        padding. It is here for iOS 26, which blurs the top edge of an installed
+                        app unless a fixed, full-width box more than 10px tall paints that edge in
+                        one solid colour — then it extends that colour instead. The header itself
+                        sits in the flow and does not count. */}
+                    <div aria-hidden="true" className="fixed inset-x-0 top-0 h-[calc(12px+env(safe-area-inset-top))] bg-wp-chrome pointer-events-none" />
                     <header className="flex-none">
                       {/* The review the inbox button opens is state in `ShortcutsProvider`
                           now — the same state `i` toggles — so neither bar is handed a callback
