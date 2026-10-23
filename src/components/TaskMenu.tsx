@@ -54,8 +54,14 @@ interface TaskMenuProps {
   /** Called after any action that settles the task — the modal uses it to close itself. */
   onAction?: () => void;
   size?: number;
-  /** The trigger's own look, where it sits: a bare glyph in the modal header, a hit target on a phone row. */
+  /** The trigger's own look, where it sits: a hit target on a phone row. */
   triggerClassName?: string;
+  /**
+   * A button that says "Actions" rather than a bare ⋮. The modal header has the room, and a lone
+   * glyph beside the close button was easy to read past; a phone row has neither the room nor the
+   * need, since the ⋮ there is the row's only control.
+   */
+  labelled?: boolean;
 }
 
 /**
@@ -69,7 +75,7 @@ interface TaskMenuProps {
  * Each destination that is a date says which one — "Tomorrow · 25 Sep" — so the choice is made
  * against the calendar rather than against a mental count of days.
  */
-const TaskMenu: React.FC<TaskMenuProps> = ({ task, onBeforeAction, onAction, size = 16, triggerClassName }) => {
+const TaskMenu: React.FC<TaskMenuProps> = ({ task, onBeforeAction, onAction, size = 16, triggerClassName, labelled = false }) => {
   const { t } = useTranslation();
   const dayjs = useDayJs();
   const { relocateTask, duplicateTask, deleteTask } = useData();
@@ -108,15 +114,25 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onBeforeAction, onAction, siz
 
   return (
     <Dropdown>
-      <Dropdown.Trigger
-        className={clsx(
-          "cursor-pointer text-wp-fg-secondary hover:bg-wp-track rounded-md",
-          triggerClassName ?? "p-0.5",
-        )}
-        aria-label={t("task.menu.open")}
-      >
-        <EllipsisVertical size={size} />
-      </Dropdown.Trigger>
+      {labelled ? (
+        // As tall as the close button beside it, so the header reads as one row of controls.
+        <Dropdown.Trigger
+          className="flex h-8 items-center gap-1 rounded-full border border-wp-border-strong pr-2 pl-3 text-[13px] font-semibold text-wp-fg-secondary cursor-pointer hover:bg-wp-track hover:text-wp-fg focus-visible:outline-2 focus-visible:outline-wp-accent"
+        >
+          {t("task.menu.actions")}
+          <EllipsisVertical size={size} />
+        </Dropdown.Trigger>
+      ) : (
+        <Dropdown.Trigger
+          className={clsx(
+            "cursor-pointer text-wp-fg-secondary hover:bg-wp-track rounded-md",
+            triggerClassName ?? "p-0.5",
+          )}
+          aria-label={t("task.menu.open")}
+        >
+          <EllipsisVertical size={size} />
+        </Dropdown.Trigger>
+      )}
       <Dropdown.Popover placement="bottom end" className={MENU_POPOVER_CLASS}>
         <Dropdown.Menu aria-label={t("task.menu.open")}>
           <Dropdown.Section>

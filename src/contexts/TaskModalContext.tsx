@@ -195,9 +195,9 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 <div className="flex items-center gap-1">
                   {/* Not in CREATE mode: there is nothing yet to move, copy or delete. Not on the
                       vertical layout either, where the row this modal was opened from carries the
-                      same menu — two ⋮ for one task is a question about which one differs. */}
+                      same menu — two menus for one task is a question about which one differs. */}
                   {mode === "EDIT" && !vertical && (
-                    <TaskMenu task={task} onBeforeAction={() => persist(data)} onAction={dismissTask} />
+                    <TaskMenu task={task} labelled onBeforeAction={() => persist(data)} onAction={dismissTask} />
                   )}
                   <button
                     type="button"
