@@ -27,6 +27,7 @@
     "tab_appearance": "Apparence",
     "tab_week": "Semaine",
     "tab_limits": "Limites",
+    "tab_notifications": "Notifications",
     "hardLimits": "Quand une limite est dépassée",
     "limitsSoft": "M'avertir",
     "limitsHard": "Me faire choisir",
@@ -47,7 +48,28 @@
       "columns": "Deux rangées, de haut en bas"
     },
     "subtaskDisplayHint": "Comment la checklist d'une tâche apparaît sur sa carte",
-    "autosaved": "Les changements sont enregistrés automatiquement"
+    "autosaved": "Les changements sont enregistrés automatiquement",
+    "briefing": {
+      "label": "Résumé du matin",
+      "hint": "Une notification les jours et à l'heure de votre choix, qui dit ce que la journée vous réserve : « 3 événements et 7 tâches aujourd'hui ».",
+      "off": "Désactivé",
+      "on": "Activé",
+      "pro": "Le résumé du matin fait partie de Pro.",
+      "unavailable": "Les notifications ne sont pas disponibles sur ce tableau.",
+      "install": "Sur iPhone et iPad, ajoutez d'abord WeekPal à l'écran d'accueil, puis activez-le depuis là.",
+      "denied": "Les notifications de WeekPal sont bloquées dans ce navigateur. Autorisez-les dans les réglages du site, puis réessayez.",
+      "unsupported": "Ce navigateur ne peut pas recevoir de notifications.",
+      "failed": "Impossible d'activer les notifications. Vérifiez votre connexion et réessayez.",
+      "not_here": "Cet appareil ne le reçoit pas encore.",
+      "receive_here": "Le recevoir ici aussi",
+      "here": "Cet appareil le reçoit.",
+      "days": "Jours",
+      "time": "Heure",
+      "time_hint": "Dans le fuseau horaire où vous êtes.",
+      "empty": "Jours sans rien de prévu",
+      "empty_skip": "Ne rien envoyer",
+      "empty_send": "Envoyer quand même"
+    }
   },
   "main": {
     "this_week": "Cette semaine",

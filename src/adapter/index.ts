@@ -10,9 +10,10 @@ import APIShareAdapter from './api/APIShareAdapter';
 import APIInsightsAdapter from './api/APIInsightsAdapter';
 import APIFeedbackAdapter from './api/APIFeedbackAdapter';
 import APIChangelogAdapter from './api/APIChangelogAdapter';
+import APIPushAdapter from './api/APIPushAdapter';
 import TestTaskAdapter from './test/TestTaskAdapter';
 import TestCategoryAdapter from './test/TestCategoryAdapter';
-import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
+import { IAccountAdapter, IImportAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, IHistoryAdapter, IInsightsAdapter, INoteAdapter, IProjectAdapter, IPushAdapter, ISettingsAdapter, IShareAdapter, ITaskAdapter } from '../types';
 import { getEnvConfig } from '../utils/env';
 
 interface AdapterFactoryConfig {
@@ -34,6 +35,7 @@ interface AdapterFactoryResult {
     insightsAdapter: IInsightsAdapter | null;
     feedbackAdapter: IFeedbackAdapter | null;
     changelogAdapter: IChangelogAdapter | null;
+    pushAdapter: IPushAdapter | null;
 }
 
 class AdapterFactory {
@@ -65,6 +67,7 @@ class AdapterFactory {
             insightsAdapter: factory.createInsightsAdapter(),
             feedbackAdapter: factory.createFeedbackAdapter(),
             changelogAdapter: factory.createChangelogAdapter(),
+            pushAdapter: factory.createPushAdapter(),
         };
     }
 
@@ -127,6 +130,14 @@ class AdapterFactory {
      */
     createChangelogAdapter(): IChangelogAdapter | null {
         return this.usesApi ? new APIChangelogAdapter(this.config.apiUrl!, this.config.apiKey) : null;
+    }
+
+    /**
+     * No test or demo double: a push needs a server to send it, and a fixture board that
+     * accepted a subscription would promise a notification that can never arrive.
+     */
+    createPushAdapter(): IPushAdapter | null {
+        return this.usesApi ? new APIPushAdapter(this.config.apiUrl!, this.config.apiKey) : null;
     }
 
     /**

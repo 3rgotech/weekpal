@@ -27,6 +27,7 @@
     "tab_appearance": "Appearance",
     "tab_week": "Week",
     "tab_limits": "Limits",
+    "tab_notifications": "Notifications",
     "hardLimits": "When a limit is passed",
     "limitsSoft": "Warn me",
     "limitsHard": "Make me choose",
@@ -47,7 +48,28 @@
       "columns": "Two rows, top to bottom"
     },
     "subtaskDisplayHint": "How a task's checklist shows on its card",
-    "autosaved": "Changes save automatically"
+    "autosaved": "Changes save automatically",
+    "briefing": {
+      "label": "Morning briefing",
+      "hint": "A notification on the days and at the time you choose, saying what the day holds: “3 events and 7 tasks today”.",
+      "off": "Off",
+      "on": "On",
+      "pro": "The morning briefing is part of Pro.",
+      "unavailable": "Notifications aren't available on this board.",
+      "install": "On iPhone and iPad, add WeekPal to your Home Screen first, then turn this on from there.",
+      "denied": "Notifications are blocked for WeekPal in this browser. Allow them in the browser's site settings, then try again.",
+      "unsupported": "This browser can't receive notifications.",
+      "failed": "Notifications couldn't be turned on. Check your connection and try again.",
+      "not_here": "This device doesn't receive it yet.",
+      "receive_here": "Receive it here too",
+      "here": "This device receives it.",
+      "days": "Days",
+      "time": "Time",
+      "time_hint": "In the timezone you're in now.",
+      "empty": "Days with nothing planned",
+      "empty_skip": "Skip them",
+      "empty_send": "Send anyway"
+    }
   },
   "main": {
     "this_week": "This week",

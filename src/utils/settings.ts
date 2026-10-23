@@ -43,7 +43,17 @@ export const DEFAULT_SETTINGS: Settings = {
     // Nobody has finished a tour they have not been shown. A browser with no stored settings and
     // an account that predates the field both land here, and both are offered it.
     onboardingVersion: 0,
+    briefingEnabled: false,
+    briefingDays: DEFAULT_WORKING_DAYS,
+    briefingTime: "08:00",
+    briefingWhenEmpty: false,
+    timezone: null,
 }
+
+/** The briefing's times: every quarter of an hour, which is how often the server looks. */
+export const BRIEFING_TIMES: string[] = Array.from({ length: 96 }, (_, index) => (
+    `${String(Math.floor(index / 4)).padStart(2, "0")}:${String((index % 4) * 15).padStart(2, "0")}`
+));
 
 /**
  * A complete settings object out of whatever was in storage.
@@ -73,6 +83,13 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
         onboardingVersion: Number.isInteger(stored?.onboardingVersion)
             ? (stored!.onboardingVersion as number)
             : 0,
+        briefingEnabled: stored?.briefingEnabled === true,
+        briefingDays: normaliseWorkingDays(stored?.briefingDays),
+        briefingTime: BRIEFING_TIMES.includes(stored?.briefingTime as string)
+            ? (stored!.briefingTime as string)
+            : DEFAULT_SETTINGS.briefingTime,
+        briefingWhenEmpty: stored?.briefingWhenEmpty === true,
+        timezone: typeof stored?.timezone === "string" ? stored.timezone : null,
     };
 }
 

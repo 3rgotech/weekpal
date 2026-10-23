@@ -29,7 +29,7 @@ import { ITaskAdapter, ICategoryAdapter, INoteAdapter, IHistoryAdapter, IProject
 import { getEnvConfig } from "./utils/env";
 import { configureConnectivity } from "./utils/connectivity";
 import { startTabLeadership, subscribeToTabMessages } from "./utils/tabLeader";
-import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IShareAdapter } from "./types";
+import { IChangelogAdapter, IFeedbackAdapter, IInsightsAdapter, IPushAdapter, IShareAdapter } from "./types";
 import { configureBoardToken } from "./utils/boardToken";
 import { configureBuildFence } from "./utils/buildFence";
 import { calendarsChangedElsewhere, noteCalendarsVersion } from "./utils/calendarFence";
@@ -114,6 +114,7 @@ function App() {
   const [insightsAdapter, setInsightsAdapter] = useState<IInsightsAdapter | null>(null);
   const [feedbackAdapter, setFeedbackAdapter] = useState<IFeedbackAdapter | null>(null);
   const [changelogAdapter, setChangelogAdapter] = useState<IChangelogAdapter | null>(null);
+  const [pushAdapter, setPushAdapter] = useState<IPushAdapter | null>(null);
   const [showDemoModal, setShowDemoModal] = useState(false);
 
   useEffect(() => {
@@ -132,6 +133,7 @@ function App() {
       insightsAdapter,
       feedbackAdapter,
       changelogAdapter,
+      pushAdapter,
     } = AdapterFactory.createAdapters();
     setTaskAdapter(taskAdapter);
     setCategoryAdapter(categoryAdapter);
@@ -142,6 +144,7 @@ function App() {
     setInsightsAdapter(insightsAdapter);
     setFeedbackAdapter(feedbackAdapter);
     setChangelogAdapter(changelogAdapter);
+    setPushAdapter(pushAdapter);
 
     // Check if we're in demo mode
     const { dataSource } = getEnvConfig();
@@ -191,6 +194,7 @@ function App() {
               insightsAdapter={insightsAdapter}
               feedbackAdapter={feedbackAdapter}
               changelogAdapter={changelogAdapter}
+              pushAdapter={pushAdapter}
             >
               <TaskModalProvider>
                 {/* Inside the task modal's provider: the keys stand down while it is open, and

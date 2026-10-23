@@ -30,6 +30,7 @@ import { WORKING_DAY_CHOICES } from "../utils/hours";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 import ImportPanel from "./ImportPanel";
 import { Row, Segmented } from "./SettingsRow";
+import BriefingSettings from "./BriefingSettings";
 import { getEnvConfig } from "../utils/env";
 import { useAccount } from "../contexts/AccountContext";
 import { LAYOUT_PRESETS } from "../utils/settings";
@@ -100,6 +101,7 @@ const SettingsModal: React.FC = () => {
                                     <Tabs.Tab id="appearance">{t("settings.tab_appearance")}</Tabs.Tab>
                                     <Tabs.Tab id="week">{t("settings.tab_week")}</Tabs.Tab>
                                     <Tabs.Tab id="limits">{t("settings.tab_limits")}</Tabs.Tab>
+                                    <Tabs.Tab id="notifications">{t("settings.tab_notifications")}</Tabs.Tab>
                                     <Tabs.Tab id="import">{t("settings.tab_import")}</Tabs.Tab>
                                 </Tabs.List>
 
@@ -527,6 +529,9 @@ const SettingsModal: React.FC = () => {
                   </Row>
                 </Tabs.Panel>
 
+                <Tabs.Panel id="notifications" className={PANEL_CLASS}>
+                  <BriefingSettings nameOf={nameOf} />
+                </Tabs.Panel>
 
                 <Tabs.Panel id="import" className={PANEL_CLASS}>
                     <ImportPanel />

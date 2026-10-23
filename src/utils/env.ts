@@ -54,6 +54,12 @@ declare global {
          * would otherwise be told to reload continuously.
          */
         BUILD_ID?: string;
+        /**
+         * The server's public key for push notifications (VAPID), which a browser must be given
+         * to subscribe. Absent in demo and test mode, and where the server has none configured —
+         * the briefing then says notifications are unavailable rather than failing to subscribe.
+         */
+        WEB_PUSH_KEY?: string;
         /** Which version of the account's calendars the page saw. See `calendarFence.ts`. */
         CALENDARS_VERSION?: string | null;
     }
@@ -70,6 +76,7 @@ export interface EnvConfig {
     pricingUrl: Url;
     tokenUrl: Url;
     buildId: string | undefined;
+    webPushKey: string | undefined;
 }
 
 export function getEnvConfig(): EnvConfig {
@@ -83,6 +90,7 @@ export function getEnvConfig(): EnvConfig {
     let pricingUrl: Url;
     let tokenUrl: Url;
     let buildId: string | undefined;
+    let webPushKey: string | undefined;
 
     // Try to get values from window context first (takes precedence)
     try {
@@ -119,6 +127,10 @@ export function getEnvConfig(): EnvConfig {
 
         if (window.BUILD_ID) {
             buildId = window.BUILD_ID;
+        }
+
+        if (window.WEB_PUSH_KEY) {
+            webPushKey = window.WEB_PUSH_KEY;
         }
 
         // Check for DATA_SOURCE independently
@@ -159,5 +171,5 @@ export function getEnvConfig(): EnvConfig {
         }
     }
 
-    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, proUrl, pricingUrl, tokenUrl, buildId };
+    return { baseApiUrl, dataSource, apiKey, accountUrl, signupUrl, loginUrl, proUrl, pricingUrl, tokenUrl, buildId, webPushKey };
 }

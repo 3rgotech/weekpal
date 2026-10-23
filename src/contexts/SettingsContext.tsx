@@ -15,6 +15,7 @@ import useDayJs from "../utils/dayjs";
 import { useTranslation } from "react-i18next";
 import AdapterFactory from "../adapter";
 import { classifyFailure } from "../utils/SyncService";
+import { browserTimezone } from "../utils/push";
 import { reportSyncFailure } from "../utils/syncStatus";
 
 interface SettingsContextProps {
@@ -146,6 +147,23 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   useEffect(() => {
     i18n.changeLanguage(settings.language);
   }, [settings.language]);
+
+  /*
+   * Keep the server told where the user is while the morning briefing is on.
+   *
+   * Someone who switched it on in Paris and opens the board in Montreal should get it at 8:00 in
+   * Montreal, and only the browser knows they moved. Once the server's copy has been read, so a
+   * stale local one does not send a timezone the server already has.
+   */
+  useEffect(() => {
+    const here = browserTimezone();
+
+    if (settingsLoaded && settings.briefingEnabled && here !== null && settings.timezone !== here) {
+      updateSettings({ timezone: here });
+    }
+    // `updateSettings` is a fresh function every render; the values it is called with are the deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsLoaded, settings.briefingEnabled, settings.timezone]);
 
   const providedValues = {
     settings,

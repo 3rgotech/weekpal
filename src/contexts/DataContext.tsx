@@ -3,7 +3,7 @@ import { mergeTaskChanges } from "../utils/boardTasks";
 import { subscribeToTabMessages } from "../utils/tabLeader";
 import { subscribeToCalendarChanges } from "../utils/calendarFence";
 import { recoverableTasks } from "../utils/recovery";
-import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IShareAdapter, TaskLocation, WeekSummary } from "../types";
+import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IPushAdapter, IShareAdapter, TaskLocation, WeekSummary } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
 import TaskStore from "../store/TaskStore";
 import BaseStore from "../store/BaseStore";
@@ -197,6 +197,8 @@ interface DataContextProps {
   feedbackAdapter: IFeedbackAdapter | null;
   /** Reading the release notes. Passed through: server-side data with nothing local to cache. */
   changelogAdapter: IChangelogAdapter | null;
+  /** Registering this browser for push notifications. Passed through, like the release notes. */
+  pushAdapter: IPushAdapter | null;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -212,6 +214,7 @@ interface DataProviderProps {
   insightsAdapter?: IInsightsAdapter | null;
   feedbackAdapter?: IFeedbackAdapter | null;
   changelogAdapter?: IChangelogAdapter | null;
+  pushAdapter?: IPushAdapter | null;
 }
 
 const DataProvider: React.FC<DataProviderProps> = ({
@@ -224,7 +227,8 @@ const DataProvider: React.FC<DataProviderProps> = ({
   shareAdapter = null,
   insightsAdapter = null,
   feedbackAdapter = null,
-  changelogAdapter = null
+  changelogAdapter = null,
+  pushAdapter = null,
 }) => {
   const { currentWeek, thisWeek, layout } = useCalendar();
   const { settings } = useSettings();
@@ -1169,6 +1173,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         insightsAdapter,
         feedbackAdapter,
         changelogAdapter,
+        pushAdapter,
         recoverDay,
         projectStore,
         projects,

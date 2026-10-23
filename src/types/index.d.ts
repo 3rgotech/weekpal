@@ -119,6 +119,23 @@ export interface Settings {
   subtaskDisplay: SubtaskDisplay;
   /** The named week layout (R14). Pro: drawn only with a plan, kept regardless. */
   layoutPreset: LayoutPreset;
+  /**
+   * The morning briefing: a push notification on the chosen days, at the chosen time, saying
+   * what the day holds. Pro, and off until asked for. Sent by the server, to every device the
+   * user turned notifications on from.
+   */
+  briefingEnabled: boolean;
+  /** ISO weekdays it is sent on. Never empty, like the working days. */
+  briefingDays: Weekday[];
+  /** "HH:MM", on a quarter hour — the server looks every fifteen minutes. */
+  briefingTime: string;
+  /** Whether a day with nothing planned still gets one. */
+  briefingWhenEmpty: boolean;
+  /**
+   * Where the user is, as an IANA name. The server cannot know, and "8:00" means nothing without
+   * it; the board sends the browser's own while the briefing is on. Null until then.
+   */
+  timezone: string | null;
 }
 
 export type DayOfWeek = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "someday";
@@ -418,6 +435,12 @@ export interface IChangelogAdapter {
   list(locale?: string): Promise<ChangelogEntry[]>;
   /** Records that every published entry has been seen. Idempotent. */
   markRead(): Promise<void>;
+}
+
+/** Registering this browser to receive the server's push notifications. */
+export interface IPushAdapter {
+  subscribe(subscription: PushSubscriptionJSON): Promise<void>;
+  unsubscribe(endpoint: string): Promise<void>;
 }
 
 export interface IFeedbackAdapter {

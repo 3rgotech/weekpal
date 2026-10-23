@@ -31,6 +31,11 @@ describe("DEFAULT_SETTINGS", () => {
     "subtaskDisplay",
     "layoutPreset",
     "onboardingVersion",
+    "briefingEnabled",
+    "briefingDays",
+    "briefingTime",
+    "briefingWhenEmpty",
+    "timezone",
   ];
 
   it("declares every field the Settings type requires", () => {
@@ -180,5 +185,30 @@ describe("layoutPreset", () => {
   it("keeps a known preset and replaces anything else", () => {
     expect(withDefaults({ layoutPreset: "front" }).layoutPreset).toBe("front");
     expect(withDefaults({ layoutPreset: "grid-builder" }).layoutPreset).toBe("compressed");
+  });
+});
+
+describe("the morning briefing", () => {
+  it("is off until asked for, on working days at eight, and silent on empty days", () => {
+    expect(DEFAULT_SETTINGS.briefingEnabled).toBe(false);
+    expect(DEFAULT_SETTINGS.briefingDays).toEqual([1, 2, 3, 4, 5]);
+    expect(DEFAULT_SETTINGS.briefingTime).toBe("08:00");
+    expect(DEFAULT_SETTINGS.briefingWhenEmpty).toBe(false);
+    expect(DEFAULT_SETTINGS.timezone).toBeNull();
+  });
+
+  it("keeps what was stored, and repairs what the server would refuse", () => {
+    const kept = withDefaults({ briefingDays: [6, 1], briefingTime: "07:45", timezone: "Europe/Paris" });
+
+    expect(kept.briefingDays).toEqual([1, 6]);
+    expect(kept.briefingTime).toBe("07:45");
+    expect(kept.timezone).toBe("Europe/Paris");
+
+    // Off the quarter hour, no days at all, a timezone that is not a string.
+    const repaired = withDefaults({ briefingDays: [], briefingTime: "07:40", timezone: 3 });
+
+    expect(repaired.briefingDays).toEqual([1, 2, 3, 4, 5]);
+    expect(repaired.briefingTime).toBe("08:00");
+    expect(repaired.timezone).toBeNull();
   });
 });
