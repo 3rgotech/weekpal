@@ -7,7 +7,6 @@ import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
 import { useData } from "../contexts/DataContext";
 import { getEnvConfig } from "../utils/env";
-import useDayJs from "../utils/dayjs";
 import { BRIEFING_TIMES } from "../utils/settings";
 import { Weekday, orderedWeekdays, toggleWorkingDay } from "../utils/week";
 import { browserTimezone, isSubscribed, pushSupport, subscribeThisDevice } from "../utils/push";
@@ -37,13 +36,16 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
     const { settings, updateSettings } = useSettings();
     const { pushAdapter } = useData();
     const { webPushKey } = getEnvConfig();
-    const dayjs = useDayJs(settings.language);
 
-    /** "08:15" as this language writes a time: 8:15 AM, 08:15. */
+    /**
+     * "08:15" as this language writes a time: 8:15 AM, 08:15. Intl rather than dayjs's "LT",
+     * which needs a plugin the board does not load and prints the letters "LT" without it.
+     */
+    const timeFormat = new Intl.DateTimeFormat(settings.language, { hour: "numeric", minute: "2-digit" });
     const timeLabel = (time: string) => {
         const [hour, minute] = time.split(":").map(Number);
 
-        return dayjs().hour(hour).minute(minute).format("LT");
+        return timeFormat.format(new Date(2000, 0, 1, hour, minute));
     };
 
     const [deviceOn, setDeviceOn] = useState<boolean | null>(null);

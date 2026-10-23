@@ -111,4 +111,13 @@ describe("the morning briefing settings", () => {
         fireEvent.click(screen.getByLabelText(nameOf(6, "dddd")));
         expect(updateSettings).toHaveBeenCalledWith({ briefingDays: [1, 2, 3, 4, 5, 6] });
     });
+
+    it("write the time the way the board's language does", async () => {
+        settings.briefingEnabled = true;
+        settings.language = "fr";
+        await renderPanel();
+
+        expect(screen.getAllByText("8:00").length).toBeGreaterThan(0);
+        expect(screen.queryByText("LT")).toBeNull();
+    });
 });
