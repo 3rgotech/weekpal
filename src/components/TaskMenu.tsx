@@ -13,13 +13,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { Dayjs } from "dayjs";
 import Task from "../data/task";
 import { useData } from "../contexts/DataContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { useCalendar } from "../contexts/CalendarContext";
 import useDayJs from "../utils/dayjs";
-import { availableMoves, moveTarget, TaskMove } from "../utils/taskMoves";
+import { availableMoves, moveDate, moveTarget, TaskMove } from "../utils/taskMoves";
 import {
   MENU_HINT_CLASS,
   MENU_ICON_CLASS,
@@ -84,28 +83,6 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onBeforeAction, onAction, siz
 
   const moves = availableMoves(task, dayjs(), weekStartsOn);
 
-  /*
-   * The date a move lands on, where it lands on one. The undated buckets have none, and "next
-   * week, same day" is counted from the day the task is on — which is on the week being shown,
-   * since that is the only week a menu can be opened from.
-   */
-  const landsOn = (move: TaskMove): Dayjs | null => {
-    const now = dayjs();
-
-    switch (move) {
-      case "today":
-        return now;
-      case "tomorrow":
-        return now.add(1, "day");
-      case "nextMonday":
-        return now.add(1, "week").startOf("isoWeek");
-      case "nextWeekSameDay":
-        return task.dayOfWeek ? dateOf(task.dayOfWeek)?.add(1, "week") ?? null : null;
-      default:
-        return null;
-    }
-  };
-
   const run = async (action: () => void | Promise<void>) => {
     onBeforeAction?.();
     await action();
@@ -139,7 +116,7 @@ const TaskMenu: React.FC<TaskMenuProps> = ({ task, onBeforeAction, onAction, siz
             <Header className={MENU_SECTION_LABEL_CLASS}>{t("task.menu.move")}</Header>
             {moves.map((move) => {
               const Icon = MOVE_ICONS[move];
-              const date = landsOn(move);
+              const date = moveDate(task, move, dayjs(), dateOf);
 
               return (
                 <Dropdown.Item

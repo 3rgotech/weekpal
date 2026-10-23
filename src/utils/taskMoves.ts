@@ -88,6 +88,34 @@ export function moveTarget(
     }
 }
 
+/**
+ * The date a move lands on, where it lands on one — what the menu and the drop zones print beside
+ * each destination, so the choice is made against the calendar.
+ *
+ * The undated buckets have none. "Next week, same day" is counted from the day the task is on,
+ * which is on the week being shown: the only week a task can be acted on from. `dateOf` is that
+ * week's calendar.
+ */
+export function moveDate(
+    task: Task,
+    move: TaskMove,
+    now: Dayjs,
+    dateOf: (day: DayOfWeek) => Dayjs | null,
+): Dayjs | null {
+    switch (move) {
+        case 'today':
+            return now;
+        case 'tomorrow':
+            return now.add(1, "day");
+        case 'nextMonday':
+            return now.add(1, "week").startOf("isoWeek");
+        case 'nextWeekSameDay':
+            return task.dayOfWeek ? dateOf(task.dayOfWeek)?.add(1, "week") ?? null : null;
+        default:
+            return null;
+    }
+}
+
 /** As much of a dnd-kit rectangle as deciding a drop position needs. */
 export interface DropRect {
     top: number;

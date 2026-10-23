@@ -129,6 +129,8 @@ interface DataContextProps {
   refreshLastWeekSummary: () => Promise<WeekSummary | null>;
   /** Offer a deleted leftover back: revives the row and puts it back in the review. */
   restoreLeftover: (task: WeeklyTask) => void;
+  /** Offer a deleted task back, as it was: the undo after a delete that took one gesture. */
+  restoreTask: (task: Task) => void;
   /**
    * `reason` is R20's escape hatch saying which door was taken — `not_mine` or `let_go`.
    * Absent for an ordinary delete, which is most of them.
@@ -731,16 +733,20 @@ const DataProvider: React.FC<DataProviderProps> = ({
    * same sequence the user did. The row goes back into the review as well: an undo that left the
    * list one short would look like the delete had half happened.
    */
-  const restoreLeftover = (task: WeeklyTask) => {
+  const restoreTask = (task: Task) => {
     updateTask(task);
-
-    setLeftovers((previous) => (
-      previous.some((leftover) => leftover.id === task.id) ? previous : [...previous, task]
-    ));
 
     if (!task.completedAt) {
       adjustLastWeekSummary(task, { left: 1 });
     }
+  };
+
+  const restoreLeftover = (task: WeeklyTask) => {
+    restoreTask(task);
+
+    setLeftovers((previous) => (
+      previous.some((leftover) => leftover.id === task.id) ? previous : [...previous, task]
+    ));
   };
 
   const moveTask = (
@@ -1136,6 +1142,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         lastWeekSummary,
         refreshLastWeekSummary,
         restoreLeftover,
+        restoreTask,
         deleteTask,
         escapeTask,
         openEscape: setEscapeTask,

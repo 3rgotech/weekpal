@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { availableMoves, dropOrder, moveTarget, relieveTarget, reorderedIndex } from "../taskMoves";
+import { availableMoves, dropOrder, moveDate, moveTarget, relieveTarget, reorderedIndex } from "../taskMoves";
 import { getDayJs } from "../dayjs";
 import { SomedayTask, WeeklyTask } from "../../data/task";
 
@@ -53,6 +53,24 @@ describe("where a move sends a task", () => {
 
         expect(moveTarget(task, "thisWeek", NOW)).toEqual({ weekCode: "2026w35", dayOfWeek: "0" });
         expect(moveTarget(task, "someday", NOW)).toEqual({ weekCode: null, dayOfWeek: null });
+    });
+});
+
+describe("the date a move lands on", () => {
+    // The week on screen is 2026w35, Monday 24 August to Sunday 30 August.
+    const dateOf = (day: string) => (day === "0" ? null : NOW.startOf("isoWeek").add(Number(day) - 1, "day"));
+
+    it("names next Monday", () => {
+        expect(moveDate(weekly("2026w35", "3"), "nextMonday", NOW, dateOf)?.format("YYYY-MM-DD")).toBe("2026-08-31");
+    });
+
+    it("counts same day next week off the day the task is on", () => {
+        expect(moveDate(weekly("2026w35", "5"), "nextWeekSameDay", NOW, dateOf)?.format("YYYY-MM-DD")).toBe("2026-09-04");
+    });
+
+    it("has no date for the undated buckets", () => {
+        expect(moveDate(weekly("2026w35", "0"), "nextWeekSameDay", NOW, dateOf)).toBeNull();
+        expect(moveDate(weekly("2026w35", "3"), "someday", NOW, dateOf)).toBeNull();
     });
 });
 

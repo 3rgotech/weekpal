@@ -199,7 +199,12 @@
       "quote": "Citation",
       "hint": "Markdown : **gras**, *italique*, - listes, [liens](https://…)"
     },
-    "autosaved": "Les changements sont enregistrés automatiquement"
+    "autosaved": "Les changements sont enregistrés automatiquement",
+    "drop": {
+      "zones": "Déposez la tâche ici pour agir dessus",
+      "deleted": "« {{title}} » supprimée",
+      "undo": "Annuler"
+    }
   },
   "misc": {
     "of": "de",

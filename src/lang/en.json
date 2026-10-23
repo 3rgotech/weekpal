@@ -209,7 +209,12 @@
       "quote": "Quote",
       "hint": "Markdown: **bold**, *italic*, - lists, [links](https://…)"
     },
-    "autosaved": "Changes save automatically"
+    "autosaved": "Changes save automatically",
+    "drop": {
+      "zones": "Drop the task here to act on it",
+      "deleted": "Deleted “{{title}}”",
+      "undo": "Undo"
+    }
   },
   "misc": {
     "of": "of",

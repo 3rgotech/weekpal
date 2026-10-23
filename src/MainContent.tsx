@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import TaskList from "./components/TaskList";
 import ProjectDrawer from "./components/ProjectDrawer";
 import { useData } from "./contexts/DataContext";
@@ -27,6 +27,8 @@ import { dropOrder, reorderedIndex } from "./utils/taskMoves";
 import WeekMark from "./components/WeekMark";
 import { isWeekDone } from "./utils/weekDone";
 import { columnTemplate } from "./utils/week";
+import DropZones, { DropAction, DROP_ZONE_PREFIX } from "./components/DropZones";
+import { moveTarget } from "./utils/taskMoves";
 interface MainContentProps { }
 
 const MainContent: React.FC<MainContentProps> = () => {
@@ -35,7 +37,7 @@ const MainContent: React.FC<MainContentProps> = () => {
     settings: { dayHeaderFormat, weekStartsOn },
   } = useSettings();
   const { firstDayOfWeek, layout } = useCalendar();
-  const { tasks, allTasks, moveTask, findTask, moveTaskToProject } = useData();
+  const { tasks, allTasks, moveTask, findTask, moveTaskToProject, relocateTask, deleteTask, restoreTask } = useData();
   const { open: openTaskModal } = useTaskModal();
   const dayjs = useDayJs();
   const [activeTask, setActiveTask] = useState<{
@@ -45,6 +47,49 @@ const MainContent: React.FC<MainContentProps> = () => {
     task: null,
     dayOfWeek: null,
   });
+
+  /*
+   * The task a drop zone just deleted, for as long as it can still be taken back.
+   *
+   * A drop is the fastest delete the board has, and the easiest to land by mistake: a release a
+   * few pixels off. Five seconds to undo it is what makes it safe to offer.
+   */
+  const [deleted, setDeleted] = useState<Task | null>(null);
+
+  useEffect(() => {
+    if (!deleted) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setDeleted(null), 5000);
+
+    return () => window.clearTimeout(timer);
+  }, [deleted]);
+
+  const undoDelete = () => {
+    if (deleted) {
+      restoreTask(deleted);
+      setDeleted(null);
+    }
+  };
+
+  /*
+   * A drop onto one of the zones.
+   *
+   * `origin` is the task as it was when the drag began, `task` as it is now. They differ when the
+   * drag crossed another day on its way up: the board moves a task as it hovers, not as it lands,
+   * so by the time it reaches a zone it may already be on Friday. "Same day next week" means the
+   * day it was picked up from, and an undone delete puts it back there too.
+   */
+  const dropOnZone = (action: DropAction, task: Task, origin: Task) => {
+    if (action === "delete") {
+      deleteTask(task);
+      setDeleted(origin);
+      return;
+    }
+
+    void relocateTask(task, moveTarget(origin, action, dayjs(), weekStartsOn));
+  };
 
   // Add these refs
   const lastOverId = useRef<string | null>(null);
@@ -71,6 +116,14 @@ const MainContent: React.FC<MainContentProps> = () => {
         pointerIntersections.length > 0
           ? pointerIntersections
           : rectIntersection(args);
+
+      // A zone floats over the top bar and may overlap a column beneath it; under the pointer,
+      // the zone is what was aimed at. Never remembered as the last target: that is what a drop
+      // onto empty space falls back to, and a release in the gap beside Delete must not delete.
+      const zone = pointerIntersections.find((collision) => collision.id.toString().startsWith(DROP_ZONE_PREFIX));
+      if (zone) {
+        return [zone];
+      }
 
       let overId = intersections.length > 0 ? intersections[0].id : null;
 
@@ -128,6 +181,7 @@ const MainContent: React.FC<MainContentProps> = () => {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
+    const origin = activeTask.task;
     setActiveTask({ task: null, dayOfWeek: null });
 
     const { active, over } = event;
@@ -141,6 +195,12 @@ const MainContent: React.FC<MainContentProps> = () => {
     if (delta < 10) {
       openTaskModal(task);
     } else {
+      const action = over.data.current?.action as DropAction | undefined;
+      if (action) {
+        dropOnZone(action, task, origin ?? task);
+        return;
+      }
+
       // Dropped in the drawer — on a project's list, or on a task already in one. A backlog has
       // no day, so this is settled before the day lookup rather than falling through it and
       // ending the drag in silence, which is what the drawer did before it was a drop target.
@@ -201,6 +261,11 @@ const MainContent: React.FC<MainContentProps> = () => {
 
     const activeId = active.id.toString();
     const overId = over.id.toString();
+
+    // A zone is not a list: what it does happens on drop.
+    if (overId.startsWith(DROP_ZONE_PREFIX)) {
+      return;
+    }
 
     // Find the containers
     const activeContainer = findContainer(activeId);
@@ -357,6 +422,26 @@ const MainContent: React.FC<MainContentProps> = () => {
             </>
           )}
         </div>
+
+        <DropZones task={activeTask.task} />
+
+        {deleted && (
+          <div
+            className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-50 flex justify-center px-4"
+            role="status"
+          >
+            <div className="flex max-w-full items-center gap-3 rounded-xl bg-wp-fg py-2 pr-2 pl-4 text-sm text-wp-bg shadow-wp-pop">
+              <span className="truncate">{t("task.drop.deleted", { title: deleted.title })}</span>
+              <button
+                type="button"
+                onClick={undoDelete}
+                className="shrink-0 rounded-lg px-3 py-1 font-semibold underline cursor-pointer hover:bg-wp-bg/15 focus-visible:outline-2 focus-visible:outline-wp-accent"
+              >
+                {t("task.drop.undo")}
+              </button>
+            </div>
+          </div>
+        )}
 
         <DragOverlay>
           {activeTask.task ? (
