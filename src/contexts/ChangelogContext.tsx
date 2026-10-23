@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChangelogEntry } from "../types";
 import { useData } from "./DataContext";
 import { useShortcuts } from "./ShortcutsContext";
@@ -46,6 +47,10 @@ const ChangelogContext = createContext<ChangelogContextProps | undefined>(undefi
  */
 const ChangelogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const { changelogAdapter, leftoversLoaded } = useData();
+    // Fetched again when the language changes: the notes are written per language, and the
+    // server is told which one rather than left to read a setting that may not have synced yet.
+    const { i18n } = useTranslation();
+    const language = i18n.language;
     const { leftoversOpen } = useShortcuts();
     // Third in the queue, and last for a reason: somebody being shown the board for the first
     // time has no absence to be caught up on.
@@ -66,7 +71,7 @@ const ChangelogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         let live = true;
 
         void changelogAdapter
-            .list()
+            .list(language)
             .then((loaded) => {
                 if (!live) {
                     return;
@@ -95,7 +100,7 @@ const ChangelogProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
         return () => {
             live = false;
         };
-    }, [changelogAdapter]);
+    }, [changelogAdapter, language]);
 
     /*
      * When to actually show it.

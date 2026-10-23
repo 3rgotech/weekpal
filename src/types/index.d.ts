@@ -414,7 +414,8 @@ export interface ChangelogEntry {
 }
 
 export interface IChangelogAdapter {
-  list(): Promise<ChangelogEntry[]>;
+  /** In `locale` when given — the board's language, which can be ahead of the saved setting. */
+  list(locale?: string): Promise<ChangelogEntry[]>;
   /** Records that every published entry has been seen. Idempotent. */
   markRead(): Promise<void>;
 }

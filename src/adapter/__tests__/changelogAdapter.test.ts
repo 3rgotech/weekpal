@@ -27,6 +27,14 @@ beforeEach(() => {
 });
 
 describe("APIChangelogAdapter", () => {
+    it("asks for the notes in the board's language", async () => {
+        respondWith({ data: [] });
+
+        await adapter().list("fr");
+
+        expect(calls[0].url).toBe("https://example.test/api/v1/changelog?locale=fr");
+    });
+
     it("reads the release notes and carries the seen flag through", async () => {
         respondWith({
             data: [

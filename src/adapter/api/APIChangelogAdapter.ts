@@ -20,8 +20,10 @@ interface ChangelogRow {
  * say, which is the honest answer.
  */
 class APIChangelogAdapter extends APIBaseAdapter implements IChangelogAdapter {
-    async list(): Promise<ChangelogEntry[]> {
-        const response = await this.getClient().get('changelog').json<{ data: ChangelogRow[] }>();
+    async list(locale?: string): Promise<ChangelogEntry[]> {
+        const response = await this.getClient()
+            .get('changelog', locale ? { searchParams: { locale } } : undefined)
+            .json<{ data: ChangelogRow[] }>();
 
         return response.data.map((row) => ({
             id: row.id,
