@@ -10,7 +10,14 @@ import fr from "../dayjs/fr";
 import en from "dayjs/locale/en";
 import { useMemo } from 'react';
 
-export const getDayJs = (locale: "fr" | "en" = "en") => {
+/**
+ * dayjs, with the board's plugins, in `locale` when one is given.
+ *
+ * The locale is dayjs's one global, so a call without one leaves it alone rather than resetting it
+ * to English: those calls only parse dates and name weeks, and used to undo the board's language
+ * every time one ran — after a week change, the settings named the days in English.
+ */
+export const getDayJs = (locale?: "fr" | "en") => {
     const locales = {
         fr: fr,
         en: en,
@@ -23,7 +30,9 @@ export const getDayJs = (locale: "fr" | "en" = "en") => {
     dayjs.extend(isSameOrBefore); // use plugin
     // "3 hours ago" — a changelog and a note thread are read by recency, not by date.
     dayjs.extend(relativeTime); // use plugin
-    dayjs.locale(locales[locale]); // use locale
+    if (locale) {
+        dayjs.locale(locales[locale]); // use locale
+    }
     // dayjs.tz.setDefault('Europe/Paris');
 
     return dayjs;
@@ -49,6 +58,6 @@ export const weekCodeToDate = (weekCode: string): Dayjs => {
     return firstWeek.add(week - 1, 'week');
 };
 
-const useDayJs = (locale: "fr" | "en" = "en") => useMemo(() => getDayJs(locale), [locale]);
+const useDayJs = (locale?: "fr" | "en") => useMemo(() => getDayJs(locale), [locale]);
 
 export default useDayJs;
