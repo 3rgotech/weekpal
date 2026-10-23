@@ -29,74 +29,10 @@ import { DAY_CAPACITIES, SOMEDAY_LIMITS, THIS_WEEK_LIMITS, toggleCountedCategory
 import { WORKING_DAY_CHOICES } from "../utils/hours";
 import { NO_CATEGORY_KEY } from "../utils/categories";
 import ImportPanel from "./ImportPanel";
+import { Row, Segmented } from "./SettingsRow";
 import { getEnvConfig } from "../utils/env";
 import { useAccount } from "../contexts/AccountContext";
 import { LAYOUT_PRESETS } from "../utils/settings";
-
-/**
- * One setting: its name (and, where it needs one, a line saying what it does) in a fixed column,
- * the control beside it, and a hairline under the pair — the redesign's form, which reads as a
- * list of settings rather than as the grid of floating labels it replaced.
- *
- * Stacked on a phone, where a 200px label column would leave the control no room at all.
- */
-const Row: React.FC<{ label: React.ReactNode; hint?: React.ReactNode; children: React.ReactNode }> = ({
-    label,
-    hint,
-    children,
-}) => (
-    <div className="flex flex-col gap-2 py-3.5 border-b border-wp-border last:border-b-0 sm:flex-row sm:items-center sm:gap-4">
-        <div className="flex flex-col gap-[3px] sm:w-[200px] sm:shrink-0">
-            <h3 className="text-[13px] font-semibold text-wp-fg">{label}</h3>
-            {hint && <p className="text-xs leading-[1.4] text-wp-muted">{hint}</p>}
-        </div>
-        <div className="min-w-0 flex-1">{children}</div>
-    </div>
-);
-
-interface SegmentOption<T> {
-    value: T;
-    label: React.ReactNode;
-    icon?: React.ReactNode;
-}
-
-/**
- * Two or three mutually exclusive choices, all on screen at once: the redesign's segmented
- * control, a raised pill on a sunken track. Replaces the button groups whose "selected" was a
- * solid blue fill — which, next to the dialog's one primary button, read as a second one.
- */
-function Segmented<T>({ options, value, onChange }: {
-    options: SegmentOption<T>[];
-    value: T;
-    onChange: (value: T) => void;
-}) {
-    return (
-        <div className="inline-flex max-w-full flex-wrap gap-0.5 rounded-[9px] bg-wp-track p-[3px]">
-            {options.map((option) => {
-                const on = option.value === value;
-
-                return (
-                    <button
-                        key={String(option.value)}
-                        type="button"
-                        aria-pressed={on}
-                        onClick={() => onChange(option.value)}
-                        className={clsx(
-                            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-semibold transition-colors cursor-pointer",
-                            "focus-visible:outline-2 focus-visible:outline-wp-accent [&_svg]:size-3.5",
-                            on
-                                ? "bg-wp-seg-active text-wp-fg shadow-wp-seg [&_svg]:text-wp-accent"
-                                : "text-wp-fg-secondary hover:text-wp-fg [&_svg]:text-wp-muted",
-                        )}
-                    >
-                        {option.icon}
-                        {option.label}
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
 
 /** The redesign's field: every select in the dialog is the same full-width trigger. */
 const SELECT_CLASS = "w-full";
@@ -590,6 +526,7 @@ const SettingsModal: React.FC = () => {
                   </Select>
                   </Row>
                 </Tabs.Panel>
+
 
                 <Tabs.Panel id="import" className={PANEL_CLASS}>
                     <ImportPanel />
