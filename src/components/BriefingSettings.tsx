@@ -9,7 +9,7 @@ import { useData } from "../contexts/DataContext";
 import { getEnvConfig } from "../utils/env";
 import { BRIEFING_TIMES } from "../utils/settings";
 import { Weekday, orderedWeekdays, toggleWorkingDay } from "../utils/week";
-import { browserTimezone, isSubscribed, pushSupport, subscribeThisDevice } from "../utils/push";
+import { browserTimezone, isBrave, isSubscribed, pushSupport, subscribeThisDevice } from "../utils/push";
 import { Row, Segmented } from "./SettingsRow";
 
 interface BriefingSettingsProps {
@@ -17,7 +17,7 @@ interface BriefingSettingsProps {
     nameOf: (day: Weekday, format: string) => string;
 }
 
-type Problem = "denied" | "unsupported" | "failed" | null;
+type Problem = "denied" | "unsupported" | "failed" | "brave" | null;
 
 /**
  * The morning briefing: on or off, which days, what time, and whether an empty day gets one.
@@ -83,7 +83,7 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
             return true;
         } catch (error) {
             console.error("Could not turn on notifications for this device:", error);
-            setProblem("failed");
+            setProblem(isBrave() ? "brave" : "failed");
 
             return false;
         } finally {
@@ -118,6 +118,10 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
 
         if (support === "unsupported" || problem === "unsupported") {
             return t("settings.briefing.unsupported");
+        }
+
+        if (problem === "brave") {
+            return t("settings.briefing.brave");
         }
 
         if (problem === "failed") {

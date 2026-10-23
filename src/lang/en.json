@@ -60,6 +60,7 @@
       "denied": "Notifications are blocked for WeekPal in this browser. Allow them in the browser's site settings, then try again.",
       "unsupported": "This browser can't receive notifications.",
       "failed": "Notifications couldn't be turned on. Check your connection and try again.",
+      "brave": "Brave blocks notifications until you turn on \"Use Google services for push messaging\" in brave://settings/privacy. Turn it on, restart Brave, then try again.",
       "not_here": "This device doesn't receive it yet.",
       "receive_here": "Receive it here too",
       "here": "This device receives it.",

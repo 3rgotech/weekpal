@@ -44,6 +44,13 @@ async function registration(): Promise<ServiceWorkerRegistration | null> {
     return (await navigator.serviceWorker.getRegistration()) ?? null;
 }
 
+/**
+ * Brave. It switches push off for every site until "Use Google services for push messaging" is
+ * turned on in its own privacy settings, and then fails the subscription with nothing more telling
+ * than "push service error" — so the settings name the switch rather than blame the connection.
+ */
+export const isBrave = (): boolean => (navigator as Navigator & { brave?: unknown }).brave !== undefined;
+
 /** Whether this browser already holds a push subscription. */
 export async function isSubscribed(): Promise<boolean> {
     if (pushSupport() !== "ready" || Notification.permission !== "granted") {

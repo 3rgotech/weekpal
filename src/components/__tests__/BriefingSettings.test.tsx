@@ -17,7 +17,8 @@ const data = { pushAdapter: { subscribe: jest.fn(), unsubscribe: jest.fn() } as 
 const push = {
     support: "ready" as PushSupport,
     subscribed: false,
-    outcome: "subscribed" as "subscribed" | "denied" | "unsupported",
+    outcome: "subscribed" as "subscribed" | "denied" | "unsupported" | "throws",
+    brave: false,
 };
 
 jest.mock("../../contexts/SettingsContext", () => ({
@@ -29,7 +30,14 @@ jest.mock("../../utils/env", () => ({ getEnvConfig: () => ({ webPushKey: "BKey" 
 jest.mock("../../utils/push", () => ({
     pushSupport: () => push.support,
     isSubscribed: async () => push.subscribed,
-    subscribeThisDevice: jest.fn(async () => push.outcome),
+    subscribeThisDevice: jest.fn(async () => {
+        if (push.outcome === "throws") {
+            throw new DOMException("Registration failed - push service error", "AbortError");
+        }
+
+        return push.outcome;
+    }),
+    isBrave: () => push.brave,
     browserTimezone: () => "Europe/Paris",
 }));
 
@@ -50,6 +58,7 @@ beforeEach(() => {
     push.support = "ready";
     push.subscribed = false;
     push.outcome = "subscribed";
+    push.brave = false;
 });
 
 describe("the morning briefing settings", () => {
@@ -119,5 +128,19 @@ describe("the morning briefing settings", () => {
 
         expect(screen.getAllByText("8:00").length).toBeGreaterThan(0);
         expect(screen.queryByText("LT")).toBeNull();
+    });
+
+    it("name Brave's own switch when Brave refuses the subscription", async () => {
+        jest.spyOn(console, "error").mockImplementation(() => undefined);
+        push.outcome = "throws";
+        push.brave = true;
+        await renderPanel();
+
+        await act(async () => {
+            fireEvent.click(screen.getByText("settings.briefing.on"));
+        });
+
+        expect(screen.getByText("settings.briefing.brave")).toBeTruthy();
+        expect(updateSettings).not.toHaveBeenCalled();
     });
 });
