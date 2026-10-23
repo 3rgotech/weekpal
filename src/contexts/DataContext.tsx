@@ -1,4 +1,5 @@
 import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
+import { mergeTaskChanges } from "../utils/boardTasks";
 import { subscribeToTabMessages } from "../utils/tabLeader";
 import { subscribeToCalendarChanges } from "../utils/calendarFence";
 import { recoverableTasks } from "../utils/recovery";
@@ -542,19 +543,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
 
     const byId = new Map(updated.map((task) => [task.id, task]));
 
-    setTasks((prevTasks) => {
-      const merged = prevTasks
-        .map((prevTask) => byId.get(prevTask.id) ?? prevTask)
-        .filter((task) => !isBacklogTask(task));
-
-      const added = updated.filter((task) => (
-        !isBacklogTask(task)
-        && !prevTasks.some((prev) => prev.id === task.id)
-        && (task.taskType === "someday" || (task as WeeklyTask).weekCode === currentWeek)
-      ));
-
-      return [...merged, ...added];
-    });
+    setTasks((prevTasks) => mergeTaskChanges(prevTasks, updated, currentWeek, isBacklogTask));
 
     setBacklogs((prevBacklogs) => {
       const next: Record<string, Task[]> = {};
