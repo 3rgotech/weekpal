@@ -114,8 +114,9 @@
     "private": "Private",
     "private_hint": "Never included in a shared week",
     "event_keywords": "Calendar events containing",
-    "event_keywords_placeholder": "Calendar events containing… e.g. standup, 1:1, gym",
-    "event_keywords_hint": "A calendar event whose title contains one of these words takes this category. Separate them with commas."
+    "event_keywords_label": "Auto-categorise calendar events",
+    "event_keywords_placeholder": "Words from the event title, e.g. standup, 1:1, gym",
+    "event_keywords_hint": "A calendar event whose title contains one of these words gets this category. Separate words with commas."
   },
   "visibility": {
     "show_completed_tasks": "Show completed tasks",

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Input, Label, Modal, TextField } from "@heroui/react";
+import { Button, Description, Input, Label, Modal, TextField } from "@heroui/react";
 import { Check, Plus, Trash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -174,7 +174,9 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
 
                         <Modal.Body className="flex flex-col gap-3">
                             {drafts.length > 0 && (
-                                <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-wp-muted">
+                                // Inset by the cards' padding and border, so each heading sits
+                                // over the column it names.
+                                <div className="flex items-center gap-3 px-[13px] text-xs uppercase tracking-wide text-wp-muted">
                                     <span className="w-40 shrink-0">{t("category.color")}</span>
                                     <span className="flex-1 min-w-0">{t("category.name")}</span>
                                     <span className="w-24 shrink-0">{t("category.day_limit")}</span>
@@ -191,9 +193,11 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                 </p>
                             )}
 
+                            {/* One card per category. The swatches stand four rows tall, so
+                                rows that were only spaced apart ran together: the keyword field
+                                at the bottom of one read as the top of the next. */}
                             {drafts.map((draft) => (
-                                <div key={draft.id} className="flex flex-col gap-1.5">
-                                <div className="flex items-start gap-3">
+                                <div key={draft.id} className="flex items-start gap-3 rounded-xl border border-wp-border bg-wp-card p-3">
                                     {/* The picker is the sixteen colours themselves. A dropdown
                                         would name them, and nobody picks a category colour by
                                         reading the word "fuchsia". */}
@@ -214,7 +218,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                                     "w-6 h-6 rounded-full flex items-center justify-center cursor-pointer transition",
                                                     COLORS[color].bg,
                                                     draft.color === color
-                                                        ? "ring-2 ring-offset-2 ring-wp-accent ring-offset-wp-modal"
+                                                        ? "ring-2 ring-offset-2 ring-wp-accent ring-offset-wp-card"
                                                         : "opacity-60 hover:opacity-100",
                                                 )}
                                             >
@@ -225,6 +229,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                         ))}
                                     </div>
 
+                                    <div className="flex flex-1 min-w-0 flex-col gap-3">
+                                    <div className="flex items-start gap-3">
                                     <TextField
                                         aria-label={t("category.name")}
                                         value={draft.name}
@@ -284,26 +290,34 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                         onClick={() => { void remove(draft); }}
                                         iconClass="text-wp-danger"
                                     />
-                                </div>
+                                    </div>
 
-                                {/* #36, on its own line under the row: a list of words needs the
-                                    width, and the row above is already five columns. Under the
-                                    name rather than the swatches, so it reads as part of this
-                                    category. Hidden for an older copy that never loaded them. */}
-                                {draft.keywords !== null && (
-                                    <TextField
-                                        aria-label={`${t("category.event_keywords")}: ${draft.name}`}
-                                        value={draft.keywords}
-                                        onChange={(keywords: string) => edit(draft.id, { keywords })}
-                                        className="ml-[10.75rem] mr-11"
-                                    >
-                                        <Input
-                                            placeholder={t("category.event_keywords_placeholder")}
-                                            title={t("category.event_keywords_hint")}
-                                            className="text-sm"
-                                        />
-                                    </TextField>
-                                )}
+                                    {/* #36, under the name, inside the card: a list of words needs
+                                        the width, and it has to read as this category's. Labelled
+                                        in words, because a placeholder alone did not say what the
+                                        field was for. Hidden for an older copy that never loaded
+                                        the keywords. */}
+                                    {draft.keywords !== null && (
+                                        <TextField
+                                            value={draft.keywords}
+                                            onChange={(keywords: string) => edit(draft.id, { keywords })}
+                                            className="mr-11 gap-1"
+                                        >
+                                            <Label className="text-xs font-semibold text-wp-fg-secondary">
+                                                {t("category.event_keywords_label")}
+                                            </Label>
+                                            {/* Named after the category as well: six fields all
+                                                called the same thing are one field to a screen reader. */}
+                                            <Input
+                                                aria-label={`${t("category.event_keywords")}: ${draft.name}`}
+                                                placeholder={t("category.event_keywords_placeholder")}
+                                            />
+                                            <Description className="text-xs text-wp-muted">
+                                                {t("category.event_keywords_hint")}
+                                            </Description>
+                                        </TextField>
+                                    )}
+                                    </div>
                                 </div>
                             ))}
 
