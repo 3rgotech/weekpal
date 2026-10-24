@@ -4,6 +4,29 @@ import { subscribeToBuildMismatch } from "./buildFence";
 /** How often a board nobody has closed goes looking for a new version. */
 const CHECK_EVERY = 60 * 60 * 1000;
 
+/** How soon after returning to the app an update is applied rather than offered. */
+const APPLY_WITHIN = 15_000;
+
+/** When the app last came back into view. Zero until it has: a fresh page load is not a return. */
+let resumedAt = 0;
+
+/** Whether somebody is typing, which a reload would throw away. */
+function isEditing(): boolean {
+    const active = document.activeElement as HTMLElement | null;
+
+    return !!active && (active.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName));
+}
+
+/** How the page reloads. An object so a test can stand in for it; jsdom cannot navigate. */
+export const pageReloader = {
+    reload: (): void => window.location.reload(),
+};
+
+/** Test seam. */
+export function resetAppUpdate(): void {
+    resumedAt = 0;
+}
+
 interface AppUpdate {
     /** A newer version has taken over the page's worker; the code on screen is the old one. */
     updateReady: boolean;
@@ -30,6 +53,24 @@ export function useAppUpdate(): AppUpdate {
     const [updateReady, setUpdateReady] = useState(false);
 
     /*
+     * Offer the update, or just apply it when nobody can be interrupted.
+     *
+     * An installed app on a phone is resumed, not reopened: the bar would greet someone coming
+     * back to the app and wait for a tap they had no reason to give, and an iPhone left like that
+     * stayed on the old version. Right after a return to the app nothing is half typed, so the
+     * page reloads itself. Everywhere else — a board in use, a field focused — the bar asks.
+     */
+    const offer = useCallback(() => {
+        if (Date.now() - resumedAt < APPLY_WITHIN && !isEditing()) {
+            pageReloader.reload();
+
+            return;
+        }
+
+        setUpdateReady(true);
+    }, []);
+
+    /*
      * The other way of finding out, and the one that matters when the worker cannot.
      *
      * Its own effect, deliberately: the service-worker effect below returns early on a browser
@@ -38,7 +79,7 @@ export function useAppUpdate(): AppUpdate {
      * worker has managed to fetch — same bar, same wording, because from the user's side it is
      * the same fact.
      */
-    useEffect(() => subscribeToBuildMismatch(() => setUpdateReady(true)), []);
+    useEffect(() => subscribeToBuildMismatch(offer), [offer]);
 
     useEffect(() => {
         const worker = typeof navigator === 'undefined' ? undefined : navigator.serviceWorker;
@@ -59,7 +100,7 @@ export function useAppUpdate(): AppUpdate {
 
         const announce = () => {
             if (controlled) {
-                setUpdateReady(true);
+                offer();
 
                 return;
             }
@@ -77,6 +118,7 @@ export function useAppUpdate(): AppUpdate {
 
         const onVisible = () => {
             if (document.visibilityState === 'visible') {
+                resumedAt = Date.now();
                 check();
             }
         };
@@ -93,10 +135,10 @@ export function useAppUpdate(): AppUpdate {
             document.removeEventListener('visibilitychange', onVisible);
             window.clearInterval(timer);
         };
-    }, []);
+    }, [offer]);
 
     const refresh = useCallback(() => {
-        window.location.reload();
+        pageReloader.reload();
     }, []);
 
     /**

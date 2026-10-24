@@ -3,7 +3,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, renderHook } from "@testing-library/react";
-import { useAppUpdate } from "../appUpdate";
+import { pageReloader, resetAppUpdate, useAppUpdate } from "../appUpdate";
 
 let update: jest.Mock<any>;
 let listeners: Record<string, Array<() => void>>;
@@ -41,6 +41,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    resetAppUpdate();
+    jest.restoreAllMocks();
     // @ts-expect-error — putting the container back the way jsdom had it.
     delete window.navigator.serviceWorker;
 });
@@ -138,5 +140,36 @@ describe("without a service worker at all", () => {
         const { result } = renderHook(() => useAppUpdate());
 
         expect(result.current.updateReady).toBe(false);
+    });
+});
+
+describe("an update that lands as the app is reopened", () => {
+    it("is applied at once, since nobody is in the middle of anything", () => {
+        // An installed iPhone app is resumed, not reloaded. A bar waiting for a tap left it on
+        // the old version for as long as nobody thought to tap it.
+        const reload = jest.spyOn(pageReloader, "reload").mockImplementation(() => undefined);
+        const { result } = renderHook(() => useAppUpdate());
+
+        act(() => { document.dispatchEvent(new Event("visibilitychange")); });
+        act(() => { fireControllerChange(); });
+
+        expect(reload).toHaveBeenCalledTimes(1);
+        expect(result.current.updateReady).toBe(false);
+    });
+
+    it("is offered instead while somebody is typing", () => {
+        const reload = jest.spyOn(pageReloader, "reload").mockImplementation(() => undefined);
+        const field = document.createElement("input");
+        document.body.appendChild(field);
+        field.focus();
+
+        const { result } = renderHook(() => useAppUpdate());
+
+        act(() => { document.dispatchEvent(new Event("visibilitychange")); });
+        act(() => { fireControllerChange(); });
+
+        expect(reload).not.toHaveBeenCalled();
+        expect(result.current.updateReady).toBe(true);
+        field.remove();
     });
 });
