@@ -149,21 +149,23 @@ const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   }, [settings.language]);
 
   /*
-   * Keep the server told where the user is while the morning briefing is on.
+   * Keep the server told where the user is.
    *
-   * Someone who switched it on in Paris and opens the board in Montreal should get it at 8:00 in
-   * Montreal, and only the browser knows they moved. Once the server's copy has been read, so a
-   * stale local one does not send a timezone the server already has.
+   * Someone who switched the briefing on in Paris and opens the board in Montreal should get it at
+   * 8:00 in Montreal, and only the browser knows they moved. Not only for the briefing: the server
+   * stores calendar events in the hours they are shown in, and without a zone it used UTC — a 9:45
+   * meeting in Paris read 8:45. Once the server's copy has been read, so a stale local one does
+   * not send a timezone the server already has.
    */
   useEffect(() => {
     const here = browserTimezone();
 
-    if (settingsLoaded && settings.briefingEnabled && here !== null && settings.timezone !== here) {
+    if (settingsLoaded && here !== null && settings.timezone !== here) {
       updateSettings({ timezone: here });
     }
     // `updateSettings` is a fresh function every render; the values it is called with are the deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settingsLoaded, settings.briefingEnabled, settings.timezone]);
+  }, [settingsLoaded, settings.timezone]);
 
   const providedValues = {
     settings,
