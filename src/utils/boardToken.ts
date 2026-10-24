@@ -60,6 +60,7 @@ async function requestToken(): Promise<string | undefined> {
             headers: {
                 Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
+                ...csrfHeader(),
             },
         });
 
@@ -76,6 +77,31 @@ async function requestToken(): Promise<string | undefined> {
         // caller leaves the entry in place and the next attempt tries again.
         return undefined;
     }
+}
+
+/**
+ * What proves this POST came from the board's own page.
+ *
+ * The token route sits on the session, so Laravel checks CSRF on it — and without one it answers
+ * 419, the refresh fails, and the board is back to the second-morning bug with a working-looking
+ * fix in front of it. The test suite could never show this: Laravel skips the check under PHPUnit.
+ *
+ * The `XSRF-TOKEN` cookie first, because Laravel re-sets it on every response and it therefore
+ * survives the session rotating its token; the page's meta tag is the fallback. An iPhone that
+ * resumes the installed app days later is running the page from days ago, and its meta tag with it.
+ */
+function csrfHeader(): Record<string, string> {
+    const cookie = document.cookie
+        .split('; ')
+        .find((part) => part.startsWith('XSRF-TOKEN='));
+
+    if (cookie) {
+        return { 'X-XSRF-TOKEN': decodeURIComponent(cookie.slice('XSRF-TOKEN='.length)) };
+    }
+
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content;
+
+    return meta ? { 'X-CSRF-TOKEN': meta } : {};
 }
 
 /** Test seam. */

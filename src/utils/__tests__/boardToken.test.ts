@@ -46,6 +46,45 @@ describe("refreshing", () => {
         );
     });
 
+    it("sends the CSRF token from the XSRF-TOKEN cookie, without which Laravel answers 419", async () => {
+        const fetchMock = respondWith({ data: { token: "new-token" } });
+        configureBoardToken("old-token", "https://weekpal.test/app/token");
+        globalThis.fetch = fetchMock as never;
+        document.cookie = "XSRF-TOKEN=abc%3D%3D; path=/";
+
+        await refreshBoardToken();
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            "https://weekpal.test/app/token",
+            expect.objectContaining({
+                headers: expect.objectContaining({ "X-XSRF-TOKEN": "abc==" }),
+            }),
+        );
+
+        document.cookie = "XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    });
+
+    it("falls back to the page's csrf-token meta tag when there is no cookie", async () => {
+        const fetchMock = respondWith({ data: { token: "new-token" } });
+        configureBoardToken("old-token", "https://weekpal.test/app/token");
+        globalThis.fetch = fetchMock as never;
+        const meta = document.createElement("meta");
+        meta.name = "csrf-token";
+        meta.content = "from-meta";
+        document.head.appendChild(meta);
+
+        await refreshBoardToken();
+
+        expect(fetchMock).toHaveBeenCalledWith(
+            "https://weekpal.test/app/token",
+            expect.objectContaining({
+                headers: expect.objectContaining({ "X-CSRF-TOKEN": "from-meta" }),
+            }),
+        );
+
+        meta.remove();
+    });
+
     it("shares one request between everything waiting", async () => {
         // A board coming back online flushes a whole queue at once. Without the shared promise
         // each queued write mints its own token, and they prune each other out of existence.
