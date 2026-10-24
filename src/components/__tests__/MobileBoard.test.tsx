@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "@jest/globals";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import React from "react";
 import MobileBoard from "../MobileBoard";
 import { SomedayTask, WeeklyTask } from "../../data/task";
@@ -23,6 +23,9 @@ const data = {
     events: [] as unknown[],
     categories: [] as unknown[],
     leftovers: [] as unknown[],
+    selectedCategories: [] as string[],
+    setSelectedCategories: jest.fn(),
+    focusCategory: jest.fn(),
     addTask: jest.fn(),
     completeTask: jest.fn(),
     uncompleteTask: jest.fn(),
@@ -117,7 +120,8 @@ describe("the board on a phone", () => {
         data.allTasks = data.allTasks.length ? data.allTasks : data.tasks;
         render(<MobileBoard />);
 
-        const pills = screen.getAllByRole("button")
+        // Within the day nav: the category filter's rows share the pills' layout classes.
+        const pills = within(screen.getByRole("navigation")).getAllByRole("button")
             .filter((button) => button.className.includes("flex-1 min-w-0"))
             // The first line of each cell: the day's letters, or the bucket's initials. The date
             // under a weekday's letters is a second line and not part of its name.

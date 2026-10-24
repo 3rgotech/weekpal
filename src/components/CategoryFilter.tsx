@@ -26,7 +26,12 @@ import CategoryModal from "./CategoryModal";
  * not be told apart. Here they are siblings, and the row's own handler never sees the Focus
  * button's clicks.
  */
-const CategoryFilter: React.FC = () => {
+interface CategoryFilterProps {
+  /** The phone's day header has room for the icon and the swatches, not for the summary text. */
+  compact?: boolean;
+}
+
+const CategoryFilter: React.FC<CategoryFilterProps> = ({ compact = false }) => {
   const { t } = useTranslation();
   const {
     categories,
@@ -77,7 +82,10 @@ const CategoryFilter: React.FC = () => {
       <Dropdown isOpen={isOpen} onOpenChange={setIsOpen}>
         <Dropdown.Trigger
           aria-label={t("actions.category_filter")}
-          className="flex items-center gap-2 max-w-64 rounded-lg border border-wp-border bg-wp-card py-[7px] pl-3 pr-2.5 text-[13px] font-medium text-wp-fg cursor-pointer overflow-hidden hover:border-wp-border-strong"
+          className={clsx(
+            "flex items-center gap-2 max-w-64 rounded-lg border border-wp-border bg-wp-card py-[7px] text-[13px] font-medium text-wp-fg cursor-pointer overflow-hidden hover:border-wp-border-strong",
+            compact ? "shrink-0 px-2.5" : "pl-3 pr-2.5",
+          )}
         >
           <ListFilter size={15} className="shrink-0 text-wp-fg-secondary" />
 
@@ -94,7 +102,7 @@ const CategoryFilter: React.FC = () => {
                 aria-hidden="true"
               />
             ))}
-            <span className="truncate">{summary}</span>
+            {compact ? <span className="sr-only">{summary}</span> : <span className="truncate">{summary}</span>}
           </span>
           <ChevronDown size={14} className="shrink-0 text-wp-muted" />
         </Dropdown.Trigger>

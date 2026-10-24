@@ -14,6 +14,7 @@ import DayNav from "./DayNav";
 import EventList from "./EventList";
 import MobileTask from "./MobileTask";
 import NewTask from "./NewTask";
+import CategoryFilter from "./CategoryFilter";
 import VirtualTaskList from "./VirtualTaskList";
 import CapacityBar from "./CapacityBar";
 import BatchEstimateStack from "./BatchEstimateStack";
@@ -149,6 +150,7 @@ const MobileBoard: React.FC = () => {
           {/* Same trigger as the wide board, in the same place: the number the run is about to
               change. Absent once the day is fully estimated, so there is no button that does
               nothing. */}
+          <div className="flex shrink-0 items-center gap-2">
           {pending.length > 0 && !estimating && (
             <button
               type="button"
@@ -162,6 +164,10 @@ const MobileBoard: React.FC = () => {
               {t("estimate.batch_short")}
             </button>
           )}
+          {/* The wide board's filter, which the phone had no way to reach: the focus bar was
+              the only category control here, and only for leaving a focus already set. */}
+          <CategoryFilter compact />
+          </div>
         </div>
 
         {/* The slots once a limit is set; otherwise how far through its tasks the day is, as on
