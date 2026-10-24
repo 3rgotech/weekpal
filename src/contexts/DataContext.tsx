@@ -1,7 +1,8 @@
-import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback } from "react";
+import React, { createContext, useState, ReactNode, useEffect, useMemo, useContext, useCallback, useRef } from "react";
 import { mergeTaskChanges } from "../utils/boardTasks";
 import { subscribeToTabMessages } from "../utils/tabLeader";
 import { subscribeToCalendarChanges } from "../utils/calendarFence";
+import { watchForReturn } from "../utils/resumeWatch";
 import { recoverableTasks } from "../utils/recovery";
 import { DayOfWeek, ITaskAdapter, ICategoryAdapter, IChangelogAdapter, IFeedbackAdapter, INoteAdapter, IHistoryAdapter, IInsightsAdapter, IProjectAdapter, IPushAdapter, IShareAdapter, TaskLocation, WeekSummary } from "../types";
 import Task, { WeeklyTask, SomedayTask } from "../data/task";
@@ -504,6 +505,18 @@ const DataProvider: React.FC<DataProviderProps> = ({
       void eventStore.list(currentWeek).then(setEvents);
     });
   }, [taskStore, categoryStore, eventStore, currentWeek]);
+
+  /*
+   * The board came back into view, or has sat on screen for a while: read it again from the
+   * server. Through a ref, so the listener is installed once and still calls the reload that
+   * knows the week currently on screen.
+   */
+  const reloadBoardRef = useRef(reloadBoard);
+  reloadBoardRef.current = reloadBoard;
+
+  useEffect(() => watchForReturn(() => {
+    void reloadBoardRef.current().catch(() => undefined);
+  }), []);
 
   /*
    * A calendar was added, re-filed or removed elsewhere. The fence has already lifted the pull
