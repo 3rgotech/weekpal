@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Button, Modal } from "@heroui/react";
 import { useTranslation } from "react-i18next";
 import clsx from "clsx";
@@ -123,24 +123,11 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                                         ))}
                                     </div>
 
-                                    {/* Focused straight away only with a mouse. On a phone the
-                                        keyboard rising on open pushed the dialog out of view
-                                        before anyone had chosen a kind. Autofill off, and
-                                        everything else a sentence wants on: Safari took the
-                                        unnamed field for an address and turned autocorrect off. */}
-                                    <textarea
-                                        rows={5}
-                                        autoFocus={prefersAutoFocus()}
-                                        name="feedback-message"
-                                        autoComplete="off"
-                                        autoCorrect="on"
-                                        autoCapitalize="sentences"
-                                        spellCheck
+                                    <MessageField
                                         value={message}
-                                        onChange={(event) => setMessage(event.target.value)}
-                                        aria-label={t("feedback.title")}
+                                        onChange={setMessage}
+                                        label={t("feedback.title")}
                                         placeholder={t(`feedback.placeholder_${kind}`)}
-                                        className="w-full px-2 py-1.5 text-sm rounded-md border border-wp-border-strong bg-wp-input"
                                     />
 
                                     {/* Shown, not hidden. Attaching the board's own state without
@@ -194,6 +181,77 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                 </Modal.Container>
             </Modal.Backdrop>
         </Modal>
+    );
+};
+
+interface MessageFieldProps {
+    value: string;
+    onChange: (value: string) => void;
+    label: string;
+    placeholder: string;
+}
+
+/**
+ * Where the report is written: an editable box, not a `<textarea>`.
+ *
+ * iOS Safari took the textarea for a street address — a multi-line field is what an address
+ * form uses — offered contact AutoFill over the keyboard and switched autocorrection off, with
+ * `autocomplete="off"` ignored. AutoFill only ever looks at form controls, so a plain-text
+ * `contenteditable` is left alone and gets the keyboard's ordinary corrections.
+ *
+ * Uncontrolled in the DOM, because rewriting an editable element's text on every keystroke moves
+ * the caret to the start; the text is only written in when the box mounts, so a report reopened
+ * unsent keeps what had been typed.
+ *
+ * Focused straight away only with a mouse. On a phone the keyboard rising on open pushed the
+ * dialog out of view before anyone had chosen a kind.
+ */
+const MessageField: React.FC<MessageFieldProps> = ({ value, onChange, label, placeholder }) => {
+    const ref = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        const box = ref.current;
+
+        if (!box) {
+            return;
+        }
+
+        box.textContent = value;
+
+        if (prefersAutoFocus()) {
+            box.focus();
+        }
+        // Mount only: see above.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <div className="relative">
+            <div
+                ref={ref}
+                role="textbox"
+                aria-multiline="true"
+                aria-label={label}
+                aria-placeholder={placeholder}
+                contentEditable="plaintext-only"
+                suppressContentEditableWarning
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                spellCheck
+                onInput={(event) => onChange(event.currentTarget.innerText ?? event.currentTarget.textContent ?? "")}
+                className={clsx(
+                    "w-full min-h-[7.5rem] px-2 py-1.5 text-sm rounded-md border border-wp-border-strong bg-wp-input",
+                    "whitespace-pre-wrap break-words outline-hidden focus-visible:border-wp-accent",
+                )}
+            />
+            {/* Drawn from the value rather than with `:empty`: Safari leaves a stray line break in
+                a box that has been typed in and cleared, and the box is then never empty again. */}
+            {value.trim() === "" && (
+                <span aria-hidden="true" className="pointer-events-none absolute left-2 top-1.5 text-sm text-wp-muted">
+                    {placeholder}
+                </span>
+            )}
+        </div>
     );
 };
 

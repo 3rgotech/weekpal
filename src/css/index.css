@@ -772,7 +772,7 @@ body {
         input:not([type="checkbox"], [type="radio"], [type="range"]),
         textarea,
         select,
-        [contenteditable="true"] {
+        [contenteditable]:not([contenteditable="false"]) {
             font-size: 16px;
         }
     }

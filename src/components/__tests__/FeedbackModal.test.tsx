@@ -25,6 +25,13 @@ const open = () => render(
     <FeedbackModal adapter={adapter as any} isOpen onOpenChange={() => { }} />,
 );
 
+/** Write into the message box the way a keyboard does: its text changes, then `input` fires. */
+const type = (text: string) => {
+    const box = screen.getByLabelText("feedback.title");
+    box.textContent = text;
+    fireEvent.input(box);
+};
+
 beforeEach(() => {
     adapter.send.mockClear();
     adapter.send.mockImplementation(async () => undefined);
@@ -46,7 +53,8 @@ describe("on a phone", () => {
 
         await waitFor(() => expect(taskStore.getPendingChangesCount).toHaveBeenCalled());
         expect(document.activeElement).not.toBe(field);
-        expect(field.getAttribute("autocomplete")).toBe("off");
+        // Not a form control at all, so AutoFill has nothing to claim it as.
+        expect(field.tagName).not.toBe("TEXTAREA");
         expect(field.getAttribute("autocorrect")).toBe("on");
     });
 });
@@ -75,7 +83,7 @@ describe("reporting something", () => {
     it("will not send whitespace either", async () => {
         open();
 
-        fireEvent.change(screen.getByLabelText("feedback.title"), { target: { value: "   " } });
+        type("   ");
         fireEvent.click(screen.getByText("feedback.send"));
 
         await waitFor(() => expect(taskStore.getPendingChangesCount).toHaveBeenCalled());
@@ -85,9 +93,7 @@ describe("reporting something", () => {
     it("sends what was written, with the week it happened in", async () => {
         open();
 
-        fireEvent.change(screen.getByLabelText("feedback.title"), {
-            target: { value: "Ticking a task moved the wrong card." },
-        });
+        type("Ticking a task moved the wrong card.");
         fireEvent.click(screen.getByText("feedback.send"));
 
         await waitFor(() => expect(adapter.send).toHaveBeenCalled());
@@ -102,7 +108,7 @@ describe("reporting something", () => {
         open();
         await waitFor(() => expect(taskStore.getPendingChangesCount).toHaveBeenCalled());
 
-        fireEvent.change(screen.getByLabelText("feedback.title"), { target: { value: "Tasks vanished." } });
+        type("Tasks vanished.");
         fireEvent.click(screen.getByText("feedback.send"));
 
         await waitFor(() => expect(adapter.send).toHaveBeenCalled());
@@ -132,7 +138,7 @@ describe("reporting something", () => {
         open();
 
         fireEvent.click(screen.getByText("feedback.kind_idea"));
-        fireEvent.change(screen.getByLabelText("feedback.title"), { target: { value: "Sort Some day by age." } });
+        type("Sort Some day by age.");
         fireEvent.click(screen.getByText("feedback.send"));
 
         await waitFor(() => expect(adapter.send.mock.calls[0][0]).toBe("idea"));
@@ -141,7 +147,7 @@ describe("reporting something", () => {
     it("thanks the sender rather than leaving them guessing", async () => {
         open();
 
-        fireEvent.change(screen.getByLabelText("feedback.title"), { target: { value: "Something broke." } });
+        type("Something broke.");
         fireEvent.click(screen.getByText("feedback.send"));
 
         expect(await screen.findByText("feedback.thanks")).toBeTruthy();
@@ -153,7 +159,7 @@ describe("reporting something", () => {
         adapter.send.mockImplementation(async () => { throw new Error("offline"); });
         open();
 
-        fireEvent.change(screen.getByLabelText("feedback.title"), { target: { value: "Something broke." } });
+        type("Something broke.");
         fireEvent.click(screen.getByText("feedback.send"));
 
         expect(await screen.findByText("feedback.error")).toBeTruthy();
