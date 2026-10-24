@@ -64,6 +64,16 @@ const NewTask = ({ dayOfWeek, projectId }: NewTaskProps) => {
   };
 
   const handleFocusOut = (e: React.FocusEvent) => {
+    /*
+     * Focus going nowhere is not focus going elsewhere. iOS never focuses a tapped button, so
+     * tapping "+" blurs the input with no `relatedTarget` — and cancelling here unmounted the
+     * button before its click arrived, throwing the typed title away. A tap that really is
+     * outside still cancels, through the mousedown listener below.
+     */
+    if (e.relatedTarget === null && inputValue.trim()) {
+      return;
+    }
+
     // Check if the next focused element is outside our component
     if (!wrapperRef.current?.contains(e.relatedTarget as Node)) {
       handleCancel();
