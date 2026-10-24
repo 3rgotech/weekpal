@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 const DURATION = 900;
 const STEP = DURATION / 3;
 
-const SplashScreen = () => {
+const SplashScreen = ({ onDone }: { onDone?: () => void }) => {
   const { t } = useTranslation();
   const [start, setStart] = useState(false);
 
@@ -155,7 +155,7 @@ const SplashScreen = () => {
         id="loading-message"
         className="flex items-center justify-center space-x-4 mt-8 opacity-0 transition-opacity duration-300"
       >
-        <SquareCheckAnimation start={start} />
+        <SquareCheckAnimation start={start} onComplete={onDone} />
         <div className="text-lg font-bold text-wp-fg">{t("misc.loading")}</div>
       </div>
     </div>

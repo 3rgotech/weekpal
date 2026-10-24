@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { DataProvider } from "./contexts/DataContext";
 import TopBar from "./components/TopBar";
 import MainContent from "./MainContent";
@@ -155,18 +155,25 @@ function App() {
     // Set loading to false
     setLoading(false);
 
-    // The mark's own sequence is 900ms; this leaves a beat on the finished state so the last
-    // thing to appear is not also the last thing to be seen.
+    // Normally the splash says when it is done — all three boxes ticked, see `onSplashDone`.
+    // This is the backstop for when its animation never runs to the end: a tab opened in the
+    // background, where timers are throttled, must not be held on the splash.
     const timer = setTimeout(() => {
       setMinSplashTimeElapsed(true);
-    }, 1300);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
 
+  // The third box has just been ticked. A short beat on the finished state, so the last thing to
+  // appear is not also the last thing to be seen.
+  const onSplashDone = useCallback(() => {
+    window.setTimeout(() => setMinSplashTimeElapsed(true), 250);
+  }, []);
+
   useEffect(() => {
     // Only hide splash screen when both conditions are met:
-    // 1. Minimum time has elapsed (2000ms)
+    // 1. The splash has finished (or its backstop has fired)
     // 2. Loading is complete
     if (minSplashTimeElapsed && !loading) {
       setSplashScreen(false);
@@ -216,7 +223,7 @@ function App() {
                       looking at a different tab. */}
                   <Ambient />
                 {splashScreen ? (
-                  <SplashScreen />
+                  <SplashScreen onDone={onSplashDone} />
                 ) : (
                   <div className="h-dvh flex flex-col items-stretch overflow-hidden bg-wp-bg text-wp-fg print:hidden">
                     {/* Paints nothing new: the top bar's own colour, over the bar's empty top

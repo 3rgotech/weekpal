@@ -1,13 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Square, SquareCheckBig } from "lucide-react";
 
-const DURATION = 300;
+/* One box every ~225ms — the interval plus its two quarter-steps — so all three are ticked within
+   the splash's own short life, rather than the splash leaving after the first. */
+const DURATION = 150;
 
-const SquareCheckAnimation = ({ start }: { start: boolean }) => {
+const SquareCheckAnimation = ({ start, onComplete }: {
+  start: boolean;
+  /** Called once, when the third box is first ticked: the splash waits for it before leaving. */
+  onComplete?: () => void;
+}) => {
   const [squares, setSquares] = useState([false, false, false]);
   const [direction, setDirection] = useState("forward");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [opacity, setOpacity] = useState([1, 1, 1]); // Opacity values for each square
+  const completed = useRef(false);
+
+  useEffect(() => {
+    if (direction === "forward" && currentIndex === 3 && !completed.current) {
+      completed.current = true;
+      onComplete?.();
+    }
+  }, [currentIndex, direction, onComplete]);
 
   useEffect(() => {
     if (!start) return;
