@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Dropdown, Label, Separator } from "@heroui/react";
 import clsx from "clsx";
-import { Bug, CalendarDays, CalendarOff, ChevronDown, ChevronsDownUp, ChevronsUpDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, Settings, User, UserPlus } from "lucide-react";
+import { Bug, CalendarDays, CalendarOff, ChevronDown, ChevronsDownUp, ChevronsUpDown, Download, Eye, EyeOff, Inbox, LogIn, Menu as MenuIcon, Printer, RotateCw, Settings, User, UserPlus } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Logo from "./Logo";
 import SyncStatusIndicator from "./SyncStatusIndicator";
+import IconButton from "./IconButton";
+import { ICON_BUTTON_CLASS, ICON_BUTTON_WRAPPER_CLASS } from "../utils/color";
 import { useData } from "../contexts/DataContext";
 import { useSettings } from "../contexts/SettingsContext";
 import { getEnvConfig } from "../utils/env";
@@ -26,14 +28,26 @@ import { MENU_HINT_CLASS, MENU_ICON_CLASS, MENU_POPOVER_CLASS, MENU_ROW_CLASS, M
 const MobileTopBar: React.FC = () => {
   const { t } = useTranslation();
   const { settings, updateSettings, openSettingsModal } = useSettings();
-  const { leftovers, feedbackAdapter } = useData();
+  const { leftovers, feedbackAdapter, reloadBoard } = useData();
   const { canInstall, needsManualSteps, install } = useInstallPrompt();
   const { setLeftoversOpen } = useShortcuts();
   const [installSteps, setInstallSteps] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { accountUrl, signupUrl, loginUrl } = getEnvConfig();
 
   const badge = leftoverBadge(leftovers.length);
+
+  // The wide bar's week refresh, which the phone had no way to reach. Ignored while one is
+  // running, for the same reason as there.
+  const refresh = () => {
+    if (refreshing) {
+      return;
+    }
+
+    setRefreshing(true);
+    void reloadBoard().finally(() => setRefreshing(false));
+  };
 
   return (
     /* Same idea at the top: the installed app draws under the status bar. */
@@ -43,7 +57,15 @@ const MobileTopBar: React.FC = () => {
         <SyncStatusIndicator className="min-w-0" />
       </div>
 
-      <div className="shrink-0">
+      <div className="flex shrink-0 items-center gap-1">
+        <IconButton
+          icon="refresh"
+          onClick={refresh}
+          iconClass={`${ICON_BUTTON_CLASS} ${refreshing ? "animate-spin" : ""}`}
+          wrapperClass={ICON_BUTTON_WRAPPER_CLASS}
+          aria-label={t("actions.refresh_week")}
+          aria-busy={refreshing}
+        />
         <Dropdown>
           {/* The trigger is itself a button in v3 — a react-aria one, not HeroUI's — so it is
               styled here directly: the redesign's bordered secondary button. */}
@@ -152,6 +174,13 @@ const MobileTopBar: React.FC = () => {
                 <Dropdown.Item id="print" className={MENU_ROW_CLASS} textValue={t("actions.print")} onAction={() => window.print()}>
                   <Printer size={16} className={MENU_ICON_CLASS} />
                   <Label>{t("actions.print")}</Label>
+                </Dropdown.Item>
+
+                {/* The installed app has no address bar, so no reload button of its own: this is
+                    the way to fetch the latest version when the data refresh is not enough. */}
+                <Dropdown.Item id="reload" className={MENU_ROW_CLASS} textValue={t("actions.reload_app")} onAction={() => window.location.reload()}>
+                  <RotateCw size={16} className={MENU_ICON_CLASS} />
+                  <Label>{t("actions.reload_app")}</Label>
                 </Dropdown.Item>
 
                 {/* No shortcuts entry here. This bar is the board you navigate by tapping; a

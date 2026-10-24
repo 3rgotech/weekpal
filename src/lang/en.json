@@ -112,7 +112,8 @@
     "show": "Show",
     "hide": "Hide",
     "share": "Share this week",
-    "refresh_week": "Refresh this week"
+    "refresh_week": "Refresh this week",
+    "reload_app": "Reload the app"
   },
   "category": {
     "help": "Everything is shown. Click a category to hide it, or focus one on its own.",

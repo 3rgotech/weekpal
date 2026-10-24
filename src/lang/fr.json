@@ -112,7 +112,8 @@
     "show": "Afficher",
     "hide": "Masquer",
     "share": "Partager cette semaine",
-    "refresh_week": "Actualiser cette semaine"
+    "refresh_week": "Actualiser cette semaine",
+    "reload_app": "Recharger l'application"
   },
   "category": {
     "help": "Tout est affiché. Cliquez sur une catégorie pour la masquer, ou isolez-en une.",
