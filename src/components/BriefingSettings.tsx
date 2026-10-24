@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Button, Label, ListBox, Select } from "@heroui/react";
 import type { Key } from "react-aria-components";
 import clsx from "clsx";
+import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
@@ -136,7 +137,9 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
     return (
         <>
             <Row label={t("settings.briefing.label")} hint={t("settings.briefing.hint")}>
-                <div className="flex flex-col items-start gap-2">
+                {/* One line where it fits: the switch, then what it means for this device beside
+                    it rather than under it. Wraps on a phone too narrow for both. */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                     <Segmented
                         value={on}
                         isDisabled={!usable || busy}
@@ -159,7 +162,10 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
                         </div>
                     )}
                     {!status && on && deviceOn === true && (
-                        <p className="text-xs text-wp-muted">{t("settings.briefing.here")}</p>
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                            <Check size={14} aria-hidden="true" />
+                            {t("settings.briefing.here")}
+                        </span>
                     )}
                 </div>
             </Row>
