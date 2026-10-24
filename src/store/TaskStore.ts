@@ -20,7 +20,10 @@ class TaskStore extends BaseStore implements ITaskStore {
     }
 
     async list(weekCode: string): Promise<Task[]> {
-        if (this.shouldSync('tasks', 'task')) {
+        // The throttle covers one table but the pull covers one week. Without the week check,
+        // opening next week within five minutes of pulling this one answered from the cache — and
+        // a phone that had never opened next week showed it empty, whatever the laptop had put in it.
+        if (this.shouldSync('tasks', 'task') || (this.canSync('task') && lastPulledWeek() !== weekCode)) {
             await this.pull(weekCode);
         }
 
@@ -229,6 +232,7 @@ class TaskStore extends BaseStore implements ITaskStore {
             await this.reconcileEvents(weekCode, events);
 
             this.setLastSync('tasks');
+            rememberPulledWeek(weekCode);
             reportSyncHealth('ok');
         } catch (error) {
             // A failed pull is survivable — the local copy is still there — but it must not be
@@ -424,6 +428,25 @@ class TaskStore extends BaseStore implements ITaskStore {
             mutationId: newId(),
             deviceId: deviceId(),
         });
+    }
+}
+
+const PULLED_WEEK_KEY = 'tasks-last-sync-week';
+
+/** Which week the throttle's timestamp belongs to. Null when unknown, which forces a pull. */
+function lastPulledWeek(): string | null {
+    try {
+        return localStorage.getItem(PULLED_WEEK_KEY);
+    } catch {
+        return null;
+    }
+}
+
+function rememberPulledWeek(weekCode: string): void {
+    try {
+        localStorage.setItem(PULLED_WEEK_KEY, weekCode);
+    } catch {
+        // Blocked storage: every week change pulls, which is the safe direction.
     }
 }
 
