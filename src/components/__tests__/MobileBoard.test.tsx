@@ -41,6 +41,7 @@ const modal = { open: jest.fn(), openNewTask: jest.fn() };
 jest.mock("../../contexts/DataContext", () => ({ useData: () => data }));
 jest.mock("../../contexts/TaskModalContext", () => ({ useTaskModal: () => modal }));
 const settings = { ...DEFAULT_SETTINGS };
+const calendarOverrides: Record<string, unknown> = {};
 
 const account = { account: null, subscribed: false };
 
@@ -49,7 +50,7 @@ jest.mock("../../contexts/SettingsContext", () => ({
     useSettings: () => ({ settings, updateSettings: jest.fn() }),
 }));
 jest.mock("../../contexts/CalendarContext", () => ({
-    useCalendar: () => fakeCalendar(now, settings),
+    useCalendar: () => fakeCalendar(now, settings, calendarOverrides),
 }));
 
 const weekly = (title: string, dayOfWeek: string, extra: Record<string, unknown> = {}) =>
@@ -57,6 +58,7 @@ const weekly = (title: string, dayOfWeek: string, extra: Record<string, unknown>
 
 beforeEach(() => {
     jest.clearAllMocks();
+    delete calendarOverrides.currentWeek;
     Object.assign(settings, DEFAULT_SETTINGS);
     account.subscribed = false;
     data.tasks = [];
@@ -73,6 +75,18 @@ describe("the board on a phone", () => {
 
         expect(screen.getByText("Today's task")).toBeInTheDocument();
         expect(screen.queryByText("Another day's task")).not.toBeInTheDocument();
+    });
+
+    it("opens another week on its first day, not on today's weekday of that week", () => {
+        // A reload keeps the week in the address. Landing on next week's Saturday because today
+        // is a Saturday showed a day that is nobody's today.
+        calendarOverrides.currentWeek = "2099w01";
+        data.tasks = [weekly("Monday's task", "1", { weekCode: "2099w01" })];
+        data.allTasks = data.tasks;
+
+        render(<MobileBoard />);
+
+        expect(screen.getByText("Monday's task")).toBeInTheDocument();
     });
 
     it("shows one bucket at a time, and switches on a pill", () => {

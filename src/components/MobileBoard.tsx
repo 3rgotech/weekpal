@@ -43,14 +43,24 @@ const MobileBoard: React.FC = () => {
     tasks, allTasks, events, categories,
     estimatingDay, startEstimating, stopEstimating, estimateTask,
   } = useData();
-  const { dateOf, layout } = useCalendar();
+  const { dateOf, layout, currentWeek, thisWeek } = useCalendar();
 
   // Opens on today, unless today is a day this user has hidden — then on the first bucket the
   // board still draws, so it never opens on a column its own nav cannot get back to.
+  //
+  // Today only in this week. Reloading on another week (the week is kept in the address) opened
+  // on today's weekday *of that week* — Saturday of next week, which is nobody's today — so a
+  // different week opens on its first day instead.
   const [visibleDay, setVisibleDay] = useState<DayOfWeek>(() => {
+    const order = boardDayOrder(layout);
+
+    if (currentWeek !== thisWeek) {
+      return order.find((day) => day !== "0" && day !== "someday") ?? "0";
+    }
+
     const today = `${dayjs().isoWeekday()}` as DayOfWeek;
 
-    return boardDayOrder(layout).includes(today) ? today : "0";
+    return order.includes(today) ? today : "0";
   });
 
   // A day can stop being drawn while it is the one on screen — hiding non-working days from the
