@@ -754,3 +754,26 @@ body {
 .markdown-body h5 {
     font-size: 0.9375rem;
 }
+
+/*
+ * No zoom when a field is focused on an iPhone.
+ *
+ * iOS Safari zooms the page into any focused field whose text is under 16px, and does not zoom
+ * back out when it loses focus — so adding a task, or opening the feedback dialog, left the board
+ * magnified until the user pinched it back. The board's fields are 13–14px by design.
+ *
+ * 16px on touch-screen Safari only, so the desktop layout keeps its sizes. Unlayered on purpose:
+ * unlayered CSS beats every layered utility, so this wins over `text-[13px]` without `!important`.
+ * `maximum-scale=1` in the viewport would also stop the zoom, but it stops pinch-zoom on Android
+ * as well, which is not a trade worth making.
+ */
+@supports (-webkit-touch-callout: none) {
+    @media (pointer: coarse) {
+        input:not([type="checkbox"], [type="radio"], [type="range"]),
+        textarea,
+        select,
+        [contenteditable="true"] {
+            font-size: 16px;
+        }
+    }
+}
