@@ -128,8 +128,12 @@ const DayNav: React.FC<DayNavProps> = ({ visibleDay, onSelect }) => {
 
   return (
     /* The bar's background runs to the bottom edge; its contents stop above the home indicator.
-       Padding rather than a margin, so the colour still fills the strip iOS reserves. */
-    <nav className="flex-none flex flex-col gap-2.5 px-2.5 pt-2.5 pb-[calc(16px+env(safe-area-inset-bottom))] border-t border-wp-border bg-wp-chrome" data-tour="days">
+       Padding rather than a margin, so the colour still fills the strip iOS reserves.
+
+       The inset less a little, not the inset plus 16px: the inset already clears the indicator
+       with room to spare, and the extra left a band of empty bar under the pills. 10px where
+       there is no indicator at all. */
+    <nav className="flex-none flex flex-col gap-2.5 px-2.5 pt-2.5 pb-[max(10px,calc(env(safe-area-inset-bottom)-8px))] border-t border-wp-border bg-wp-chrome" data-tour="days">
       <div className="flex items-center justify-between">
         <IconButton
           icon="chevronLeft"
