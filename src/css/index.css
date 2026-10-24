@@ -379,8 +379,19 @@ body {
         border-bottom: 1px solid var(--wp-border);
     }
 
+    /* The row scrolls sideways on its own when the labels outrun a phone's width, rather than
+       pushing the whole dialog into a horizontal scroll. */
+    .tabs {
+        @apply min-w-0 max-w-full;
+    }
+
     .tabs .tabs__list {
-        @apply min-w-0 gap-[22px] rounded-none bg-transparent p-0;
+        @apply min-w-0 gap-[22px] rounded-none bg-transparent p-0 flex-nowrap overflow-x-auto overflow-y-hidden;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
     }
 
     .tabs .tabs__indicator {
@@ -388,7 +399,7 @@ body {
     }
 
     .tabs .tabs__tab {
-        @apply h-auto w-auto rounded-none px-0 pb-[11px] pt-0 text-[13px] font-medium;
+        @apply h-auto w-auto shrink-0 whitespace-nowrap rounded-none px-0 pb-[11px] pt-0 text-[13px] font-medium;
         color: var(--wp-fg-secondary);
         /* An inset shadow rather than a border, so the selected tab is no taller than the rest
            and the rule sits exactly on the row's hairline. */

@@ -89,7 +89,7 @@ const SettingsModal: React.FC = () => {
                                 <X size={18} />
                             </button>
                         </Modal.Header>
-                        <Modal.Body className="m-0 mt-3.5 p-0">
+                        <Modal.Body className="m-0 mt-3.5 p-0 min-w-0 overflow-x-hidden">
                             {/* No save button, and deliberately none: every control writes as it
                                 is changed — to localStorage first, then to the server — so a tab
                                 can be left at any moment without losing anything, and closing the
