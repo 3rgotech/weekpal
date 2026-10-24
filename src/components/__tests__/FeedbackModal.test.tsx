@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import FeedbackModal from "../FeedbackModal";
@@ -29,6 +29,26 @@ beforeEach(() => {
     adapter.send.mockClear();
     adapter.send.mockImplementation(async () => undefined);
     taskStore.getPendingChangesCount.mockClear();
+});
+
+describe("on a phone", () => {
+    const matchMedia = window.matchMedia;
+
+    afterEach(() => {
+        window.matchMedia = matchMedia;
+    });
+
+    it("does not raise the keyboard on open, and does not offer address autofill", async () => {
+        window.matchMedia = ((query: string) => ({ matches: false, media: query })) as never;
+        open();
+
+        const field = screen.getByRole("textbox");
+
+        await waitFor(() => expect(taskStore.getPendingChangesCount).toHaveBeenCalled());
+        expect(document.activeElement).not.toBe(field);
+        expect(field.getAttribute("autocomplete")).toBe("off");
+        expect(field.getAttribute("autocorrect")).toBe("on");
+    });
 });
 
 describe("reporting something", () => {

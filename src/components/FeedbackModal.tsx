@@ -123,9 +123,19 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
                                         ))}
                                     </div>
 
+                                    {/* Focused straight away only with a mouse. On a phone the
+                                        keyboard rising on open pushed the dialog out of view
+                                        before anyone had chosen a kind. Autofill off, and
+                                        everything else a sentence wants on: Safari took the
+                                        unnamed field for an address and turned autocorrect off. */}
                                     <textarea
                                         rows={5}
-                                        autoFocus
+                                        autoFocus={prefersAutoFocus()}
+                                        name="feedback-message"
+                                        autoComplete="off"
+                                        autoCorrect="on"
+                                        autoCapitalize="sentences"
+                                        spellCheck
                                         value={message}
                                         onChange={(event) => setMessage(event.target.value)}
                                         aria-label={t("feedback.title")}
@@ -186,5 +196,10 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ adapter, isOpen, onOpenCh
         </Modal>
     );
 };
+
+/** A mouse or trackpad, where focusing a field costs nothing. A touch screen opens a keyboard. */
+function prefersAutoFocus(): boolean {
+    return typeof window.matchMedia !== "function" || window.matchMedia("(pointer: fine)").matches;
+}
 
 export default FeedbackModal;
