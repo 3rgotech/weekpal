@@ -1,5 +1,5 @@
 import React from "react";
-import { X } from "lucide-react";
+import { Check, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { WeeklyTask } from "../data/task";
 import { DayOfWeek } from "../types";
@@ -33,8 +33,8 @@ interface LeftoverActionsProps {
  *   evasion — it is where a task goes when you know it matters and not when.
  * - **Some day** appears only once a task has earned it *(rt §6)*: on the top deferral tier. The
  *   offer to give up arrives when the evidence does, not on every row.
- * - **Delete is a low-contrast `×` at the far end**, deliberately away from everything else, and
- *   always undoable.
+ * - **Delete is a labelled button at the far end**, muted and deliberately away from everything
+ *   else, and always undoable. A bare `×` read as "dismiss", not as "delete this task".
  *
  * This is the list's half of R21. The card's half — Done bottom-left in the thumb zone, Someday
  * bottom-right, the rail pinned under the card — is `LeftoverStack`, the phone's review. The rail
@@ -46,21 +46,27 @@ const LeftoverActions: React.FC<LeftoverActionsProps> = ({
     const { t } = useTranslation();
 
     return (
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-x-2 gap-y-2 flex-wrap">
+            {/* A button that looks like one, with a check: as a bare accent word it read as a
+                label for the rail beside it. */}
             <button
                 type="button"
                 disabled={busy}
                 onClick={onDone}
                 className="
-                    px-2 py-1 rounded-md text-xs font-semibold cursor-pointer
-                    text-wp-accent hover:bg-wp-accent-soft
+                    inline-flex items-center gap-1.5 self-stretch px-2.5 rounded-lg text-xs font-semibold cursor-pointer
+                    border border-wp-border-strong text-wp-fg hover:border-wp-accent hover:text-wp-accent
                     focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                 "
             >
+                <Check size={14} aria-hidden="true" />
                 {t("leftovers.complete")}
             </button>
 
-            <span className="w-px h-4 bg-wp-border-strong mx-0.5" aria-hidden="true" />
+            <span className="w-px self-stretch my-1 bg-wp-border-strong" aria-hidden="true" />
+
+            {/* The rail is the same verb seven times, so it is named once. */}
+            <span className="text-xs text-wp-muted" aria-hidden="true">{t("leftovers.move_to")}</span>
 
             <LeftoverRail task={task} busy={busy} onMoveToDay={onMoveToDay} onMoveToWeek={onMoveToWeek} />
 
@@ -86,15 +92,14 @@ const LeftoverActions: React.FC<LeftoverActionsProps> = ({
                 type="button"
                 disabled={busy}
                 onClick={onDelete}
-                aria-label={t("leftovers.delete")}
-                title={t("leftovers.delete")}
                 className="
-                    ml-auto p-1 rounded text-wp-muted cursor-pointer
-                    hover:text-wp-danger
+                    ml-auto inline-flex items-center gap-1.5 self-stretch px-2.5 rounded-lg text-xs cursor-pointer
+                    text-wp-muted hover:text-wp-danger hover:bg-wp-danger-soft
                     focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
                 "
             >
-                <X size={14} />
+                <Trash2 size={14} aria-hidden="true" />
+                {t("leftovers.delete")}
             </button>
         </div>
     );

@@ -290,9 +290,13 @@
     "move": "Déplacer",
     "waiting_one": "{{count}} tâche en attente dans la revue",
     "waiting_other": "{{count}} tâches en attente dans la revue",
-    "any": "Peu importe",
+    "any": "Sans jour précis",
     "undo_delete": "Annuler la suppression de « {{title}} »",
-    "last_week": "Semaine dernière : {{done}} faites, {{moved}} déplacées.",
+    "last_week": "Semaine dernière : {{done}}, {{moved}}.",
+    "last_week_done_count_one": "{{count}} faite",
+    "last_week_done_count_other": "{{count}} faites",
+    "last_week_moved_count_one": "{{count}} déplacée",
+    "last_week_moved_count_other": "{{count}} déplacées",
     "last_week_done_one": "tâche faite",
     "last_week_done_other": "tâches faites",
     "last_week_moved_one": "tâche reportée à une semaine suivante ou à Un jour",
@@ -303,7 +307,10 @@
     "skip": "Passer",
     "swipe_hint": "Balayez sur le côté pour passer une carte. Touchez pour décider.",
     "shape": "Cette semaine, jour par jour",
-    "rail": "Déplacer dans cette semaine"
+    "rail": "Déplacer dans cette semaine",
+    "move_to": "Reporter à",
+    "planned_on": "Prévue le {{date}}",
+    "planned_that_week": "Prévue cette semaine-là, sans jour précis"
   },
   "update": {
     "available": "Une nouvelle version de WeekPal est prête.",

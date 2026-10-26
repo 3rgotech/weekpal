@@ -37,7 +37,12 @@ const LeftoverSummary: React.FC<LeftoverSummaryProps> = ({ summary, className })
                 aria-expanded={expanded}
                 className="text-left tabular-nums hover:text-wp-fg focus-visible:outline-2 focus-visible:outline-wp-accent rounded"
             >
-                {t("leftovers.last_week", { done: summary.done, moved: summary.moved })}
+                {/* Each number carries its own plural: "1 déplacées" is what one sentence with two
+                    counts in it gets in French. */}
+                {t("leftovers.last_week", {
+                    done: t("leftovers.last_week_done_count", { count: summary.done }),
+                    moved: t("leftovers.last_week_moved_count", { count: summary.moved }),
+                })}
             </button>
 
             {expanded && (

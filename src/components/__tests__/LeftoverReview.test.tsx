@@ -165,7 +165,7 @@ describe("the weekly review of what was left behind", () => {
         setup([task]);
         await screen.findByText("Task a");
 
-        fireEvent.click(screen.getByLabelText("leftovers.delete"));
+        fireEvent.click(screen.getByRole("button", { name: "leftovers.delete" }));
 
         await waitFor(() => expect(data.deleteTask).toHaveBeenCalledWith(task));
     });
@@ -240,7 +240,7 @@ describe("the weekly review of what was left behind", () => {
         setup([task]);
         await screen.findByText("Task a");
 
-        fireEvent.click(screen.getByLabelText("leftovers.delete"));
+        fireEvent.click(screen.getByRole("button", { name: "leftovers.delete" }));
 
         await waitFor(() => expect(data.deleteTask).toHaveBeenCalledWith(task));
         fireEvent.click(await screen.findByText("leftovers.undo_delete"));

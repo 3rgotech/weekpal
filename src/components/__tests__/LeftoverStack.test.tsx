@@ -201,7 +201,7 @@ describe("the review on a phone", () => {
         setup([task, leftover("b", "3")]);
         await screen.findByText("Task a");
 
-        fireEvent.click(screen.getByLabelText("leftovers.delete"));
+        fireEvent.click(screen.getByRole("button", { name: "leftovers.delete" }));
 
         await waitFor(() => expect(data.deleteTask).toHaveBeenCalledWith(task));
         fireEvent.click(await screen.findByText("leftovers.undo_delete"));

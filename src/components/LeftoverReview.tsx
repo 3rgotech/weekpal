@@ -243,10 +243,13 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
 
   return (
     <Modal isOpen={isOpen} onOpenChange={(open) => { if (!open) close(); }}>
-      <Modal.Backdrop>
-        <Modal.Container size={vertical ? "full" : "lg"} scroll="inside">
+      {/* On a phone, a sheet that stops under the top bar and a clear backdrop: the board's own
+          chrome — the mark, the menu — stays in view, so the review reads as part of the app
+          rather than as a screen that replaced it. */}
+      <Modal.Backdrop variant={vertical ? "transparent" : undefined}>
+        <Modal.Container size={vertical ? "full" : "lg"} scroll="inside" placement={vertical ? "bottom" : undefined}>
           {vertical ? (
-            <Modal.Dialog className="h-full">
+            <Modal.Dialog className="!p-0 !h-[calc(100%-56px-env(safe-area-inset-top))] !min-h-0 !rounded-t-2xl border-t border-wp-border-strong">
               <LeftoverStack
                 tasks={leftovers}
                 loaded={leftoversLoaded}
@@ -269,10 +272,20 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
           <Modal.Dialog>
             <Modal.Header className="flex flex-col gap-1">
               <Modal.Heading>{t("leftovers.title")}</Modal.Heading>
-              <span className="text-sm font-normal text-wp-muted">
-                {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
-              </span>
-              <LeftoverSummary summary={lastWeekSummary} className="font-normal" />
+              {/* The two numbers on one line, then what to do about them: three grey lines in a
+                  row read as one block nobody parses. */}
+              <div className="flex flex-wrap items-baseline gap-x-2 text-sm font-normal text-wp-muted">
+                <span className="text-wp-fg-secondary">
+                  {leftoversLoaded ? t("leftovers.summary", { count: total }) : t("leftovers.loading")}
+                </span>
+                {lastWeekSummary && lastWeekSummary.done + lastWeekSummary.moved + lastWeekSummary.left > 0 && (
+                  <span aria-hidden="true">·</span>
+                )}
+                <LeftoverSummary summary={lastWeekSummary} />
+              </div>
+              {total > 0 && (
+                <p className="mt-2 text-sm font-normal text-wp-muted">{t("leftovers.intro")}</p>
+              )}
             </Modal.Header>
 
             <Modal.Body>
@@ -288,12 +301,8 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
             </p>
           )}
 
-          {total > 0 && (
-            <p className="text-sm text-wp-muted">{t("leftovers.intro")}</p>
-          )}
-
           {weeks.map(([weekCode, weekTasks]) => (
-            <section key={weekCode} className="flex flex-col gap-1">
+            <section key={weekCode} className="flex flex-col gap-2 mt-4 first:mt-1">
               <h3 className="text-[10px] font-bold uppercase tracking-[0.8px] text-wp-muted">
                 {weekHeaderLabel(
                   weekCodeToDate(weekCode).format(settings.weekHeaderFormat),
@@ -301,7 +310,7 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                 )}
               </h3>
 
-              <ul className="flex flex-col">
+              <ul className="flex flex-col gap-2">
                 {weekTasks.map((task) => {
                   const category = categories.find((c) => c.id === task.categoryId);
                   // The undated bucket has no weekday to keep, so "same day" would be the very
@@ -312,23 +321,27 @@ const LeftoverReview: React.FC<LeftoverReviewProps> = ({ isOpen, onOpenChange })
                     <li
                       key={task.id}
                       className={clsx(
-                        "flex flex-col gap-1.5 py-2 border-b border-wp-border",
+                        "flex flex-col gap-3 p-3 rounded-xl bg-wp-card border border-wp-border",
                         busy === task.id && "opacity-50",
                       )}
                     >
-                      <div className="flex items-center gap-2">
-                      <span className="w-24 shrink-0 text-xs text-wp-muted">
-                        {undated ? t("main.this_week") : leftoverDate(task).format("ddd D MMM")}
-                      </span>
+                      {/* The task first and loudest; when it was due underneath, as context. */}
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {category && (
+                            <CategoryTag category={category} />
+                          )}
 
-                      {category && (
-                        <CategoryTag category={category} />
-                      )}
+                          {/* `min-w-0` is what lets a long title truncate rather than widen the
+                              card. */}
+                          <span className="flex-1 min-w-0 truncate font-medium text-wp-fg">{task.title}</span>
+                        </div>
 
-                      {/* `min-w-0` is what lets a long title truncate instead of pushing the
-                          actions onto a line of their own. */}
-                      <span className="flex-1 min-w-0 truncate">{task.title}</span>
-
+                        <span className="text-xs text-wp-muted">
+                          {undated
+                            ? t("leftovers.planned_that_week")
+                            : t("leftovers.planned_on", { date: leftoverDate(task).format("ddd D MMM") })}
+                        </span>
                       </div>
 
                       {/* On its own line: seven day targets do not fit beside a title, and the

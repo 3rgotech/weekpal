@@ -13,6 +13,8 @@ interface LeftoverRailProps {
     busy: boolean;
     onMoveToDay: (day: DayOfWeek) => void;
     onMoveToWeek: () => void;
+    /** The `bar` only: offered beside "no set day" when given, for a card that has earned it. */
+    onSomeday?: () => void;
     /**
      * `row` sits under a list row and fits beside its neighbours; `bar` is pinned to the bottom of
      * a phone and gets the whole width, so its pills are the size of the board's own `DayNav`.
@@ -25,8 +27,8 @@ interface LeftoverRailProps {
  *
  * *(rt §7)* Three of the review's five actions were the same verb at different precision — put it
  * on the same day, put it somewhere this week, put it on a day of my choosing — and they collapse
- * onto one rail. The task's **original weekday is pre-lit**, showing its date while the others are
- * letters, so the most-used action is one tap on the thing that is already glowing. **`Any`** at
+ * onto one rail. Each pill is a weekday over its date, and the task's **original weekday is
+ * pre-lit**, so the most-used action is one tap on the thing that is already glowing. **`Any`** at
  * the end is "this week, no day yet": reading order puts the precise targets first and the
  * fallback last.
  *
@@ -35,7 +37,7 @@ interface LeftoverRailProps {
  * date of the same weekday in whatever week the user was browsing when the review opened.
  */
 const LeftoverRail: React.FC<LeftoverRailProps> = ({
-    task, busy, onMoveToDay, onMoveToWeek, variant = "row",
+    task, busy, onMoveToDay, onMoveToWeek, onSomeday, variant = "row",
 }) => {
     const { t } = useTranslation();
     const { layout, thisWeek } = useCalendar();
@@ -52,54 +54,94 @@ const LeftoverRail: React.FC<LeftoverRailProps> = ({
 
     const bar = variant === "bar";
 
-    return (
-        <div
-            className={clsx(
-                "flex items-center",
-                bar ? "gap-1 w-full" : "gap-1 flex-wrap",
-            )}
-            data-testid="leftover-rail"
-        >
-            {days.map((day) => {
-                const isOriginal = day === original;
-                const date = dateOf(day);
+    const pills = days.map((day) => {
+        const isOriginal = day === original;
+        const date = dateOf(day);
 
-                return (
-                    <button
-                        key={day}
-                        type="button"
-                        disabled={busy}
-                        onClick={() => onMoveToDay(day)}
-                        // The pill shows a letter; the pre-lit one shows its date, because "the
-                        // same day next week" is a date rather than a weekday as far as anybody
-                        // deciding is concerned.
-                        aria-label={date.format("dddd D MMMM")}
-                        className={clsx(
-                            "rounded-md tabular-nums cursor-pointer",
-                            "focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50",
-                            bar ? "flex-1 min-w-0 py-2.5 text-sm rounded-full" : "min-w-7 px-1.5 py-1 text-xs",
-                            isOriginal
-                                ? "bg-wp-accent text-wp-on-accent font-semibold"
-                                : "text-wp-fg-secondary hover:bg-wp-track",
-                        )}
-                    >
-                        {isOriginal ? date.format("D") : date.format("dd").charAt(0)}
-                    </button>
-                );
-            })}
-
+        return (
             <button
+                key={day}
                 type="button"
                 disabled={busy}
-                onClick={onMoveToWeek}
+                onClick={() => onMoveToDay(day)}
+                // Every pill is a small calendar day — weekday over date — so the pre-lit
+                // one reads as "this day" rather than as a stray number among letters.
+                aria-label={date.format("dddd D MMMM")}
                 className={clsx(
-                    "text-wp-fg-secondary hover:bg-wp-track cursor-pointer",
+                    "flex flex-col items-center justify-center leading-tight tabular-nums cursor-pointer",
                     "focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50",
-                    bar ? "flex-1 min-w-0 py-2.5 text-sm rounded-full" : "px-2 py-1 rounded-md text-xs",
+                    bar ? "flex-1 min-w-0 py-2 rounded-xl" : "min-w-9 px-1.5 py-1 rounded-lg",
+                    isOriginal
+                        ? "bg-wp-accent text-wp-on-accent"
+                        // On a phone every day sits on a tile: bare numbers along the
+                        // bottom of the screen read as a footer, not as targets.
+                        : bar ? "bg-wp-track text-wp-fg active:bg-wp-border-strong" : "text-wp-fg hover:bg-wp-track",
                 )}
             >
-                {t("leftovers.any")}
+                <span
+                    className={clsx(
+                        "text-[10px] font-semibold uppercase tracking-wide",
+                        !isOriginal && "text-wp-muted",
+                    )}
+                    aria-hidden="true"
+                >
+                    {date.format("dd").charAt(0)}
+                </span>
+                <span className={clsx(bar ? "text-base" : "text-sm", "font-semibold")} aria-hidden="true">
+                    {date.format("D")}
+                </span>
             </button>
+        );
+    });
+
+    const any = (
+        <button
+            type="button"
+            disabled={busy}
+            onClick={onMoveToWeek}
+            className={clsx(
+                "cursor-pointer",
+                "focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50",
+                bar
+                    ? "flex-1 min-w-0 py-2.5 text-sm rounded-xl border border-wp-border-strong text-wp-fg active:bg-wp-track"
+                    : "self-stretch px-2.5 rounded-lg text-xs text-wp-fg-secondary hover:bg-wp-track",
+            )}
+        >
+            {t("leftovers.any")}
+        </button>
+    );
+
+    // On a phone the days get the whole width, and "no set day" a row of its own under them:
+    // squeezed in as an eighth pill, it wrapped onto three lines.
+    if (bar) {
+        return (
+            <div className="flex flex-col gap-2 w-full" data-testid="leftover-rail">
+                <div className="flex items-stretch gap-1 w-full">{pills}</div>
+                <div className="flex gap-2 w-full">
+                    {any}
+                    {onSomeday && (
+                        <button
+                            type="button"
+                            disabled={busy}
+                            onClick={onSomeday}
+                            className="
+                                flex-1 min-w-0 py-2.5 text-sm rounded-xl cursor-pointer
+                                border border-wp-border-strong text-wp-fg-secondary active:bg-wp-track
+                                focus-visible:outline-2 focus-visible:outline-wp-accent disabled:opacity-50
+                            "
+                        >
+                            {t("leftovers.some_day")}
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-1 flex-wrap" data-testid="leftover-rail">
+            {pills}
+            {any}
         </div>
     );
 };
