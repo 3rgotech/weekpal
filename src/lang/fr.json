@@ -430,7 +430,7 @@
     "let_go": "L'abandonner"
   },
   "estimate": {
-    "label": "Durée, en gros",
+    "label": "Durée approximative",
     "custom": "Minutes",
     "planned": "prévu",
     "unestimated_one": "{{count}} sans estimation",
