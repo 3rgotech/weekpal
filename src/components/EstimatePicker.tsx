@@ -67,22 +67,27 @@ const EstimatePicker: React.FC<EstimatePickerProps> = ({ value, onChange, number
 
             {/* The escape hatch from the six. Empty means no estimate — which is a real answer,
                 not a missing one, so it is never filled in on the user's behalf. */}
-            <input
-                type="number"
-                min={MIN_ESTIMATE}
-                max={MAX_ESTIMATE}
-                value={value ?? ""}
-                aria-label={t("estimate.custom")}
-                placeholder={t("estimate.custom")}
-                onChange={(event) => {
-                    const parsed = parseInt(event.target.value, 10);
+            {/* The unit leads, inside the pill: a bare number field read as anything from a
+                count to a score, and "min." says what to type before anything is typed. */}
+            <label className="w-[4.5rem] sm:w-24 flex items-center gap-1 px-2 sm:px-3 py-[7px] rounded-full border border-wp-border-strong text-xs font-medium focus-within:border-wp-accent">
+                <span aria-hidden="true" className="shrink-0 text-wp-muted">{t("estimate.unit")}</span>
+                <input
+                    type="number"
+                    min={MIN_ESTIMATE}
+                    max={MAX_ESTIMATE}
+                    value={value ?? ""}
+                    aria-label={t("estimate.custom")}
+                    onChange={(event) => {
+                        const parsed = parseInt(event.target.value, 10);
 
-                    onChange(Number.isInteger(parsed) && parsed >= MIN_ESTIMATE
-                        ? Math.min(parsed, MAX_ESTIMATE)
-                        : null);
-                }}
-                className="w-16 sm:w-24 px-2 sm:px-3 py-[7px] rounded-full border border-wp-border-strong bg-transparent text-xs font-medium text-wp-fg placeholder:text-wp-muted outline-hidden focus:border-wp-accent"
-            />
+                        onChange(Number.isInteger(parsed) && parsed >= MIN_ESTIMATE
+                            ? Math.min(parsed, MAX_ESTIMATE)
+                            : null);
+                    }}
+                    // No spinner: inside a pill this narrow it covered the digits it was there to change.
+                    className="w-full min-w-0 bg-transparent text-wp-fg outline-hidden [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+            </label>
             </div>
         </div>
     );

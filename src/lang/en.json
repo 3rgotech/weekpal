@@ -433,6 +433,7 @@
     "label": "How long, roughly",
     "custom": "Minutes",
     "planned": "planned",
+    "unit": "min.",
     "unestimated_one": "{{count}} unestimated",
     "unestimated_other": "{{count}} unestimated",
     "free": "{{time}} free",

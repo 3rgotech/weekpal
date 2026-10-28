@@ -433,6 +433,7 @@
     "label": "Durée approximative",
     "custom": "Minutes",
     "planned": "prévu",
+    "unit": "min.",
     "unestimated_one": "{{count}} sans estimation",
     "unestimated_other": "{{count}} sans estimation",
     "free": "{{time}} libre",
