@@ -184,6 +184,19 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
         if (value === null || value === undefined || value === "") {
             return t("task.history.nothing");
         }
+        if (field === "day_of_week") {
+            // 1 to 7 are ISO weekdays, Monday first; 0 is the undated bucket for the week.
+            const day = Number(value);
+
+            if (day === 0) {
+                return t("main.this_week");
+            }
+            if (Number.isInteger(day) && day >= 1 && day <= 7) {
+                const name = dayjs().isoWeekday(day).format("dddd");
+
+                return name.charAt(0).toUpperCase() + name.slice(1);
+            }
+        }
         if (field === "category_id" || field === "project_id") {
             const named = field === "category_id" ? categories : projects;
 

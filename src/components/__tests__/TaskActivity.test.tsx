@@ -14,7 +14,10 @@ jest.mock("react-i18next", () => ({
 jest.mock("../../utils/dayjs", () => ({
     ...jest.requireActual<object>("../../utils/dayjs"),
     __esModule: true,
-    default: () => () => ({ fromNow: () => "now" }),
+    default: () => () => ({
+        fromNow: () => "now",
+        isoWeekday: (day: number) => ({ format: () => ["", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"][day] }),
+    }),
 }));
 
 const data = {
@@ -27,6 +30,7 @@ const data = {
                 changes: {
                     category_id: { from: "work", to: "gone" },
                     project_id: { from: null, to: "weekpal" },
+                    day_of_week: { from: 0, to: 4 },
                 },
             }),
         ]),
@@ -47,5 +51,13 @@ describe("a task's history", () => {
         expect(screen.getByText(/task.history.removed/)).toBeTruthy();
         expect(screen.getByText(/Weekpal/)).toBeTruthy();
         expect(screen.queryByText(/weekpal|gone/)).toBeNull();
+    });
+
+    it("names days rather than printing their numbers", async () => {
+        render(<TaskActivity task={new WeeklyTask({ title: "Fix it", weekCode: "2026w01", dayOfWeek: "1" })} />);
+
+        fireEvent.click(screen.getByRole("tab", { name: /task.history/ }));
+
+        expect(await screen.findByText(/main\.this_week → Thursday/)).toBeTruthy();
     });
 });
