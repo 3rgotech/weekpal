@@ -11,7 +11,32 @@ import {
 export const LAYOUT_PRESETS: LayoutPreset[] = ["compressed", "classic", "front", "rows", "columns"];
 
 /**
- * Must stay in step with `App\Support\BoardSettings::defaults()` on the server.
+ * The device's language, among the two the board speaks.
+ *
+ * Only ever a default. Before an account exists — the demo, a first open of the installed app —
+ * the phone's own setting is the only thing anyone has said about language, and a French phone
+ * opening an English board, then signing up on a French page, reads as two different products.
+ * Once the server's copy arrives it wins: an account starts in the language it signed up in.
+ */
+export function deviceLanguage(): Language {
+    const preferred = typeof navigator === "undefined"
+        ? []
+        : (navigator.languages?.length ? navigator.languages : [navigator.language]);
+
+    for (const tag of preferred) {
+        const base = tag?.toLowerCase().split("-")[0];
+
+        if (base === "fr" || base === "en") {
+            return base;
+        }
+    }
+
+    return "en";
+}
+
+/**
+ * Must stay in step with `App\Support\BoardSettings::defaults()` on the server, the language
+ * aside: the server knows which page an account signed up on, the board only knows the device.
  *
  * `showEvents` and `showWeekend` were missing here while being declared on the
  * `Settings` type, so a fresh browser started with them undefined — which reads
@@ -21,7 +46,7 @@ export const LAYOUT_PRESETS: LayoutPreset[] = ["compressed", "classic", "front",
  */
 export const DEFAULT_SETTINGS: Settings = {
     theme: "system",
-    language: "en",
+    language: deviceLanguage(),
     dayHeaderFormat: "dddd | D MMMM YYYY",
     weekHeaderFormat: "[[WEEK]] W - MMMM YYYY",
     showCompletedTasks: true,

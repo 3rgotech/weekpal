@@ -1,5 +1,5 @@
-import { describe, expect, it } from "@jest/globals";
-import { DEFAULT_SETTINGS, withDefaults } from "../settings";
+import { afterEach, describe, expect, it } from "@jest/globals";
+import { DEFAULT_SETTINGS, deviceLanguage, withDefaults } from "../settings";
 
 /**
  * These defaults must stay in step with `App\Support\BoardSettings::defaults()`.
@@ -210,5 +210,31 @@ describe("the morning briefing", () => {
     expect(repaired.briefingDays).toEqual([1, 2, 3, 4, 5]);
     expect(repaired.briefingTime).toBe("08:00");
     expect(repaired.timezone).toBeNull();
+  });
+});
+
+describe("deviceLanguage", () => {
+  const speaking = (languages) => {
+    jest.spyOn(navigator, "languages", "get").mockReturnValue(languages);
+  };
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it("starts a French phone in French", () => {
+    speaking(["fr-FR", "en-US"]);
+
+    expect(deviceLanguage()).toBe("fr");
+  });
+
+  it("takes the first language the board speaks", () => {
+    speaking(["de-DE", "en-GB", "fr-FR"]);
+
+    expect(deviceLanguage()).toBe("en");
+  });
+
+  it("falls back to English for a language the board does not speak", () => {
+    speaking(["es-ES"]);
+
+    expect(deviceLanguage()).toBe("en");
   });
 });

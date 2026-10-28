@@ -3,7 +3,7 @@ import { initReactI18next } from "react-i18next";
 
 import en from "./lang/en.json";
 import fr from "./lang/fr.json";
-import LanguageDetector from 'i18next-browser-languagedetector';
+import { deviceLanguage } from "./utils/settings";
 
 const resources = {
     en: {
@@ -16,12 +16,14 @@ const resources = {
 
 i18n
     .use(initReactI18next)
-    .use(LanguageDetector)
     .init({
         resources,
-        lng: "en", // language to use, more information here: https://www.i18next.com/overview/configuration-options#languages-namespaces-resources
-        // you can use the i18n.changeLanguage function to change the language manually: https://www.i18next.com/overview/api#changelanguage
-        // if you're using a language detector, do not define the lng option
+        // The settings decide from here on (`SettingsContext` switches to `settings.language`);
+        // this only spares the first render a flash of English on a French device. It was a
+        // hard-coded "en", which overrode the detector this used to load and started every new
+        // visitor in English.
+        lng: deviceLanguage(),
+        fallbackLng: "en",
 
         interpolation: {
             escapeValue: false // react already safes from xss
