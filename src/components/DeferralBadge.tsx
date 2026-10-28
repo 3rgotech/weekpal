@@ -1,8 +1,11 @@
 import React from "react";
 import clsx from "clsx";
+import { Tooltip } from "@heroui/react";
+import { CalendarClock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Task from "../data/task";
 import { deferralLabel, deferralTier, hasEscapeHatch } from "../utils/deferral";
+import { TOOLTIP_CLASSES } from "../utils/color";
 
 interface DeferralBadgeProps {
     task: Task;
@@ -33,28 +36,32 @@ const DeferralBadge: React.FC<DeferralBadgeProps> = ({ task, onOpenEscape }) => 
     }
 
     const label = deferralLabel(task.deferralCount);
-    // A fact about the card, never a verb aimed at the reader: "moved 4 times", not "you
+    // A fact about the card, never a verb aimed at the reader: "postponed 4 times", not "you
     // postponed this 4 times". The board has no business making an accusation.
     const description = t("deferral.moved", { count: task.deferralCount });
+    const escapable = hasEscapeHatch(task.deferralCount) && onOpenEscape !== undefined;
 
     const className = clsx(
-        "shrink-0 rounded-full text-[11px] font-semibold leading-none tabular-nums select-none",
-        // Identical box in every tier, so nothing shifts as a task escalates.
-        "px-1.5 py-1 min-w-[1.4rem] text-center",
+        "inline-flex shrink-0 items-center gap-1 rounded-full text-[11px] font-semibold leading-none tabular-nums select-none",
+        // Identical box in every tier, so nothing shifts as a task escalates. The icon is what
+        // says what the number counts; a bare figure read as anything from a priority to a score.
+        "px-1.5 py-1",
         tier === "muted" && "text-wp-muted",
         tier === "pill" && "bg-wp-track text-wp-fg-secondary",
         tier === "heavy" && "bg-wp-fg text-wp-bg",
     );
 
-    if (!hasEscapeHatch(task.deferralCount) || !onOpenEscape) {
-        return <span className={className} title={description} aria-label={description}>{label}</span>;
-    }
+    const content = (
+        <>
+            <CalendarClock size={11} aria-hidden="true" />
+            {label}
+        </>
+    );
 
-    return (
+    const badge = escapable ? (
         <button
             type="button"
-            className={clsx(className, "hover:opacity-80 focus-visible:outline-2 focus-visible:outline-wp-accent")}
-            title={t("deferral.escape_hint")}
+            className={clsx(className, "cursor-pointer hover:opacity-80 focus-visible:outline-2 focus-visible:outline-wp-accent")}
             aria-label={`${description}. ${t("deferral.escape_hint")}`}
             onPointerDown={(event) => event.stopPropagation()}
             onClick={(event) => {
@@ -64,8 +71,20 @@ const DeferralBadge: React.FC<DeferralBadgeProps> = ({ task, onOpenEscape }) => 
                 onOpenEscape(task);
             }}
         >
-            {label}
+            {content}
         </button>
+    ) : (
+        <span className={className} aria-label={description}>{content}</span>
+    );
+
+    return (
+        <Tooltip delay={300} closeDelay={0}>
+            <Tooltip.Trigger className="inline-flex shrink-0 rounded-full">{badge}</Tooltip.Trigger>
+            <Tooltip.Content placement="top" showArrow className={TOOLTIP_CLASSES}>
+                {escapable ? `${description} · ${t("deferral.escape_hint")}` : description}
+                <Tooltip.Arrow />
+            </Tooltip.Content>
+        </Tooltip>
     );
 };
 

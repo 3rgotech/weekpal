@@ -420,8 +420,8 @@
     "unfinished_other": "{{count}} unfinished"
   },
   "deferral": {
-    "moved_one": "Moved {{count}} time",
-    "moved_other": "Moved {{count}} times",
+    "moved_one": "Postponed {{count}} time",
+    "moved_other": "Postponed {{count}} times",
     "escape_hint": "Options for a task that keeps moving",
     "escape_title": "This one keeps moving",
     "escape_intro": "“{{title}}” has moved {{count}} times. That usually means one of three things.",
