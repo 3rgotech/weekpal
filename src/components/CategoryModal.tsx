@@ -200,9 +200,11 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                 <div key={draft.id} className="flex items-start gap-3 rounded-xl border border-wp-border bg-wp-card p-3">
                                     {/* The picker is the sixteen colours themselves. A dropdown
                                         would name them, and nobody picks a category colour by
-                                        reading the word "fuchsia". */}
+                                        reading the word "fuchsia". Four by four, so every row is
+                                        full and each reads as a band of the wheel: warm, green,
+                                        blue, then purple to pink. */}
                                     <div
-                                        className="flex flex-wrap gap-1 w-40 shrink-0"
+                                        className="grid grid-cols-4 gap-1 shrink-0"
                                         role="radiogroup"
                                         aria-label={t("category.color")}
                                     >
@@ -219,7 +221,9 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ isOpen, onOpenChange }) =
                                                     COLORS[color].bg,
                                                     draft.color === color
                                                         ? "ring-2 ring-offset-2 ring-wp-accent ring-offset-wp-card"
-                                                        : "opacity-60 hover:opacity-100",
+                                                        // Full strength: faded, the swatches showed a
+                                                        // pastel palette that no tag is drawn in.
+                                                        : "hover:scale-110",
                                                 )}
                                             >
                                                 {draft.color === color && (
