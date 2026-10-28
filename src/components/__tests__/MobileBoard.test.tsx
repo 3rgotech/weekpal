@@ -22,6 +22,7 @@ const data = {
     allTasks: [] as unknown[],
     events: [] as unknown[],
     categories: [] as unknown[],
+    projects: [] as unknown[],
     leftovers: [] as unknown[],
     selectedCategories: [] as string[],
     setSelectedCategories: jest.fn(),

@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import TaskContent from "../TaskContent";
 import Category from "../../data/category";
+import Project from "../../data/project";
 import { WeeklyTask } from "../../data/task";
 import { DEFAULT_SETTINGS } from "../../utils/settings";
 
@@ -15,6 +16,7 @@ jest.mock("react-i18next", () => ({
 
 const data = {
     categories: [] as unknown[],
+    projects: [] as unknown[],
     focusedCategory: null as string | null,
     toggleFocusCategory: jest.fn(),
 };
@@ -30,6 +32,7 @@ const task = () => new WeeklyTask({ title: "Book the van", weekCode: "2026w01", 
 beforeEach(() => {
     jest.clearAllMocks();
     data.categories = [work];
+    data.projects = [new Project({ id: "weekpal", name: "Weekpal", categoryId: "work" })];
     data.focusedCategory = null;
 });
 
@@ -106,5 +109,24 @@ describe("the completion strike", () => {
 
         expect(container.querySelector(".task-strike")).not.toBeNull();
         expect(container.querySelector(".task-strike--done")).toBeNull();
+    });
+});
+
+describe("a task linked to a project", () => {
+    const linked = () => new WeeklyTask({
+        title: "Fix the badge", weekCode: "2026w01", dayOfWeek: "1", categoryId: "work", projectId: "weekpal",
+    });
+
+    it("names its project ahead of its title", () => {
+        render(<TaskContent task={linked()} />);
+
+        const heading = screen.getByRole("heading");
+        expect(heading.textContent).toBe("WeekpalFix the badge");
+    });
+
+    it("leaves the name off where the list is already the project's", () => {
+        render(<TaskContent task={linked()} showProject={false} />);
+
+        expect(screen.getByRole("heading").textContent).toBe("Fix the badge");
     });
 });

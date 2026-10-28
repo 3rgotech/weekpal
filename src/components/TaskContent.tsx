@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock3 } from "lucide-react";
+import { Clock3, Folder } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import Task from "../data/task";
@@ -17,6 +17,8 @@ interface TaskContentProps {
   onOpenEscape?: (task: Task) => void;
   /** `md` on a phone, where the row is the whole width and a thumb is doing the reading. */
   size?: "sm" | "md";
+  /** Off in the projects drawer, where every task listed is already under its project's name. */
+  showProject?: boolean;
 }
 
 /**
@@ -27,12 +29,15 @@ interface TaskContentProps {
  * controls and different gestures, but a task that reads one way on a laptop and another on a
  * phone is two tasks as far as the person holding it is concerned.
  */
-const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "sm" }) => {
+const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "sm", showProject = true }) => {
   const { t } = useTranslation();
-  const { categories, focusedCategory, toggleFocusCategory } = useData();
+  const { categories, projects, focusedCategory, toggleFocusCategory } = useData();
   const { settings } = useSettings();
 
   const category = categories.find((c) => c.id === task.categoryId);
+  const project = showProject && task.projectId
+    ? projects.find((p) => p.id === task.projectId)
+    : undefined;
   const isFocused = category !== undefined && focusedCategory === category.id;
   const { done, total } = task.subtaskProgress;
   const subtaskLabel = subtaskProgressLabel(settings.subtaskDisplay, done, total);
@@ -53,6 +58,22 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
           task.completed ? "text-wp-muted" : "text-wp-fg",
         )}
       >
+        {/* Inline with the title rather than on the meta line, so it reads as part of the task's
+            name — "Weekpal · fix the badge" — and wraps with it. Achromatic: colour is the
+            category's, and the project's category is already on the tag below. */}
+        {project && (
+          <span
+            className={clsx(
+              "mr-1.5 inline-flex max-w-[12rem] items-center gap-1 rounded bg-wp-track px-1.5 py-px align-[1px]",
+              "text-[11px] font-semibold leading-4 text-wp-fg-secondary",
+              task.completed && "opacity-60",
+            )}
+            title={project.name}
+          >
+            <Folder size={11} aria-hidden="true" className="shrink-0" />
+            <span className="truncate">{project.name}</span>
+          </span>
+        )}
         <span className={clsx("task-strike", task.completed && "task-strike--done")}>
           {task.title}
         </span>

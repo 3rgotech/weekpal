@@ -101,7 +101,7 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
         }}
       >
         <div className="flex flex-1 min-w-0 items-center">
-          <TaskContent task={task} onOpenEscape={openEscape} />
+          <TaskContent task={task} onOpenEscape={openEscape} showProject={!projectId} />
         </div>
         {/* On hover only, and kept in the layout while hidden so the title does not re-wrap
             the moment the pointer arrives.
