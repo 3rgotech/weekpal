@@ -62,7 +62,10 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, dayOfWeek, projectI
   const cursor = isDragging ? "grabbing" : "grab";
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    // Translate only. The sortable strategy also hands out a scale when neighbours differ in
+    // height, and applied here it stretched the card above or below the dragged one — text and
+    // all — to the dragged card's size.
+    transform: CSS.Translate.toString(transform),
     transition: isDragging ? undefined : transition,
     opacity: isDragging ? 0.5 : 1,
     boxShadow: isDragging ? "0 12px 32px var(--wp-shadow)" : undefined,
