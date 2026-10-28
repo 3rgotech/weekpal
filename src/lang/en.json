@@ -524,7 +524,7 @@
     },
     "menu": {
       "title": "Everything else",
-      "body": "The menu holds the tasks left behind in past weeks, showing or hiding completed tasks and events, and the button for telling us something's broken. It also opens the settings, where almost everything can be adjusted: working days, limits, appearance, and the morning briefing, a notification each morning saying what the day holds."
+      "body": "The menu holds the tasks left behind in past weeks, showing or hiding completed tasks and events, and the button for telling us something's broken. It also opens the settings, where you can make WeekPal fit the way you work: take a moment to explore them!"
     }
   },
   "teaser": {

@@ -524,7 +524,7 @@
     },
     "menu": {
       "title": "Tout le reste",
-      "body": "Le menu regroupe les tâches inachevées des semaines passées, l'affichage des tâches terminées et des événements, et le bouton pour nous signaler un problème. Il ouvre aussi les paramètres, où presque tout se règle : jours travaillés, limites, apparence, et le résumé du matin, une notification qui vous annonce chaque jour ce qui vous attend."
+      "body": "Le menu regroupe les tâches inachevées des semaines passées, l'affichage des tâches terminées et des événements, et le bouton pour nous signaler un problème. Vous y trouverez aussi les paramètres, pour adapter WeekPal à votre façon de travailler : prenez le temps de les explorer !"
     }
   },
   "teaser": {
