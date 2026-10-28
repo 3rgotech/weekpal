@@ -521,7 +521,7 @@
     },
     "menu": {
       "title": "Everything else",
-      "body": "What you left behind, your settings, and the button for telling me something's broken."
+      "body": "The menu holds the tasks left behind in past weeks, showing or hiding completed tasks and events, printing, your settings, and the button for telling us something's broken."
     }
   },
   "teaser": {

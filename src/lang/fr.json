@@ -270,13 +270,13 @@
     "expand_events": "Développer les événements"
   },
   "leftovers": {
-    "title": "Restés en plan",
+    "title": "Tâches inachevées",
     "summary_one": "{{count}} tâche n'a jamais été faite",
     "summary_other": "{{count}} tâches n'ont jamais été faites",
     "intro": "Cochez ce qui est en fait terminé, supprimez ce qui n'a plus d'intérêt, et déplacez le reste dans cette semaine.",
     "loading": "Recherche de ce qui a été oublié…",
-    "empty": "Rien n'est resté en plan. Toutes les semaines précédentes sont à jour.",
-    "open": "Tâches restées en plan",
+    "empty": "Aucune tâche inachevée. Toutes les semaines précédentes sont à jour.",
+    "open": "Tâches inachevées",
     "complete": "Finalement faite",
     "delete": "Plus d'actualité",
     "same_day": "Même jour",
@@ -504,7 +504,7 @@
       "body": "« Cette semaine », pour ce qui doit être fait avant dimanche sans tomber un matin précis. « Un jour », pour la liste que vous ne traitez pas encore."
     },
     "leftovers": {
-      "title": "Ce que vous avez laissé derrière",
+      "title": "Les tâches inachevées",
       "body": "Les tâches inachevées ne disparaissent pas à minuit. Une fois par semaine, celles qui attendent encore vous sont montrées, et vous décidez de leur sort."
     },
     "settings": {
@@ -521,7 +521,7 @@
     },
     "menu": {
       "title": "Tout le reste",
-      "body": "Ce que vous avez laissé derrière, vos réglages, et le bouton pour me signaler un problème."
+      "body": "Le menu regroupe les tâches inachevées des semaines passées, l'affichage des tâches terminées et des événements, l'impression, vos paramètres et le bouton pour nous signaler un problème."
     }
   },
   "teaser": {
