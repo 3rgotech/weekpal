@@ -19,7 +19,7 @@ import IconButton from "./IconButton";
 const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
     const { t } = useTranslation();
     const dayjs = useDayJs();
-    const { noteStore, historyAdapter } = useData();
+    const { noteStore, historyAdapter, categories, projects } = useData();
 
     const [notes, setNotes] = useState<Note[]>([]);
     const [history, setHistory] = useState<HistoryEntry[] | null>(null);
@@ -175,9 +175,19 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
         </div>
     );
 
-    const describe = (value: unknown): string => {
+    /**
+     * A recorded value as a person would name it. The changelog stores what the row held, which
+     * for a category or a project is an id — readable to the database and to nobody else. One
+     * that has since been deleted has no name left to show, and says so.
+     */
+    const describe = (field: string, value: unknown): string => {
         if (value === null || value === undefined || value === "") {
             return t("task.history.nothing");
+        }
+        if (field === "category_id" || field === "project_id") {
+            const named = field === "category_id" ? categories : projects;
+
+            return named.find((candidate) => candidate.id === value)?.name ?? t("task.history.removed");
         }
         if (typeof value === "object") {
             return JSON.stringify(value);
@@ -219,9 +229,9 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
                                             {t(`task.history.field.${field}`, { defaultValue: field })}
                                         </span>
                                         {": "}
-                                        {describe(entry.changes?.[field]?.from)}
+                                        {describe(field, entry.changes?.[field]?.from)}
                                         {" → "}
-                                        {describe(entry.changes?.[field]?.to)}
+                                        {describe(field, entry.changes?.[field]?.to)}
                                     </li>
                                 ))}
                             </ul>

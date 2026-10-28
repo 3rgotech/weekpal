@@ -167,6 +167,7 @@
       "empty": "Rien n'a encore changé sur cette tâche.",
       "unavailable": "L'historique est conservé sur le serveur : une connexion est nécessaire.",
       "nothing": "rien",
+      "removed": "(supprimé)",
       "event": {
         "created": "Créée",
         "updated": "Modifiée",
@@ -432,8 +433,8 @@
   "estimate": {
     "label": "Durée approximative",
     "custom": "Minutes",
-    "planned": "prévu",
     "unit": "min.",
+    "planned": "prévu",
     "unestimated_one": "{{count}} sans estimation",
     "unestimated_other": "{{count}} sans estimation",
     "free": "{{time}} libre",

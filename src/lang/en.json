@@ -177,6 +177,7 @@
       "empty": "Nothing has changed on this task yet.",
       "unavailable": "History is kept on the server, so it needs a connection.",
       "nothing": "nothing",
+      "removed": "(deleted)",
       "event": {
         "created": "Created",
         "updated": "Updated",
@@ -432,8 +433,8 @@
   "estimate": {
     "label": "How long, roughly",
     "custom": "Minutes",
-    "planned": "planned",
     "unit": "min.",
+    "planned": "planned",
     "unestimated_one": "{{count}} unestimated",
     "unestimated_other": "{{count}} unestimated",
     "free": "{{time}} free",

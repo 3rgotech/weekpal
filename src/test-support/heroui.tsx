@@ -107,10 +107,25 @@ export const Modal = compound(
     },
 );
 
-export const Tabs = compound(box(), {
+/** Every panel renders; a tab press only reports itself, which is what callers wire to. */
+const TabSelection = React.createContext<((key: string) => void) | undefined>(undefined);
+
+const TabsRoot = ({ children, onSelectionChange, ...props }: P) => (
+    <TabSelection.Provider value={onSelectionChange}>
+        <div {...filter(props)}>{children}</div>
+    </TabSelection.Provider>
+);
+
+const Tab = ({ children, id, ...props }: P) => {
+    const select = React.useContext(TabSelection);
+
+    return <button role="tab" id={id} onClick={() => select?.(id)} {...filter(props)}>{children}</button>;
+};
+
+export const Tabs = compound(TabsRoot, {
     List: box(),
     ListContainer: box(),
-    Tab: box("button"),
+    Tab,
     Panel: box(),
     Indicator: () => null,
     Separator: () => null,
