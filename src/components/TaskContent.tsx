@@ -69,7 +69,7 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
             <button
               type="button"
               className={clsx(
-                "shrink-0 rounded cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-wp-accent",
+                "inline-flex shrink-0 rounded cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-wp-accent",
                 isFocused && "ring-2 ring-offset-1 ring-wp-accent ring-offset-wp-card",
               )}
               aria-pressed={isFocused}
@@ -90,7 +90,7 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
           )}
 
           {estimate && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-wp-muted tabular-nums">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium leading-4 text-wp-muted tabular-nums">
               <Clock3 size={11} aria-hidden="true" />
               {estimate}
             </span>
@@ -106,7 +106,7 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
           {subtaskLabel && (
             <span
               className={clsx(
-                "shrink-0 text-[11px] font-medium tabular-nums",
+                "shrink-0 text-[11px] font-medium leading-4 tabular-nums",
                 done === total ? "text-green-600 dark:text-green-400" : "text-wp-muted",
               )}
               title={t("task.subtasks.progress", { done, total })}
