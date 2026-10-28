@@ -504,7 +504,7 @@
     },
     "buckets": {
       "title": "No day in mind yet?",
-      "body": "“This week” holds what needs doing by Sunday, on no particular day. “Some day” keeps what you'll get to later, with no date."
+      "body": "“This week” holds what needs doing by Sunday, on no particular day. “Some day” keeps what you'll get to later, in no particular week."
     },
     "leftovers": {
       "title": "Tasks left behind",
@@ -512,7 +512,7 @@
     },
     "settings": {
       "title": "Make it yours",
-      "body": "Choose your working days, how long your days are and what makes a full one. You'll find what's new here too."
+      "body": "Working days, how long your days are, limits, appearance, importing tasks: almost everything is set here. You can also turn on the morning briefing, a notification each morning saying what the day holds."
     },
     "day": {
       "title": "One day at a time",
@@ -520,11 +520,11 @@
     },
     "tabs": {
       "title": "The rest of the week",
-      "body": "Every day is a tab along here, plus “This week” for what has no day and “Some day” for what has no week. Tap the week's name to come back to today."
+      "body": "Every day is a tab along here, plus “This week” ($t(main.this_week_short)) for what has no particular day and “Some day” ($t(main.some_day_short)) for what has no particular week. Tap the week's name to come back to today."
     },
     "menu": {
       "title": "Everything else",
-      "body": "The menu holds the tasks left behind in past weeks, showing or hiding completed tasks and events, printing, your settings, and the button for telling us something's broken."
+      "body": "The menu holds the tasks left behind in past weeks, showing or hiding completed tasks and events, and the button for telling us something's broken. It also opens the settings, where almost everything can be adjusted: working days, limits, appearance, and the morning briefing, a notification each morning saying what the day holds."
     }
   },
   "teaser": {
