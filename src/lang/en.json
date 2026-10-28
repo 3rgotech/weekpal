@@ -240,7 +240,10 @@
       "zones": "Drop the task here to act on it",
       "deleted": "Deleted “{{title}}”",
       "undo": "Undo"
-    }
+    },
+    "has_description": "Has a description",
+    "notes_count_one": "{{count}} note",
+    "notes_count_other": "{{count}} notes"
   },
   "misc": {
     "of": "of",

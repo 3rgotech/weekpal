@@ -19,7 +19,7 @@ import IconButton from "./IconButton";
 const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
     const { t } = useTranslation();
     const dayjs = useDayJs();
-    const { noteStore, historyAdapter, categories, projects } = useData();
+    const { noteStore, historyAdapter, categories, projects, setNotesCount } = useData();
 
     const [notes, setNotes] = useState<Note[]>([]);
     const [history, setHistory] = useState<HistoryEntry[] | null>(null);
@@ -34,7 +34,12 @@ const TaskActivity: React.FC<{ task: Task }> = ({ task }) => {
         if (!noteStore) {
             return;
         }
-        setNotes(await noteStore.list(task.id));
+        const listed = await noteStore.list(task.id);
+
+        setNotes(listed);
+        // So the card's notes icon follows a note added, deleted or synced from elsewhere.
+        setNotesCount(task, listed.length);
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- the task's id is what matters
     }, [noteStore, task.id]);
 
     useEffect(() => {

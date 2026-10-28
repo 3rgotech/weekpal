@@ -230,7 +230,10 @@
       "zones": "Déposez la tâche ici pour agir dessus",
       "deleted": "« {{title}} » supprimée",
       "undo": "Annuler"
-    }
+    },
+    "has_description": "Contient une description",
+    "notes_count_one": "{{count}} note",
+    "notes_count_other": "{{count}} notes"
   },
   "misc": {
     "of": "de",

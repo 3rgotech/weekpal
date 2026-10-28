@@ -97,6 +97,8 @@ interface DataContextProps {
   findTask: (taskId: string) => Task | null;
   addTask: (task: WeeklyTask | SomedayTask) => void;
   updateTask: (task: Task) => void;
+  /** Corrects a card's notes count from the notes just read. Local only: notes sync on their own. */
+  setNotesCount: (task: Task, count: number) => void;
   completeTask: (task: Task) => void;
   uncompleteTask: (task: Task) => void;
   moveTask: (task: Task, toDay: DayOfWeek, toOrder: number | null) => void;
@@ -636,6 +638,18 @@ const DataProvider: React.FC<DataProviderProps> = ({
     });
   };
 
+  const setNotesCount = (task: Task, count: number) => {
+    if (task.notesCount === count) {
+      return;
+    }
+
+    // A copy of the same class, not a mutation: the board re-renders on a new object, and the
+    // modal's copy of the task should not change under it.
+    const counted = Object.assign(Object.create(Object.getPrototypeOf(task)), task, { notesCount: count }) as Task;
+
+    applyTaskChanges([counted]);
+  };
+
   const updateTask = (task: Task) => {
     if (!taskStore) {
       return;
@@ -1147,6 +1161,7 @@ const DataProvider: React.FC<DataProviderProps> = ({
         findTask,
         addTask,
         updateTask,
+        setNotesCount,
         completeTask,
         uncompleteTask,
         moveTask,

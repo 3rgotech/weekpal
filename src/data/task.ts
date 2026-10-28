@@ -42,6 +42,7 @@ abstract class Task extends Base {
         // from a Dexie row depending on where it came from.
         this.deferralCount = data.deferralCount ?? data.deferral_count ?? 0;
         this.estimatedMinutes = data.estimatedMinutes ?? data.estimated_minutes ?? null;
+        this.notesCount = data.notesCount ?? data.notes_count ?? 0;
     }
 
     update(data: TaskUpdateData) {
@@ -157,6 +158,12 @@ abstract class Task extends Base {
      */
     public estimatedMinutes: number | null = null;
 
+    /**
+     * How many notes the task has, so its card can say there is more inside. Counted by the
+     * server and corrected here whenever the task's notes are opened. Never sent back.
+     */
+    public notesCount: number = 0;
+
     toApiPayload(): Record<string, any> {
         const weekly = this instanceof WeeklyTask ? this : null;
 
@@ -208,6 +215,7 @@ abstract class Task extends Base {
             updatedAt: data.updated_at ?? null,
             deferralCount: data.deferral_count ?? 0,
             estimatedMinutes: data.estimated_minutes ?? null,
+            notesCount: data.notes_count ?? 0,
         };
 
         if (data.week_number) {

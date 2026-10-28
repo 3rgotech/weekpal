@@ -130,3 +130,33 @@ describe("a task linked to a project", () => {
         expect(screen.getByRole("heading").textContent).toBe("Fix the badge");
     });
 });
+
+describe("signs that a task holds more than its card shows", () => {
+    const withMore = (data: Record<string, unknown>) => new WeeklyTask({
+        title: "Book the van", weekCode: "2026w01", dayOfWeek: "1", ...data,
+    });
+
+    it("marks a task with a description", () => {
+        render(<TaskContent task={withMore({ description: "Ask about the roof rack" })} />);
+
+        expect(screen.getByRole("img", { name: "task.has_description" })).toBeTruthy();
+    });
+
+    it("ignores a description that is only whitespace", () => {
+        render(<TaskContent task={withMore({ description: "  \n " })} />);
+
+        expect(screen.queryByRole("img", { name: "task.has_description" })).toBeNull();
+    });
+
+    it("counts a task's notes", () => {
+        render(<TaskContent task={withMore({ notesCount: 2 })} />);
+
+        expect(screen.getByRole("img", { name: "task.notes_count" }).textContent).toBe("2");
+    });
+
+    it("shows neither on a task with nothing inside", () => {
+        render(<TaskContent task={withMore({})} />);
+
+        expect(screen.queryByRole("img")).toBeNull();
+    });
+});

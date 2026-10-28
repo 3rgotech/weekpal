@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@jest/globals";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import TaskActivity from "../TaskActivity";
 import Category from "../../data/category";
@@ -21,7 +21,8 @@ jest.mock("../../utils/dayjs", () => ({
 }));
 
 const data = {
-    noteStore: { list: () => Promise.resolve([]) },
+    noteStore: { list: (): Promise<unknown[]> => Promise.resolve([]) },
+    setNotesCount: jest.fn(),
     historyAdapter: {
         list: () => Promise.resolve([
             new HistoryEntry({
@@ -59,5 +60,14 @@ describe("a task's history", () => {
         fireEvent.click(screen.getByRole("tab", { name: /task.history/ }));
 
         expect(await screen.findByText(/main\.this_week → Thursday/)).toBeTruthy();
+    });
+
+    it("corrects the card's notes count from the notes it reads", async () => {
+        data.noteStore.list = () => Promise.resolve([{ id: "n1" }, { id: "n2" }]);
+        const task = new WeeklyTask({ title: "Fix it", weekCode: "2026w01", dayOfWeek: "1" });
+
+        render(<TaskActivity task={task} />);
+
+        await waitFor(() => expect(data.setNotesCount).toHaveBeenCalledWith(task, 2));
     });
 });

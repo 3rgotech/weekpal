@@ -1,5 +1,5 @@
 import React from "react";
-import { Clock3, Folder } from "lucide-react";
+import { AlignLeft, Clock3, Folder, MessageSquare } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
 import Task from "../data/task";
@@ -43,7 +43,11 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
   const subtaskLabel = subtaskProgressLabel(settings.subtaskDisplay, done, total);
 
   const estimate = formatEstimate(task.estimatedMinutes)?.replace(/^~/, "") ?? null;
+  // Signposts that the card is not the whole task: there is text, or a conversation, inside.
+  const hasDescription = (task.description ?? "").trim() !== "";
+  const notesCount = task.notesCount ?? 0;
   const hasMeta = category !== undefined || estimate !== null || subtaskLabel !== null
+    || hasDescription || notesCount > 0
     || (!task.completed && deferralTier(task.deferralCount) !== "none");
 
   return (
@@ -114,6 +118,29 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
             <span className="inline-flex items-center gap-1 text-[11px] font-medium leading-4 text-wp-muted tabular-nums">
               <Clock3 size={11} aria-hidden="true" />
               {estimate}
+            </span>
+          )}
+
+          {hasDescription && (
+            <span
+              className="inline-flex items-center text-wp-muted"
+              title={t("task.has_description")}
+              aria-label={t("task.has_description")}
+              role="img"
+            >
+              <AlignLeft size={12} aria-hidden="true" />
+            </span>
+          )}
+
+          {notesCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-medium leading-4 text-wp-muted tabular-nums"
+              title={t("task.notes_count", { count: notesCount })}
+              aria-label={t("task.notes_count", { count: notesCount })}
+              role="img"
+            >
+              <MessageSquare size={11} aria-hidden="true" />
+              {notesCount}
             </span>
           )}
 
