@@ -501,7 +501,7 @@
     },
     "buckets": {
       "title": "Pour ce qui n'a pas encore de jour",
-      "body": "Cette semaine, pour ce qui doit être fait avant dimanche sans tomber un matin précis. Un jour, pour la liste que vous ne traitez pas encore."
+      "body": "« Cette semaine », pour ce qui doit être fait avant dimanche sans tomber un matin précis. « Un jour », pour la liste que vous ne traitez pas encore."
     },
     "leftovers": {
       "title": "Ce que vous avez laissé derrière",
@@ -517,7 +517,7 @@
     },
     "tabs": {
       "title": "Le reste de la semaine",
-      "body": "Chaque jour est un onglet ici, avec Cette semaine pour ce qui n'a pas de jour et Un jour pour ce qui n'a pas de semaine. Touchez le nom de la semaine pour revenir à aujourd'hui."
+      "body": "Chaque jour est un onglet ici, avec « Cette semaine » pour ce qui n'a pas de jour et « Un jour » pour ce qui n'a pas de semaine. Touchez le nom de la semaine pour revenir à aujourd'hui."
     },
     "menu": {
       "title": "Tout le reste",

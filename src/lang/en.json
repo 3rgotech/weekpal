@@ -501,7 +501,7 @@
     },
     "buckets": {
       "title": "For what has no day yet",
-      "body": "This week holds things due before Sunday but not on any particular morning. Some day is the shortlist you're not working from yet."
+      "body": "“This week” holds things due before Sunday but not on any particular morning. “Some day” is the shortlist you're not working from yet."
     },
     "leftovers": {
       "title": "What you left behind",
@@ -517,7 +517,7 @@
     },
     "tabs": {
       "title": "The rest of the week",
-      "body": "Every day is a tab along here, plus This week for what has no day and Some day for what has no week. Tap the week's name to come back to today."
+      "body": "Every day is a tab along here, plus “This week” for what has no day and “Some day” for what has no week. Tap the week's name to come back to today."
     },
     "menu": {
       "title": "Everything else",
