@@ -496,31 +496,31 @@
     "replay": "Refaire la visite",
     "week": {
       "title": "Une semaine à la fois",
-      "body": "Voici la semaine que vous planifiez. Les flèches vous déplacent d'une semaine, « Aujourd'hui » vous ramène à celle-ci."
+      "body": "Voici la semaine que vous organisez. Les flèches passent à la semaine précédente ou suivante, et « Aujourd'hui » vous ramène à la semaine en cours."
     },
     "columns": {
       "title": "Une colonne par jour",
-      "body": "Écrivez une tâche dans le jour où vous comptez la faire. Glissez-la ailleurs quand le jour change d'avis — c'est tout le principe."
+      "body": "Notez chaque tâche le jour où vous prévoyez de la faire. Si vos plans changent, faites-la simplement glisser vers un autre jour."
     },
     "buckets": {
-      "title": "Pour ce qui n'a pas encore de jour",
-      "body": "« Cette semaine », pour ce qui doit être fait avant dimanche sans tomber un matin précis. « Un jour », pour la liste que vous ne traitez pas encore."
+      "title": "Pas encore de jour précis ?",
+      "body": "« Cette semaine » accueille ce qui doit être fait d'ici dimanche, sans jour fixé. « Un jour » garde de côté ce que vous ferez plus tard, sans date."
     },
     "leftovers": {
       "title": "Les tâches inachevées",
-      "body": "Les tâches inachevées ne disparaissent pas à minuit. Une fois par semaine, celles qui attendent encore vous sont montrées, et vous décidez de leur sort."
+      "body": "Une tâche non terminée ne disparaît pas. Chaque semaine, WeekPal vous présente celles qui restent, et vous choisissez quoi en faire."
     },
     "settings": {
-      "title": "À votre main",
-      "body": "Vos jours travaillés, la durée d'une journée, ce qui fait une journée pleine. Les nouveautés sont ici aussi."
+      "title": "Adaptez WeekPal à votre rythme",
+      "body": "Choisissez vos jours travaillés, la durée de vos journées et ce qui fait une journée bien remplie. Vous y trouverez aussi les nouveautés."
     },
     "day": {
-      "title": "Un jour à la fois",
-      "body": "Sur téléphone, un seul jour s'affiche : ses tâches, et à quel point il est déjà rempli."
+      "title": "Une journée à la fois",
+      "body": "Sur téléphone, vous voyez une journée à la fois : ses tâches, et à quel point elle est déjà remplie."
     },
     "tabs": {
       "title": "Le reste de la semaine",
-      "body": "Chaque jour est un onglet ici, avec « Cette semaine » pour ce qui n'a pas de jour et « Un jour » pour ce qui n'a pas de semaine. Touchez le nom de la semaine pour revenir à aujourd'hui."
+      "body": "Chaque jour a son onglet, avec « Cette semaine » pour les tâches sans jour fixé et « Un jour » pour celles sans date. Touchez le nom de la semaine pour revenir à aujourd'hui."
     },
     "menu": {
       "title": "Tout le reste",

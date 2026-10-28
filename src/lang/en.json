@@ -500,23 +500,23 @@
     },
     "columns": {
       "title": "A column per day",
-      "body": "Write a task into the day you mean to do it. Drag it to another day when the day changes its mind — that's the whole idea."
+      "body": "Write each task on the day you plan to do it. If plans change, just drag it to another day."
     },
     "buckets": {
-      "title": "For what has no day yet",
-      "body": "“This week” holds things due before Sunday but not on any particular morning. “Some day” is the shortlist you're not working from yet."
+      "title": "No day in mind yet?",
+      "body": "“This week” holds what needs doing by Sunday, on no particular day. “Some day” keeps what you'll get to later, with no date."
     },
     "leftovers": {
-      "title": "What you left behind",
-      "body": "Unfinished tasks don't quietly vanish at midnight. Once a week this shows you what's still waiting, and you decide where it goes."
+      "title": "Tasks left behind",
+      "body": "An unfinished task never just disappears. Each week, WeekPal shows you the ones still waiting, and you choose what to do with them."
     },
     "settings": {
       "title": "Make it yours",
-      "body": "Which days you work, how long a working day is, what counts as a full one. The release notes live here too."
+      "body": "Choose your working days, how long your days are and what makes a full one. You'll find what's new here too."
     },
     "day": {
       "title": "One day at a time",
-      "body": "A phone shows a single day: its tasks, and how full it already is."
+      "body": "On a phone you see one day at a time: its tasks, and how full it already is."
     },
     "tabs": {
       "title": "The rest of the week",
