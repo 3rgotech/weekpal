@@ -75,10 +75,24 @@ export const DEFAULT_SETTINGS: Settings = {
     timezone: null,
 }
 
-/** The briefing's times: every quarter of an hour, which is how often the server looks. */
-export const BRIEFING_TIMES: string[] = Array.from({ length: 96 }, (_, index) => (
+/**
+ * The times a briefing or a task reminder can be set to: every quarter of an hour, which is how
+ * often the server looks.
+ */
+export const QUARTER_HOURS: string[] = Array.from({ length: 96 }, (_, index) => (
     `${String(Math.floor(index / 4)).padStart(2, "0")}:${String((index % 4) * 15).padStart(2, "0")}`
 ));
+
+/**
+ * "08:15" as this language writes a time: 8:15 AM, 08:15. Intl rather than dayjs's "LT", which
+ * needs a plugin the board does not load and prints the letters "LT" without it.
+ */
+export function timeLabel(language: string, time: string): string {
+    const [hour, minute] = time.split(":").map(Number);
+
+    return new Intl.DateTimeFormat(language, { hour: "numeric", minute: "2-digit" })
+        .format(new Date(2000, 0, 1, hour, minute));
+}
 
 /**
  * A complete settings object out of whatever was in storage.
@@ -110,7 +124,7 @@ export function withDefaults(stored: Partial<Settings> | null | undefined): Sett
             : 0,
         briefingEnabled: stored?.briefingEnabled === true,
         briefingDays: normaliseWorkingDays(stored?.briefingDays),
-        briefingTime: BRIEFING_TIMES.includes(stored?.briefingTime as string)
+        briefingTime: QUARTER_HOURS.includes(stored?.briefingTime as string)
             ? (stored!.briefingTime as string)
             : DEFAULT_SETTINGS.briefingTime,
         briefingWhenEmpty: stored?.briefingWhenEmpty === true,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Button, Label, ListBox, Select } from "@heroui/react";
 import type { Key } from "react-aria-components";
 import clsx from "clsx";
@@ -6,19 +6,16 @@ import { Check } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSettings } from "../contexts/SettingsContext";
 import { useAccount } from "../contexts/AccountContext";
-import { useData } from "../contexts/DataContext";
-import { getEnvConfig } from "../utils/env";
-import { BRIEFING_TIMES } from "../utils/settings";
+import { QUARTER_HOURS, timeLabel } from "../utils/settings";
 import { Weekday, orderedWeekdays, toggleWorkingDay } from "../utils/week";
-import { browserTimezone, isBrave, isSubscribed, pushSupport, subscribeThisDevice } from "../utils/push";
+import { browserTimezone } from "../utils/push";
+import { pushProblemKey, usePushDevice } from "../utils/usePushDevice";
 import { Row, Segmented } from "./SettingsRow";
 
 interface BriefingSettingsProps {
     /** A weekday's name in the board's language, as the rest of the dialog prints them. */
     nameOf: (day: Weekday, format: string) => string;
 }
-
-type Problem = "denied" | "unsupported" | "failed" | "brave" | null;
 
 /**
  * The morning briefing: on or off, which days, what time, and whether an empty day gets one.
@@ -35,62 +32,8 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
     const { t } = useTranslation();
     const { subscribed } = useAccount();
     const { settings, updateSettings } = useSettings();
-    const { pushAdapter } = useData();
-    const { webPushKey } = getEnvConfig();
-
-    /**
-     * "08:15" as this language writes a time: 8:15 AM, 08:15. Intl rather than dayjs's "LT",
-     * which needs a plugin the board does not load and prints the letters "LT" without it.
-     */
-    const timeFormat = new Intl.DateTimeFormat(settings.language, { hour: "numeric", minute: "2-digit" });
-    const timeLabel = (time: string) => {
-        const [hour, minute] = time.split(":").map(Number);
-
-        return timeFormat.format(new Date(2000, 0, 1, hour, minute));
-    };
-
-    const [deviceOn, setDeviceOn] = useState<boolean | null>(null);
-    const [busy, setBusy] = useState(false);
-    const [problem, setProblem] = useState<Problem>(null);
-
-    const support = pushSupport();
-    // No server to send it, or no key to subscribe with: a demo board, or a server not set up yet.
-    const available = pushAdapter !== null && webPushKey !== undefined;
+    const { support, available, deviceOn, busy, problem, receiveHere } = usePushDevice();
     const usable = subscribed && available && support === "ready";
-
-    useEffect(() => {
-        void isSubscribed().then(setDeviceOn).catch(() => setDeviceOn(false));
-    }, []);
-
-    const receiveHere = async (): Promise<boolean> => {
-        if (!pushAdapter || !webPushKey) {
-            return false;
-        }
-
-        setBusy(true);
-        setProblem(null);
-
-        try {
-            const outcome = await subscribeThisDevice(webPushKey, pushAdapter);
-
-            if (outcome !== "subscribed") {
-                setProblem(outcome);
-
-                return false;
-            }
-
-            setDeviceOn(true);
-
-            return true;
-        } catch (error) {
-            console.error("Could not turn on notifications for this device:", error);
-            setProblem(isBrave() ? "brave" : "failed");
-
-            return false;
-        } finally {
-            setBusy(false);
-        }
-    };
 
     const switchOn = async () => {
         if (await receiveHere()) {
@@ -105,31 +48,9 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
             return t("settings.briefing.pro");
         }
 
-        if (!available) {
-            return t("settings.briefing.unavailable");
-        }
+        const key = pushProblemKey({ support, available, problem });
 
-        if (support === "install") {
-            return t("settings.briefing.install");
-        }
-
-        if (support === "denied" || problem === "denied") {
-            return t("settings.briefing.denied");
-        }
-
-        if (support === "unsupported" || problem === "unsupported") {
-            return t("settings.briefing.unsupported");
-        }
-
-        if (problem === "brave") {
-            return t("settings.briefing.brave");
-        }
-
-        if (problem === "failed") {
-            return t("settings.briefing.failed");
-        }
-
-        return null;
+        return key ? t(key) : null;
     })();
 
     const on = subscribed && settings.briefingEnabled;
@@ -217,9 +138,9 @@ const BriefingSettings: React.FC<BriefingSettingsProps> = ({ nameOf }) => {
                             </Select.Trigger>
                             <Select.Popover>
                                 <ListBox>
-                                    {BRIEFING_TIMES.map((time) => (
-                                        <ListBox.Item key={time} id={time} textValue={timeLabel(time)}>
-                                            <Label>{timeLabel(time)}</Label>
+                                    {QUARTER_HOURS.map((time) => (
+                                        <ListBox.Item key={time} id={time} textValue={timeLabel(settings.language, time)}>
+                                            <Label>{timeLabel(settings.language, time)}</Label>
                                         </ListBox.Item>
                                     ))}
                                 </ListBox>
