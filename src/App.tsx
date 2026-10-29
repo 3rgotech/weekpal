@@ -14,6 +14,7 @@ import SettingsModal from "./components/SettingsModal";
 import LimitReachedModal from "./components/LimitReachedModal";
 import EscapeHatch from "./components/EscapeHatch";
 import Ambient from "./components/Ambient";
+import TaskLink from "./components/TaskLink";
 import "./i18n";
 import SplashScreen from "./components/SplashScreen";
 import DemoModal from "./components/DemoModal";
@@ -222,6 +223,8 @@ function App() {
                       channel, and they are the only way the board reaches somebody who is
                       looking at a different tab. */}
                   <Ambient />
+                  {/* Renders nothing either: opens the task a reminder's push points at. */}
+                  <TaskLink />
                 {splashScreen ? (
                   <SplashScreen onDone={onSplashDone} />
                 ) : (
