@@ -45,6 +45,7 @@ export function claimEverything(): DirtyMap {
         category_id: at,
         project_id: at,
         estimated_minutes: at,
+        reminder_time: at,
         completed_at: at,
         subtasks: at,
         position: at,
@@ -93,6 +94,10 @@ export function dirtyBetween(previous: Task | undefined, next: Task): DirtyMap {
 
     if ((previous.estimatedMinutes ?? null) !== (next.estimatedMinutes ?? null)) {
         dirty.estimated_minutes = at;
+    }
+
+    if ((previous.reminderTime ?? null) !== (next.reminderTime ?? null)) {
+        dirty.reminder_time = at;
     }
 
     // Compared as a whole, and sent as a whole. A JSON array cannot be merged field-wise without

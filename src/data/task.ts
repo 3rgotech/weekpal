@@ -12,6 +12,8 @@ interface TaskUpdateData {
     estimatedMinutes?: number | null;
     /** Null is a real value here too — it takes the task out of its project. */
     projectId?: string | null;
+    /** "HH:MM", or null to take the reminder off. */
+    reminderTime?: string | null;
 }
 
 abstract class Task extends Base {
@@ -42,6 +44,7 @@ abstract class Task extends Base {
         // from a Dexie row depending on where it came from.
         this.deferralCount = data.deferralCount ?? data.deferral_count ?? 0;
         this.estimatedMinutes = data.estimatedMinutes ?? data.estimated_minutes ?? null;
+        this.reminderTime = data.reminderTime ?? data.reminder_time ?? null;
         this.notesCount = data.notesCount ?? data.notes_count ?? 0;
     }
 
@@ -70,6 +73,9 @@ abstract class Task extends Base {
         // category it implies, and never the project itself.
         if (data.projectId !== undefined) {
             this.projectId = data.projectId;
+        }
+        if (data.reminderTime !== undefined) {
+            this.reminderTime = data.reminderTime;
         }
     }
 
@@ -127,6 +133,7 @@ abstract class Task extends Base {
             projectId: this.projectId,
             order: this.order,
             estimatedMinutes: this.estimatedMinutes,
+            reminderTime: this.reminderTime,
             subtasks: this.subtasks,
             createdAt: this.createdAt?.toISOString() ?? null,
             updatedAt: this.updatedAt?.toISOString() ?? null,
@@ -159,6 +166,14 @@ abstract class Task extends Base {
     public estimatedMinutes: number | null = null;
 
     /**
+     * When to push a reminder on the task's own day, as "HH:MM" in quarter hours, or null for
+     * none. Only the time: the day is the task's, so moving the task moves the reminder. Pro.
+     *
+     * A real property, like `estimatedMinutes`, so Dexie stores it.
+     */
+    public reminderTime: string | null = null;
+
+    /**
      * How many notes the task has, so its card can say there is more inside. Counted by the
      * server and corrected here whenever the task's notes are opened. Never sent back.
      */
@@ -177,6 +192,7 @@ abstract class Task extends Base {
             day_of_week: weekly ? parseInt(`${weekly.dayOfWeek}`, 10) : null,
             order: this.order ?? 0,
             estimated_minutes: this.estimatedMinutes,
+            reminder_time: this.reminderTime,
             subtasks: this.subtasks,
             completed_at: this.completedAt?.toISOString() ?? null,
         };
@@ -215,6 +231,7 @@ abstract class Task extends Base {
             updatedAt: data.updated_at ?? null,
             deferralCount: data.deferral_count ?? 0,
             estimatedMinutes: data.estimated_minutes ?? null,
+            reminderTime: data.reminder_time ?? null,
             notesCount: data.notes_count ?? 0,
         };
 

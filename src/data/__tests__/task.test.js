@@ -185,3 +185,27 @@ describe("Task.update", () => {
     expect(task.projectId).toBe("01930000-0000-7000-8000-0000000000aa");
   });
 });
+
+describe("a task's reminder", () => {
+  it("survives the trip to the API and back, and through local storage", () => {
+    const task = Task.createFromApiData({ id: "01930000-0000-7000-8000-000000000001", title: "Call", week_number: "2026w43", day_of_week: 3, reminder_time: "14:30" });
+
+    expect(task.reminderTime).toBe("14:30");
+    expect(task.toApiPayload().reminder_time).toBe("14:30");
+    expect(new WeeklyTask(task.serialize()).reminderTime).toBe("14:30");
+  });
+
+  it("is none until one is set, and comes off when cleared", () => {
+    const task = new WeeklyTask({ title: "Call", weekCode: "2026w43", dayOfWeek: "3" });
+    expect(task.reminderTime).toBeNull();
+
+    task.update({ reminderTime: "09:15" });
+    expect(task.reminderTime).toBe("09:15");
+
+    task.update({ title: "Call back" });
+    expect(task.reminderTime).toBe("09:15");
+
+    task.update({ reminderTime: null });
+    expect(task.reminderTime).toBeNull();
+  });
+});

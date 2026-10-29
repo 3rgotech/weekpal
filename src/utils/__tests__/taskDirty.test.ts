@@ -25,6 +25,12 @@ const weekly = (overrides: Record<string, any> = {}) => new WeeklyTask({
 const fields = (map: Record<string, string>) => Object.keys(map).sort();
 
 describe("diffing a write against what is stored", () => {
+    it("claims the reminder when its time is set, changed or cleared", () => {
+        expect(fields(dirtyBetween(weekly(), weekly({ reminderTime: "14:30" })))).toEqual(["reminder_time"]);
+        expect(fields(dirtyBetween(weekly({ reminderTime: "14:30" }), weekly({ reminderTime: "15:00" })))).toEqual(["reminder_time"]);
+        expect(fields(dirtyBetween(weekly({ reminderTime: "14:30" }), weekly()))).toEqual(["reminder_time"]);
+    });
+
     it("claims everything for a task the database has never seen", () => {
         // Nothing to diff against, and nothing on the server to lose to.
         expect(fields(dirtyBetween(undefined, weekly()))).toEqual(
