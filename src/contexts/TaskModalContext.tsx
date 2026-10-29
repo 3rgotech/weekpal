@@ -20,6 +20,7 @@ import TaskActivity from "../components/TaskActivity";
 import SubtaskEditor from "../components/SubtaskEditor";
 import DescriptionEditor from "../components/DescriptionEditor";
 import EstimatePicker from "../components/EstimatePicker";
+import ReminderPicker from "../components/ReminderPicker";
 import TaskMenu from "../components/TaskMenu";
 import { useVerticalLayout } from "../utils/layout";
 import { Check, X } from "lucide-react";
@@ -298,6 +299,14 @@ const TaskModalProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
                 <EstimatePicker
                   value={data.estimatedMinutes ?? null}
                   onChange={(minutes) => setData(prev => ({ ...prev, estimatedMinutes: minutes }))}
+                />
+
+                {/* Under the estimate: another fact about when the task gets done. Kept on a task
+                    moved off its day, and offered again once it is back on one. */}
+                <ReminderPicker
+                  value={data.reminderTime ?? null}
+                  onChange={(reminderTime) => setData(prev => ({ ...prev, reminderTime }))}
+                  hasDay={task instanceof WeeklyTask && `${task.dayOfWeek}` !== "0"}
                 />
 
                 <SubtaskEditor

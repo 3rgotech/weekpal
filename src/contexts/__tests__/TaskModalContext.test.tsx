@@ -21,6 +21,7 @@ jest.mock("../../utils/layout", () => ({ useVerticalLayout: () => false }));
 jest.mock("../../components/TaskActivity", () => ({ __esModule: true, default: () => null }));
 jest.mock("../../components/SubtaskEditor", () => ({ __esModule: true, default: () => null }));
 jest.mock("../../components/EstimatePicker", () => ({ __esModule: true, default: () => null }));
+jest.mock("../../components/ReminderPicker", () => ({ __esModule: true, default: () => null }));
 jest.mock("../../components/DescriptionEditor", () => ({
     __esModule: true,
     default: ({ value, onChange }: { value: string; onChange: (next: string) => void }) => (

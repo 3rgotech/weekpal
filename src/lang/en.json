@@ -243,7 +243,16 @@
     },
     "has_description": "Has a description",
     "notes_count_one": "{{count}} note",
-    "notes_count_other": "{{count}} notes"
+    "notes_count_other": "{{count}} notes",
+    "reminder": {
+      "label": "Reminder",
+      "none": "No reminder",
+      "clear": "Remove the reminder",
+      "needs_day": "Put the task on a day to set a reminder.",
+      "pro": "Task reminders are part of Pro.",
+      "not_here": "This device doesn't receive reminders yet.",
+      "at": "Reminder at {{time}}"
+    }
   },
   "misc": {
     "of": "of",

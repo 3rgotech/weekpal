@@ -1,11 +1,11 @@
 import React from "react";
-import { AlignLeft, Clock3, Folder, MessageSquare } from "lucide-react";
+import { AlignLeft, Bell, Clock3, Folder, MessageSquare } from "lucide-react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
-import Task from "../data/task";
+import Task, { WeeklyTask } from "../data/task";
 import { useData } from "../contexts/DataContext";
 import { useSettings } from "../contexts/SettingsContext";
-import { subtaskProgressLabel } from "../utils/settings";
+import { subtaskProgressLabel, timeLabel } from "../utils/settings";
 import DeferralBadge from "./DeferralBadge";
 import CategoryTag from "./CategoryTag";
 import { formatEstimate } from "../utils/estimate";
@@ -46,7 +46,11 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
   // Signposts that the card is not the whole task: there is text, or a conversation, inside.
   const hasDescription = (task.description ?? "").trim() !== "";
   const notesCount = task.notesCount ?? 0;
-  const hasMeta = category !== undefined || estimate !== null || subtaskLabel !== null
+  // Only where it will ring: on a day, and not done yet.
+  const reminder = task.reminderTime && !task.completed && task instanceof WeeklyTask && `${task.dayOfWeek}` !== "0"
+    ? timeLabel(settings.language, task.reminderTime)
+    : null;
+  const hasMeta = category !== undefined || estimate !== null || reminder !== null || subtaskLabel !== null
     || hasDescription || notesCount > 0
     || (!task.completed && deferralTier(task.deferralCount) !== "none");
 
@@ -118,6 +122,16 @@ const TaskContent: React.FC<TaskContentProps> = ({ task, onOpenEscape, size = "s
             <span className="inline-flex items-center gap-1 text-[11px] font-medium leading-4 text-wp-muted tabular-nums">
               <Clock3 size={11} aria-hidden="true" />
               {estimate}
+            </span>
+          )}
+
+          {reminder && (
+            <span
+              className="inline-flex items-center gap-1 text-[11px] font-medium leading-4 text-wp-muted tabular-nums"
+              title={t("task.reminder.at", { time: reminder })}
+            >
+              <Bell size={11} aria-hidden="true" />
+              {reminder}
             </span>
           )}
 

@@ -233,7 +233,16 @@
     },
     "has_description": "Contient une description",
     "notes_count_one": "{{count}} note",
-    "notes_count_other": "{{count}} notes"
+    "notes_count_other": "{{count}} notes",
+    "reminder": {
+      "label": "Rappel",
+      "none": "Aucun rappel",
+      "clear": "Retirer le rappel",
+      "needs_day": "Placez la tâche sur un jour pour lui ajouter un rappel.",
+      "pro": "Les rappels de tâches font partie de Pro.",
+      "not_here": "Cet appareil ne reçoit pas encore les rappels.",
+      "at": "Rappel à {{time}}"
+    }
   },
   "misc": {
     "of": "de",

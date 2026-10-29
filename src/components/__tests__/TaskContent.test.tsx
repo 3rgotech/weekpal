@@ -160,3 +160,22 @@ describe("signs that a task holds more than its card shows", () => {
         expect(screen.queryByRole("img")).toBeNull();
     });
 });
+
+describe("the reminder on a task", () => {
+    const reminded = (overrides: Record<string, unknown> = {}) =>
+        new WeeklyTask({ title: "Call the bank", weekCode: "2026w43", dayOfWeek: "3", reminderTime: "14:30", ...overrides });
+
+    it("shows its time where it will ring", () => {
+        render(<TaskContent task={reminded()} />);
+
+        expect(screen.getByTitle("task.reminder.at")).toHaveTextContent(/2:30|14:30/);
+    });
+
+    it("is not shown on a done task, or one with no day", () => {
+        const { rerender } = render(<TaskContent task={reminded({ completedAt: "2026-10-21T10:00:00Z" })} />);
+        expect(screen.queryByTitle("task.reminder.at")).not.toBeInTheDocument();
+
+        rerender(<TaskContent task={reminded({ dayOfWeek: "0" })} />);
+        expect(screen.queryByTitle("task.reminder.at")).not.toBeInTheDocument();
+    });
+});
